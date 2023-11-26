@@ -1,0 +1,11 @@
+project:
+  title: 'Vorlesung "Datenanalyse in der Biologie"'
+  type: website
+  output-dir: _html
+
+toc:
+  true
+
+execute:
+  freeze: auto
+
