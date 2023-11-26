@@ -1,0 +1,481 @@
+---
+title: "Erste Schritte mit R (Teil 2)"
+format:
+  html:
+    toc: true
+---
+  
+Vorlesung "Datenanalyse in der Biologie"
+
+# Erste Schritte mit R (Teil 2)
+
+## Variablen
+
+In R (wie auch in den meisten anderen Programmiersprachen) kann Daten (einzelne
+Werte, aber auch Größeres) im Arbeitsspeicher ablegen und mit einem Namen versehen 
+und so eine *Variable* erzeugen.
+
+Wir erstellen eine Variable mit dem Namen `a`, der wir den Wert 7 zuweisen:
+
+```{r}
+a <- 7
+```
+
+Die Variable wird nun im Environment (Pane rechts oben in RStudio) aufgeführt.
+
+Wir können den Wert der Variablen einsehen, indem wir ihren Namen verwenden:
+
+```{r}
+a
+```
+Wir können die Variable auch in arithmetischen Ausdrücken verwenden, z.B.:
+
+```{r}
+3*a + 1 
+```
+Hier ersetzt R die Variable `a` durch ihren Wert 7 und führt dann die Rechnung durch.
+
+Der Begriff "Variable" rührt daher, dass man den Wert einer Variablen ändern kann,
+einfach, indem man einen neuen Wert zuweist:
+
+```{r}
+a <- 10
+```
+
+Derselbe Ausdruck wie zuvor ergibt nun ein anderes Ergebnis:
+
+```{r}
+3*a + 1
+```
+
+Der Pfeil `<-` heisst "Zuweisungs-Operator" (*assignment operator*). Er weist einer
+Variablen einen Wert zu (*assigns a value to a variable*). 
+
+Der Pfeil kann auch andersherum geschrieben werden. Er weist stets vom Wert zum 
+Variablen-Namen:
+
+```{r}
+a <- 10
+```
+
+ist dasselbe wie
+
+```{r}
+10 -> a
+```
+
+Als dritte Möglichkeit kann man auch
+```{r}
+a = 10
+```
+schreiben, d.h., `=` wird wie `<-` gelesen.
+
+### Beispiel: Die Lösungsformel für quadratische Gleichungen:
+
+Sicher erinnern Sie sich an diese Formel aus der Schule, um die Lösungen der 
+quadratischen Gleichung $ax^2 + bx + c = 0$ zu finden:
+
+$$ x_{1;2} = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} $$
+
+Wir schreiben die Formel in R-Notation. Zunächst lesen wir das "$\pm$" als "+":
+
+```r
+( -b + sqrt( b^2 - 4*a*c ) ) / ( 2*a )
+```
+
+Wenn wir dies ausführen, beschwert sich R: `Error: object 'b' not found`
+
+R kann den Ausdruck nicht ausrechnen, da nur für `a` ein Wert vorliegt, nicht aber 
+für `b` (und auch nicht für `c`).
+
+Lösen wir die Gleichung $3x^2 + 5x - 3 = 0$. Wir weisen die Werte der Koeffizienten 
+Variablen zu, die die Namen `a`, `b` und `c` tragen:
+
+```{r}
+a <- 3
+b <- 5
+c <- -3
+```
+
+Nun liefert under Ausdrick die erste Lösung
+```{r}
+( -b + sqrt( b^2 - 4*a*c ) ) / ( 2*a )
+```
+
+Die zweite Lösung finden wir, indem wir das "$\pm$" als "$-$" schreiben:
+
+```{r}
+( -b - sqrt( b^2 - 4*a*c ) ) / ( 2*a )
+```
+
+### Namen
+
+Der Name einer Variable muss kein einzelner Buchstabe sein:
+
+```{r}
+ein_langer_name <- 15
+```
+
+Auch so ein langer Name kann in einem Ausdruck stehen:
+
+```{r}
+2 * ein_langer_name + 1
+```
+
+Für die Variablen-Namen (fachsprachlich *identifiers*) gelten folgende Regeln:
+
+- Nur Buchstaben und Ziffern sind erlaubt, sowie der Unterstrich (`_`) und der 
+  Punkt (`.`).
+  
+- Der Name darf nicht mit einer Ziffer beginnen.
+
+### Aufgabe
+
+Berechnen Sie die beiden Lösungen der quadratischen Gleichung $2x^2 - 3x - 6\frac{1}{2} = 0$. Weisen Sie
+die beiden Lösungen den Variablen `x1` und `x2` zu. Setzten Sie dann die Variablen in die Gleichung
+ein, um zu prüfen, ob man wirklich 0 erhält ("Probe").
+
+Was geschieht, wenn Sie in der Gleichung den konstanten Term von $-6$ auf $6$ abändern? Warum?
+
+
+## Andere Datentypen
+
+Jeder Variable hat einen Daten-Typ (*data type*):
+
+Normale Zahlen haben den Typ "numeric", auch "double" genannt. ("Double" steht für
+"double-precision floating-point number"; das ist das Standardformat, in dem 
+Computer Kommazahlen speichern.)
+
+```{r}
+class(a)
+```
+
+Machmal findet man auch den Typ "integer" (Ganzzahl).
+
+EIn besonderer Datentyp ist "logical", auch "Boolean" genannt. Das ist der
+Typ der TRUE/FALSE antworten auf unsere Vergleiche:
+
+```{r}
+7 > 3
+```
+
+```{r}
+class( 7 > 3 )
+```
+
+```{r}
+class( TRUE )
+```
+
+## Character strings
+
+Wichtiger ist aber der Typ "Zeichenkette" (engl. *string of characters", in der
+Informatik normalerweise kurz als *string* bezeichnet, in R aber abgekürzt als
+*character*):
+
+```{r}
+s <- "hello"
+```
+
+Eine Zeichenkette muss stets in Anführunsgzeichen (double quotes, `"..."`) gesetzt werden.
+
+Wenn man
+```r
+s <- hello
+```
+schreibt, denkt R, dass man eine Variable mit dem Namen `hello` meint und beschwert sich, dass
+diese nicht definiert wurde.
+
+Vergleichen Sie
+
+```{r}
+ss <- "a"
+ss
+```
+
+```{r}
+ss <- a
+ss
+```
+
+Mit Ziechenketten kann man natürlich nicht rechnen:
+
+```r
+"Hello" + 17
+```
+
+Hier beschwert sich R: `Error in "Hello" + 17 : non-numeric argument to binary operator`, d.h.,
+es bemängelt, dass "Hello" keine Zahl ist und man damit nicht addieren kann.
+
+Es gibt aber Funktionen, die nützliches mit Strings anfangen können:
+
+Anzahl der Zeichen (number of characters)
+
+```{r}
+nchar( "Hello" )
+```
+Umwandlung in Grossbuchstaben (to upper case)
+```{r}
+toupper( "Hello" )
+```
+Zusamenfügen von Strings:
+```{r}
+paste( "Hello", "world" )
+```
+und vieles mehr.
+
+## Vektoren
+
+Daten kommen selten allein. Mit der Funktion `c` (für "concatenate") können wir mehrere Werte 
+(desselben Datentyps) zu einem sog. "Vektor" zusammenstellen:
+
+```{r}
+v <- c( 3, 5, 2, 7, -1, 2.5, 3 )
+```
+
+Die Variable `v` enthält nun nicht einen Wert sondern sieben:
+
+```{r}
+v
+```
+
+Wir können mit eckigen Klammern (*square brackets*) auf einzelne Werte
+zugreifen, z.B. auf den vierten Wert (immer von links):
+
+```{r}
+v[4]
+```
+
+### Vektor-Operationen
+
+Viele Operationen in R können auch mit Vektoren arbeiten. Hier zählen wir
+z.B. zu jedem Wert in `v` 1 hinzu:
+
+```{r}
+v+1
+```
+
+Oder wir fragen, welche Werte größer als 3 sind:
+
+```{r}
+v > 3
+```
+
+und erhalten eine Vektor von "logical"-Werten.
+
+Nun erstellen wir einen zweiten Vektor, `w`, mit den Zahlen von 1 bis 7, und benutzne
+dafür die Abkúrzung `1:7`:
+
+```{r}
+w <- 1:7
+w
+```
+Nun können wir v und w *element-weise* addieren:
+
+```{r}
+v + w
+```
+
+Funktionen wirken oft auch element-weise.
+
+Beispiel: Wir schieben jedes Element in `v` durch die Exponentialfunktion:
+
+```{r}
+exp(v)
+```
+
+Biepsiel 2: Die Quadratwurzeln der Zahlen in `v`:
+
+```{r}
+sqrt(v)
+```
+
+Hier bekommen wir eine Warnung, weil der 5. Wert nicht ebstimmt werden konnte (da 
+die Quadratwurzel von negativen Zahlen nicht definiert ist). Statt dessen wird die
+"Pseudo-Zahl" NaN (für "not a number") in den Eregnis-Vektor eingetragen.
+
+Wir können die Zahlen in v auch der Größe nach sortieren:
+
+```{r}
+sort(v)
+```
+
+### Reduzierende Funktionen
+
+In den Beispielen von eben war das Ergebnis stets ein Vektor mit ebensovielen
+Elementen wie der Vektor, den wir in die Rechnung hinein gegeben haben.
+
+Es gibt aber auch Funktionen, die eine Vektor mit mehreren Elementen zu einem
+einzelnen Wert zusammen fassen, sog. zusammenfassende Funktionen (*summarising fucntions*),
+auch reduzierene Funktionen (*reducing functions*) genannt.
+
+Wichtigstes Beispiel ist die Bildung des Mittelwertes (*average* oder *mean*):
+
+```{r}
+mean( v )
+```
+
+Wir können auch den Median berechnen:
+
+```{r}
+median(v)
+```
+Dies bedeutet, dass ebenso viele Zahlen in `v` größer als 3 sind wie Zahlen kleiner
+als 3 sind, also 3 in der Mitte liegt, wenn man den Vektor sortierte.
+
+Andere gerne verwendete Statistiken sind Varianz (*variance*) und Standard-Abweichung 
+(*standard deviation*, SD):
+
+```{r}
+var( v )
+sd( v )
+```
+Auch `length` ist eine summarising function. Sie zählt einfach, wie viele Element
+der Vektor enthält:
+
+```{r}
+length( v )
+```
+
+### Aufgaben
+
+#### Mittelwert "per Hand"
+
+Die Funktion `sum` addiert alle Elemente eines vektors auf und liefert ihre Summe.
+Den Mittelwert berechnet man bekanntlich, indem man die Summe durch die Anzahl der
+Werte teilt. Berechnen Sie den Mittelwert von `v` auf zwei Wege: zum einen
+mittels `mean`, zum anderen mittels `sum` und `length`.
+
+#### "kleiner Gauß"
+
+Was ist die Summer der ganzen Zahlen von 1 bis 100?
+
+#### Standardabweichung per Hand
+
+Die Stichproben-Varianz wird bekanntlich wie folgt berechnet:
+
+$$ v = \frac{1}{n-1}\sum_{i=1}^n \left( x_i - \overline x \right)^2 $$
+Hier ist $\overline x$ der Mittelwert der Einzelwerte $x_i$ und $n$ die Anzahl der Einzelwerte.
+
+Berechnen Sie die Stichprobenvarianz von `v` mit dieser Formel. Bestimmen Sie also erst
+den Mittelwert $\overline x$, ziehen Sie ihn von allen Einzelwerten ab, quadrieren Sie die
+so erhaltenen Werte, und addieren Sie alle diese Quadrate. Teilen Sie schließlich die Summe durch
+$n-1$. Bauen Sie diese Formel schritt für Schritt, von innen nach außen, auf, und testen Sie
+jeden Schritt, bevor Sie den nächsten vornehmen.
+
+Vergleichen Sie mit dem Ergebnis der `var`-Funktion.
+
+## Tabellen
+
+Nun verwenden wir ein beispiel auf Irizarrys Buch.
+
+Wir laden dazu das Paket "dslab", dass die Beispieldaten aus dem Buch enthält.
+
+```{r}
+library( dslabs )
+```
+Denken Sie daran, dass Sie das Paket mit `install.packages("dslabs")` installieren
+müssen, bevor Sie es zum ersten Mal laden können.
+
+Dieses Paket enthält eine Variable namens `murders`. Wir lassen uns anzeigen, was
+sie enthält:
+
+```{r}
+murders
+```
+
+Mit `?murders` können wir die zugehörige Hilfeseite aufrufen und erfahren so,
+dass es sich um eine Tabelle mit der Anzahl an durch Feuerwaffen verübte
+Morde im jahr 2010 handelt, aufgeschlüsselt nach Staaten.
+
+Der Typ dieser Variable is "data.frame":
+
+```{r}
+class(murders)
+```
+
+"Data frame" ist R's Weg, Tabellen zu speichern, nämlich als Liste von Vektoren. Jeder
+Vektor stellt eine Spalte dar. Wir können auf die einzelnen Vektoren zugreifen, indem
+wir den Spaltennamen hinter den Variablennamen stellen, getrennt durch ein Dollarzeichen (`$`):
+
+Hier die erste Spalte:
+
+```{r}
+murders$state
+```
+
+Wir können die Spalte mit der Anzahl der Mordfälle (`total`) durch die Bevölkerung (`population`)
+des jeweiligen Staates teilen:
+
+```{r}
+murders$total / murders$population
+```
+
+Nun haben wir die Mordrate per capita. Wir multiplizieren mit 1.000.000 (oder `1e6`),
+um die Mordrate pro 1 Million Einwohner zu erhalten:
+
+```{r}
+murders$total / murders$population * 1e6
+```
+
+Das fügen wir nun als neue Spalte `murders_per_million` hinzu:
+
+```{r}
+murders$murders_per_million <- murders$total / murders$population * 1e6
+```
+
+Hier ist unsere neue Tabelle:
+
+```{r}
+murders
+```
+
+## Hausaufgaben
+
+### Runden
+
+Verschönern Sie die eben erstellte Tabelle, in dem Sie die Werte in der neuen Spalte
+auf eine Nachkommestelle runden. (Erinnern Sie sich an die Funtkion `round` aus der vorherigen Stunde.)
+
+### Abspeichern
+
+Speichern Sie die Tabelle mit der Mordstatistik in eine Datei ab, indem Sie die Funktion `write.csv` benutzen, z.B. so:
+`write.csv( murders, "murders.csv" )`. Sie sollten dann auf Ihrer Festplatte eine Datei mit Namen `murders.csv`
+finden. Laden Sie diese in Excel (oder einem anderen Tabellenkalkulationsprogramm).
+
+### Tabelle erstellen
+
+Hier ist eine Tabelle mit Temperaturen (in Grad Fahrenheit), die an irgendeinem
+Tag in 6 Städten gemessen wurden:
+
+|name           | temperature|
+|:--------------|-----------:|
+|Beijing        |          35|
+|Lagos          |          88|
+|Paris          |          42|
+|Rio de Janeiro |          84|
+|San Juan       |          81|
+|Toronto        |          30|
+
+Erstellen Sie mit der `c`-Funktion zwei Vektor-Variablen, die jeweils eine
+Spalte enthalten. Fügen Sie die beiden Vektoren dann zu einer Tabelle zusammen
+indem Sie `data.frame( spalte1, spalte2 )` schreiben, wobei `spalte1` und
+`spalte2` die Namen ihrer beiden Spalten-Variablen sind.
+
+### Umrechnen
+
+Fügen Sie der Tabelle von eben eine dritte Spalte hinzu, die die Temperatur in
+Grad Celsius enthält. Schlagen Sie dazu nach, wie man Fahrenheit in Celsius
+umrechnet und übersetzen Sie die Formel in R-Notation.
+
+### Installation Tidyverse
+
+Bitte installieren bis zur nächsten Vorlesung die Tidyverse-Pakete für R. Dazu brauchen
+Sie nur
+
+```r
+install.packages( "tidyverse" )
+```
+
+in der RStudio-Konsole einzugeben. Allerdings braucht die Installation ca. 5-10
+Minuten, daher sollten Sie das vor der nächsten Vorlesung erledigt haben.

@@ -1,0 +1,361 @@
+---
+title: "Diskretisierung und anderes"
+format: html
+toc: true
+---
+
+Vorlesung "Datananalyse in der Biologie"
+
+## Hausaufgabe
+
+Bevor wir zum neuen Stoff kommen, erst die Hausaufgabe. Aufgabe war, einen Plot 
+mit der Durschschnitts-Größe der Probanden jedes Jahrgangs, aufgeschlüsselt nach Geschlecht,
+zu erstellen.
+
+Wir laden zunächst Tidyverse und die Tabelle
+```{r}
+suppressPackageStartupMessages(
+  library( tidyverse ) )
+
+read_csv( "~/Downloads/nhanes.csv", show_col_types=FALSE ) -> nhanes
+
+nhanes
+```
+
+Nun der Plot:
+
+```{r}
+nhanes %>%
+filter( !is.na(height) ) %>%
+group_by( gender, age ) %>%
+summarise( mean_height = mean( height ) ) %>%
+ggplot( aes( x=age, y=mean_height, col=gender ) ) +
+  geom_line() + geom_point() 
+```
+
+Anmerkungen:
+
+- Wir gruppieren nach Geschlecht und Alter. Da "age" diskrete Werte (ganze Zahlen) hat
+  funcktioniert das. Wenn "age" eine kontinuierliche Größe wäre (wie height), könnten
+  wir keine Gruppen bilden, zumindest nicht, ohne vorher zu diskretisieren (z.B. durch
+  Abrunden auf ganze Zahlen).
+- Wir haben hier zwei "Geoms", die beide dieselben Daten verwenden. So erhalten wir Linien
+  mit Punkten. Man kann einem Geom auch einen eigenen "aes()"-Block geben, wenn man möchte,
+  das die geoms die Daten aus den Spalten verschieden verwenden.
+
+Durch Facetting können wir noch nach Ethnie separieren:
+
+```{r}
+nhanes %>%
+filter( !is.na(height) ) %>%
+group_by( gender, age, ethnicity ) %>%
+summarise( mean_height = mean( height ) ) %>%
+ggplot( aes( x=age, y=mean_height, col=gender ) ) +
+  facet_wrap( ~ ethnicity ) + 
+  geom_line() + geom_point() 
+```
+Anmerkungen:
+
+- Wir haben hier "ethnicity" als dritte Gruppenvariable zu `group_by` hinzugefügt. Damit
+  hat sich die Zahl der Gruppen versechsfacht.
+- Statt `facet_grid` habe ich diesmal `facet_wrap` verwendet. Es teilt die Plots in 
+  Kacheln auf, und ordnet die in einem Gitter an.
+  
+## Inferenz: Erste Schritte
+  
+Sehen wir uns den ersten Plot nochmal genauer an und zoomen auf die linke Hälfte, indem
+wir in der x-Achse auf 0 bis 35 Jahre hinein zoomen (`+ xlim( 0, 35 )`).
+
+```{r}
+nhanes %>%
+filter( !is.na(height) ) %>%
+group_by( gender, age ) %>%
+summarise( mean_height = mean( height ) ) %>%
+ggplot( aes( x=age, y=mean_height, col=gender ) ) +
+  geom_line() + geom_point() + xlim( 0, 35 )
+```
+
+Wir erkennen, dass Jungen und Mädchen in etwa bis zum 12. Lebensjahr gleich groß sind. Dann
+verlangsamt sich das Wachstum der Mädchen, wärend die Jungen noch 2 Jahre mit gleicher Geschwindigkeit
+weiter wachsen.
+
+Im Alter von 11 Jahren scheinen die Mädchen aber etwas größer zu sein. Ist dieser Unterschied 
+"echt" oder nur eine zufällige Fluktuation? 
+
+Anders ausgedrückt: ist dieser Unterschied *statistisch signifikant*?
+
+Damit ist gemeint: Wenn die NHANES-Wissenschaftler ihre Untersuchung im selben Jahr
+wiederholt hätten, also nochmal so viele Probanden vermessen hätten, wäre zu erwarten,
+dass sich der Unterschied bestätigt hätte?
+
+Oder auch: Wenn man im selben Jahr *alle* 11-jährigen Jungen und Mädchen vermessen hätte, 
+die damals in den USA gelebt haben, könnten wir die Frage definitiv beantworten, ob damals 
+die 11-jährigen Mädchen größer als die 11-jährigen Jungs gewesen sind. Dürfen wir annehmen,
+dass unser Ergebnis, das lediglich auf einer Stichprobe beruht, die Situation der Gesamtbevölkerung
+widerspiegelt?
+
+Solche Fragen zu beantworten ist die Aufgabe der *schließenden Statistik* (*inferential statistics*).
+
+Als Vorausschau betrachten wir einige Lösungsmöglichkeiten, die wir später genauer diskutieren werden.
+
+### Standardfehler
+
+In der Mathe-Vorlesung haben Sie gelernt:
+
+Zieht man eine Stichprobe der Länge $n$ (also eine Stichprobe mit $n$ Werten) aus einer Verteilung 
+mit Erwartungswert $\mu$ und Standardabweichung $\sigma$, so hat die Verteilung des Mittelwerts der
+Stichprobe ebenfalls den Erwartungswert $\mu$, aber die Standardabweichung  $\sigma_\text{M} = \frac{\sigma}{\sqrt{n}}$. Dies bezeichnet man als den Standardfehler des Mittelwerts (standard error of the mena, S.E.M.)
+
+Kurz: 
+$$\text{SEM}=\frac{\normalsize\text{SD}}{\normalsize\sqrt{n}} $$
+
+Wir werden später wiederholen, was das genau bedeutet.
+
+Zunächst berechnen wir den SEM für jeden Mittelwert:
+
+```{r}
+nhanes %>%
+filter( !is.na(height) ) %>%
+group_by( gender, age ) %>%
+summarise( 
+  mean_height = mean( height ),
+  sd_height = sd( height ),
+  n = n() ) %>%
+mutate( mean_sem = sd_height / sqrt(n) ) -> mean_heights_tbl
+
+mean_heights_tbl
+```
+
+Nun 
+
+```{r}
+mean_heights_tbl %>%
+ggplot( aes( x=age, y=mean_height, col=gender, fill=gender ) ) +
+  geom_line() +
+  geom_errorbar( aes( 
+    ymin = mean_height - mean_sem, 
+    ymax = mean_height + mean_sem ), width=.4 ) +
+  xlim( 0, 25 )
+```
+Wenn sich die Fehlerbalken überlappen, gibt es keinen signifikanten Unterschied. Aber wie viel
+Lücke sollte zwischen den Fehlerbalken sein, damit wir glauben können, dass der Unterschied
+signifikant ist? Dass werden wir noch klären müssen.
+
+### t-Test
+
+Sicher erinnern Sie sich noch an den t-Test. 
+
+Wir reduzieren die Tabelle auf nur die 11-jährigen:
+
+```{r}
+nhanes %>%
+filter( age == 11, !is.na(height) )
+```
+
+Nun vergleichen wir mit dem t-Test:
+
+```{r}
+nhanes %>%
+filter( age == 11, !is.na(height) ) %>%
+t.test( height ~ gender, . )
+```
+Ein p-Wert von 0.6% -- ist das signifikant? Auch dass werden wir noch besprechen müssen.
+
+Zur Funtion `t.test`:
+
+- Diese Funktion erwartet als erstes Argument eine "Formel", als zweites die Tabelle mit den Daten.
+- Die Tabelle mit den Daten haben wir mit dem Pipe-Pfeil `%>%` in die t-Test-Funtion hinein geschoben. Normalerweise schiebt der Pipe-Pfeil das, was links von ihm stellt, in die Position des ersten Arguments. Hier wird die Tabelle aber als zweites Argument erwartet. Der Punkt (`.`) im zweiten Argument markiert für den Pipe-Pfeil, wo die Tabelle hin soll. (Nur wenn der Punkt fehlt, wird ins erste Argument geschoben. Das ist eine Subtilität der Tidyverse-Pipes, die wir bisher übergangen haben.)
+- Zur "Formel" im ersten Argument:
+  - In R heisst alles "Formel" (*formula*), was eine Tilde (`~`) enthält.
+  - `t.test` liesst die Formel wie folgt:
+     - Links von der Tilde steht der Name der Spalte, die die Werte enthält
+     - Rechts von der Tilde steht der Name einer diskreten Spalte, die genau zwei verschiedene Levels enthält und so die Werte zwei Gruppen zuordnet.
+     
+Hier teilt die Spalte `gender` die Werte in `height` auf zwei Gruppen, `male` und `female` auf.
+
+Die t.test-Funktion testet die Nullhypothese, dass der Mittelwerte der `height`-Werte in den beiden Gruppen derselbe ist.
+
+## Diskretisierung
+
+### Begriffe
+
+- Größen, die beliebige Werte innerhalb eines Wertebereichs annehmen können, heißen *kontinuierlich* (*continuous*). Beispiele hierfür in unserer NHANES-Tabelle sind `height` und `weight`.
+
+- Das Gegenteil von *kontinuierlich* ist *diskret* (*discrete*). (In den MINT-Fächern wird das Wort "diskret" oft in dieser Bedeutung, oder in der verwandten Bedeutung "einzeln, getrennt", verwendet. Es hat nichts mit "geheim" zu tuin.)
+
+- In unserer Tabelle is `age` diskret, da auf ganze Jahre abgerundet wurde.
+
+- Ein wichtiger Sonderfall diskreter Größen sind *Faktoren*, d.h., Größen die nur bestimmte, aus einer vorgegebenen Gesamtheit entnommene Werte (die *Levels*) annehmen dürfen. Faktoren in unserer Tabelle sind `gender` (mit den 2 Levels `male` und `female`) und `ethnicity` (mit 6 Levels).
+
+- In R gibt es einen feinen Unterschied zwischen "character vectors" und "factors". Unsere Tabellenspalten haben den Typ "character"; wir könnten ihn aber auf "factor" ändern. WO das einen unterschied macht, kommt später.
+
+### Diskretiserung durch Binning
+
+Anfangs haben wir bemerkt, dass wir nur nach Alter gruppieren konnten, weil das
+Alter auf ganze Zahlen abgerundet ist und wir daher eine überschaubare Anzahl 
+möglicher Werte haben. Bei Alter, Gewicht, oder BMI hingegen kommt wahrscheinlich nie
+exakt derselbe Werte zweimal vor. Wenn wir also nach solchen kontinuierlichen Werte
+gruppieren, wird jede Tabellenzeile in einer eigenen Gruppe landen.
+
+Hier macht es oft Sinn, kontinuierliche Werte anhand eines Rasters aus Grenzen zu diskretisieren.
+
+Beispiel 1: Beim Histogramm bildet R den Wertebereich auf ein Raster von "Bins" (Eimern) ab, und
+ordnet jeden Wert in eine Bin, die dann als ein Balken im Diagramm dargestellt wird.
+
+Beispiel 2: Die WHO schlägt vor, BMI-Werte wie folgt zu interpretieren:
+  
+- unter 18.5: untergewichtig
+- 18.5 bis 25: normal
+- 25 - 30: übergewichtig
+- über 30: adipös
+
+Zunächst zu Beispiel 1:
+
+Hier ist nochmal das Histogramm der BMI-Werte:
+
+```{r}
+nhanes %>%
+filter( age >= 18 ) %>%
+mutate( bmi = weight / (height/100)^2 ) %>%
+filter( !is.na(bmi) ) -> nhanes_adults
+```
+
+```{r}
+nhanes_adults %>%
+ggplot( aes( x=bmi ) ) + 
+  geom_histogram(bins=40) + 
+  geom_vline( xintercept = c( 18.5, 25, 30 ) )
+```
+
+Hier sehen wir beide Möglichkeiten:
+
+1. Die Histogramm-Funktion hat den gesamten Wertebereich in 40 "Bins" eingeteilt und
+gezählt, wieviele Werte in jedes Bin fallen.
+
+2. Die vertikalen Linien (die ich mit `geom_vline` eingefügt habe), markieren die WHO-Grenzwerte.
+
+Nun möchten wir zählen, wie viele der Probanden in die vier WHO-Kategorien jeweils fallen.
+
+Die R-Funktion `cut` ermöglicht uns, die BMI-Werte entlang dieser Grenzen zu
+diskretisieren:
+
+```{r}
+nhanes_adults %>%
+mutate( weight_state = cut( bmi, breaks = c( 0, 18.5, 25, 30, Inf ) ) )
+```
+Beachte: Die Liste mit den Grenzwerten für `cut` muss auch die  "äußeren" Grenzen enthalten, hier `0` und `Inf` (= infinity).
+
+Wir können auch Labels (Faktor-Levels) angeben:
+
+```{r}
+nhanes_adults %>%
+mutate( weight_state = cut( bmi, 
+     breaks = c( 0, 18.5, 25, 30, Inf ),
+     labels = c( "underweight", "normal", "overweight", "obese" ) ) )
+```
+
+### Aufgabe
+
+- Zählen Sie: Wie viele Frauen und wie viele Männer sind jeweils in den 4 Kategorien?
+
+- Berechnen Sie daraus Prozent-Werte. Achten Sie darauf, dass sich die Prozentwerte
+für Männer und Frauen separat auf 100% addieren.
+
+- Plotten Sie das Ergebnis in einer geeigneten Weise.
+
+
+### Lösung
+
+Wir gruppieren nach den WHO-Kategorien und dem Geschlecht, und zählen dann:
+
+```{r}
+nhanes_adults %>%
+mutate( weight_state = cut( bmi, 
+     breaks = c( 0, 18.5, 25, 30, Inf ),
+     labels = c( "underweight", "normal", "overweight", "obese" ) ) ) %>%
+group_by( gender, weight_state ) %>%
+summarize( n = n() )
+```
+
+Hier haben wir bei `summarise` einen Spaltennamen angegeben, nämlich `n` (statt bisher `n()`), 
+indem wir den gewünschten Spaltennamen, gefolgt von einem `=`, *vor* die Summarisierungs-Operation
+gesetzt haben.
+
+Nun möchten wir die diese Tabelle noch um eine Spalte mit Prozenten ergänzen:
+
+```{r}
+nhanes_adults %>%
+mutate( weight_state = cut( bmi, 
+     breaks = c( 0, 18.5, 25, 30, Inf ),
+     labels = c( "underweight", "normal", "overweight", "obese" ) ) ) %>%
+group_by( gender, weight_state ) %>%
+summarize( n = n() ) %>%
+  
+group_by( gender ) %>%
+mutate( percent  = n / sum(n) * 100 ) -> bmi_perc
+
+bmi_perc
+```
+
+Wie funktioniert dies?
+
+- Das zweite `group_by` teilt die 8 Zeilen in zwei Gruppen (male, female) zu je 4 Zeilen ein.
+- Das nachfolgende  `mutate` wird für jede Gruppe getrennt durchgeführt. Daher ergibt `sum(n)` die
+  Summe der Spalte `n` *nur* über die Zeilen der Gruppe. Jedes `n` wird also durch die Summe der
+  vier `n`-Werte des jeweiligen Geschlechts geteilt. Somit addieren sich die Geschlechter jeweils
+  getrennt zu 100%.
+  
+Zum Plotten verwenden wir ein gestapeltes Säulendiagramm (*stacked bar chart*):
+
+```{r}
+bmi_perc %>%
+ggplot( aes( x=gender, y=percent, fill=weight_state ) ) +
+  geom_col()
+```
+Anmerkungen zum Plot:
+  
+- Es gibt zwei Geoms für Bar-Charts: `geom_col` und `geom_bar`. 
+  - `geom_col` entnimmt die Höher der (Teil-)Säulen der in `aes` für y angegebenen Spalte.
+  - `geom_bar` zählt, wie viele Zeilen es gibt, die denselben Wert micht -- versucht also automatische zu machen, was wir schon manuell erledigt haben. Wir verwenden es hier nicht, da wir geom_bar nicht klar machen können, dass wir bereits auf 100% normalisiert haben.
+- In der Datentabelle, die wir ggplot gegeben haben, gibt es jeweils vier Zeilen mit demselben Wert in `gender`, der Spalte, die wir der x-Achse zugewiesen haben. Daher gibt es zu den beiden Positionen auf der x-Achse je 4 Säulen, die R einfach übereinander gestapelt hat.
+
+### Hausaufgabe
+
+Erweitern Sie diesen Plot, indem Sie nach Ethnie facettieren. 
+
+#### Lösung
+
+Wir ändern den Code von oben leicht ab, indem wir bei den beiden `group_by`s noch `ethnicity` hinzufügen:
+
+```{r}
+nhanes_adults %>%
+mutate( weight_state = cut( bmi, 
+     breaks = c( 0, 18.5, 25, 30, Inf ),
+     labels = c( "underweight", "normal", "overweight", "obese" ) ) ) %>%
+group_by( gender, ethnicity, weight_state ) %>%
+summarize( n = n() ) %>%
+  
+group_by( gender, ethnicity ) %>%
+mutate( percent  = n / sum(n) * 100 ) -> bmi_perc_2
+
+bmi_perc_2
+```
+
+Mit dieser Tabelle können wir nun den Plot genauso wie vorher erstellen. Wir fügen einfach ein `facet_grid` hinzu:
+
+```{r}
+bmi_perc_2 %>%
+ggplot( aes( x=gender, y=percent, fill=weight_state ) ) +
+  geom_col() + facet_grid( cols=vars(ethnicity) )
+```
+
+Vielleicht ist es übersichtlicher, wenn wir Facette und x-Achse tauschen:
+
+```{r}
+bmi_perc_2 %>%
+ggplot( aes( x=ethnicity, y=percent, fill=weight_state ) ) +
+  geom_col() + facet_grid( cols=vars(gender) ) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+Hier habenw ir am Schluss noch Code eingefügt, um die Beschriftung der x-Achse zu drehen.

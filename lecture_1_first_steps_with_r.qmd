@@ -1,0 +1,240 @@
+---
+title: "Erste Schritte mit R"
+format:
+  html:
+    toc: true
+---
+
+Vorlesung "Datenanalyse in der Biologie"
+
+# Erste Schritte mit R
+
+## RStudio
+
+RStudio hat vier Bereiche (*panes*):
+
+- Die Konsole (normalerweise links oder links unten): Wenn Sie hier R-Befehle eintippen und dann
+  die Enter-Taste (⏎) drücken, wird der Befehl ausgeführt und das Ergebnis darunter angezeigt.
+  In der Konsole können Sie also einen "Dialog" mit R führen: Sie geben einen Befehl ein, R antwortet.
+  
+  - Die Pane links unten hat noch weitere Reiter, die wir aber nicht brauchen werden.
+
+- Die Code-Pane (normalerweise links oben; erscheint erst, wenn Sie im Datei-Menü "neues R-Skript" wählen): 
+  Hier können Sie längeren R-Code vorbereiten, ohne ihn gleich auszuführen, d.h. ein "Skript" 
+  (eine Folge von Befehlen) erstellen und dann als Datei speichern. Wenn Sie Code (mit der Maus) markieren
+  und Strg-Enter drücken oder auf den grünen "Run"-Pfeil klicken, wird der markierte Code 
+  in die Konsole kopiert und ausgeführt.
+  
+  - Sie können mehrere Dateien gleichzeitig offen haben. Neben 
+  
+- Environment und History: In der Pane rechts oben können Sie verschiedene Reiter auswählen, u.a.:
+
+  - History: Hier finden Sie alles, was Sie bisher in der Konsole eingegeben haben. Wenn Sie einen Befehl nochmals
+    verwenden möchten, brauchen Sie ihn nicht neu zu tippen; Sie finden ihn dort. Sie können auch in der Konsole
+    die Cursor-Taste aufwärts (⇧) drücken, um in der History zu blättern.
+    
+  - Environment: Hier finden Sie alle Variablen ihrer aktuellen Sitzung. (Was das heisst kommt bald.)
+  
+- Plot und Help: In der Pane rechts unten erscheinen Plots, Hilfe-Texte und anderes.
+
+## Arithmetik: R als Taschenrechner
+
+Geben Sie einige einfache Rechnungen in die Konsole ein. R antwortet mit dem Rechenergebnis:
+
+```{r}
+3+7
+```
+  
+```{r}
+17/3
+```
+
+Wenn man in R (und genauso in anderen Programmiersprachen) mathematische Operationen schreiben möchte, verwendet man etwas andere Zeichen als in der Schule:
+
+- Plus (`+`) und Minus (`-`) wie üblich.
+- zum Multiplizieren: ein Stern (`*`)
+- zum Dividieren: ein Schrägstrich (`/`, forward slash)
+- Ein Caret (oder “Dach”, `^`) für "hoch" (Potenz), z.B. `6^2` für $6^2$.
+
+Wie auch sonst, gilt "Punkt vor Strich", und Potenz vor Punkt usw. Es gibt eine ganze Liste, die sagt, was vor was kommt, die “operator precedence”. Um die Precedence zu ändern, verwendet man Klammern, wie üblich. Aber, anders als in der Schule, nur runde Klammern
+
+Es gibt auch Funktionen, z.B. die Quadratwurzel (sqrt für "square root"):
+
+```{r}
+sqrt(36)
+```
+
+```{r}
+sqrt(2)
+```
+
+Hier eine Liste häufig benötigter mathematischer Funktionen:
+
+- Trigononmetrie: `sin`, `cos`, `tan`
+- `sqrt` für "square root" (Quadrat-Wurzel)
+- `exp` für Exponentialfunktion (`exp(x)` bedeutet $e^x$) und `log` für (natürlichen) Logarithmus
+- `log2` und `log10` für Logarithmus zur Basis 2 oder 10
+- `abs` für absoluter Betrag (d.h., Minus-Vorzeichen entfernen)
+
+Man kann auch Vergleiche anstellen. R antwortet dann mit `TRUE` oder `FALSE`:
+
+```{r}
+13 > 4
+```
+
+```{r}
+27 <= 2*5
+```
+
+Die Vergeichsoperatoren sind:
+- größer und kleiner: `>`, `<`
+- größer-oder-gleich, kleiner-oder-gleich: `>=`, `<=`
+- gleich: `==` (Wichtig: Gleichheit wird durch `==` bechrieben, nicht durch `=`!)
+- ungleich: `!=`
+
+Manchmal werden Werte in “scientific notation angegeben”, z.B. `3.5e-2` für $3,5\cdot 10^{-2} = 0.035$. (Starte mit 3.5, schiebe das Komma um 2 Positionen nach links (-2)).
+
+Wichtig: In R verwendet man, wie stets im Englischen, einen Punkt als Dezimaltrenner, nicht ein Komma. 2½ wird also `2.5` geschrieben, nicht `2,5`!
+
+## Schildkröten-Grafik
+
+In den 60er-Jahren wurde die kindgerechte Programmiersprache "Logo" enwickelt, um Kinder
+spielerisch ans Programmieren heranführen. Mit Logo konnte man eine Roboter-Schildkröte
+fernsteuern, die eine Stift trug und so auf einem großen Blatt Papier eine Spur hinterließ. 
+
+In R können wir mit dem Zusatzpaket "TurtleGraphics" unsere ersten Schritte mit R genauso spielerisch machen.
+
+Dazu muss dieses Paket zunächste installiert werden. Tippen Sie dazu
+
+```r
+install.packages( "TurtleGraphics" )
+```
+
+Nun können Sie das Paket laden:
+
+```{r}
+library( TurtleGraphics )
+```
+
+Das Installieren müssen Sie nur ein mal machen, das Laden (mit `library`) aber jedes
+mal, wenn Sie RStudio neu gestartet haben und das Paket nutzen möchten.
+
+Wenn das Paket geladen ist, rufen wir die Schildkröte:
+
+```{r}
+turtle_init()
+```
+
+Wir können die Schildkröte nun anweisen, 20 Schritte vorwärts zu gehen, sich
+um 90° nach rechts zu drehen, wieder vorwärts zu gehen usw., um sie ein
+Quadrat ablaufen zu lassen:
+
+```{r eval=FALSE}
+turtle_forward( 20 )
+turtle_right( 90 )
+turtle_forward( 20 )
+turtle_right( 90 )
+turtle_forward( 20 )
+turtle_right( 90 )
+turtle_forward( 20 )
+```
+![](turtle_square.png)
+
+Wenn wir nochmals 
+
+```r
+turtle_init()
+```
+
+schreiben, erhalten wir ein neues, leeres Zeichenblatt, und die Schildkröte sitzt wieder in der Mitte.
+
+## Funktions-Aufrufe
+
+Wir haben zwei Arten von Funktionen (*functions*) kennen gelernt:
+
+Zum einen solche die etwas berechnen und einen Wert zurück geben (*return a value*):
+
+```{r}
+sqrt( 25 )
+```
+
+Zum anderen solche, die zwar etwas machen, aber keinen Wert zurück geben (*without return value*):
+
+```{r eval=FALSE}
+turtle_forward( 20 )
+```
+
+Ein Funktionsaufruf (*function call*) besteht immer aus dem Namen der Funktion, gefolgt
+von runden Klammern. In den Klammern stehen die Funktions-Argumente (*arguments*).
+
+Die Argumente geben Details an, was berechnet oder gemacht werden soll, z.B. ist `25` das 
+Argument der `sqrt`-Funktion ("Ziehe die Quadratwurzel aus 25.") und `90` das Argument der
+`turtle_right`-Funktion ("Drehe dich 90 Grad nach rechts.")
+
+Manche Funktionen haben keine Argumente, z.B. `turtle_init`. Dem Funktionsnamen muss aber
+dennoch ein leeres Klammer-Paar folgen!
+
+Andere Funtionen haben mehrere Argumente. Mit `round` können wir z.B. auf eine gewünschte Anzahl
+gültiger Ziffern runden:
+
+```{r}
+round( 12.34567, 2 )
+```
+
+Hier haben wir auf 2 Nachkomma-Stellen gerundet. 
+
+Wenn wir auf eine ganze Zahl runden wollen, also auf 0 Nachkomme-Stellen, schreiben wir
+
+```{r}
+round( 12.34567, 0 )
+```
+
+Das kann man abkürzen:
+
+```{r}
+round( 12.34567 )
+```
+
+Das funktioniert, weil das zweite Argument hat einen sog. Default-Wert (*default value*) hat, nämlich 0,
+der verwendet wird, wenn man es nicht angibt.
+
+## Verschachtelung
+
+Funktionen und Arithmetik können ineinander verschachtelt (*nested*) werden, z.B.
+
+```{r}
+2 * round( sqrt( 1+1 ), 3 )
+```
+
+## Hilfe
+
+Zu jeder Funktion gibt es eine sog. "help page", die angezeigt wird, wenn man z.B.
+
+```r
+?round
+```
+
+in der Konsole tippt.
+
+Daraufhin wird [diese Seite mit der Hilfe für "round"](https://stat.ethz.ch/R-manual/R-devel/library/base/html/Round.html) in der Help-Pane angezeigt.
+
+Man liest das wie folgt:
+
+- Die *Description* listet, welche Funktionen hier beschrieben sind und was ihr Zweck ist.
+
+- *Usage* gibt an, welche Argumente anzugeben sind. Für `round` finden wir: `round(x, digits = 0)`. Das bedeutet:
+  - Das erste Argument, `x`, muss immer angegeben werden
+  - Das zweite Argument, `digits`, kann weggelassen werden, weil ein Default-Wert, nämlich 0, festgesetzt ist.
+  
+- *Arguments* erklärt, was für die Argumente übergeben werden darf. Für `x` dürfen wir Zahlen ("numeric vector") übergeben. Was das "vector"   
+  bedeutet, lernen wir bald. Für `digits` muss es eine ganze Zahl ("integer") sein.
+
+- *Details* erklärt, was die Funktion genau macht und wie die Argumente genau interpretiert werden. Meist steht da die entscheidende Information.
+
+- *References* verweist meist auf Literatur, die die zugrundeliegende Methode beschreibt.
+
+- *Examples* zeigt Code-Beispiele
+
+## Hausaufgaben
+
+Siehe anderes Dokument

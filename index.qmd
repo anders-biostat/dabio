@@ -1,0 +1,135 @@
+---
+title: Datenanalyse in der Biologie
+---
+
+# Vorlesung "Datenanalyse in der Biologie"
+
+Studiengang Lebenswissenschaften, Wintersemester 2023/24
+
+Simon Anders 
+BioQuant, Universität Heidelberg
+
+## Kontakt
+
+- E-Mail: [simon.anders@uni-heidelberg.de](mailto:simon.anders@uni-heidelberg.de)
+- Tel. Büro: 06221-54-6855
+- Büro: BioQuant (INF 267), Raum 664
+
+## Slack-Kanal
+
+Wenn Sie Fragen zu Vorlesung oder Hausaufgaben haben,
+stellen Sie sie bitte auf unserem Slack-Workspace.
+
+[Hier ist der Link](https://join.slack.com/t/datenanalyse-2324/shared_invite/zt-26uu6cib4-jKabBKFrUhdpH_6gI5b6Fg), um dem Slack-Workspace beizutreten.
+
+## 1. Vorlesung (2023-10-17)
+
+- Skript: [Einleitung](lecture_1.html)
+  - Überblick
+  - Einführendes Beispiel
+  - Hausaufgabe
+  
+- Skript: [Erste Schritte mit R](lecture_1_first_steps_with_r.html)
+  - RStudio
+  - Arithmetik
+  - Turtle-Grafik
+  - Funktionsaufrufe
+  - Hilfe-Seiten
+  
+- [Video-Aufzeichnung](https://youtu.be/MjsbbwuwVSg)
+
+## 2. Vorlesung (2023-10-19)
+
+- Skript: [Erste Schritte mit R (Teil 2)](first_steps_part_2.html)
+  - Variablen
+  - Datentypen (Zahlen, Strings, Booleans)
+  - Vektoren
+  - Summarizing functions
+  - (Data frames)  [kommt nächstes Mal]
+
+- [Video-Aufzeichnung](https://youtu.be/nB-i08IA-3M)
+
+- Hausaufgaben:
+  - Bitte versuchen Sie sich an dem "Aufgaben"-Block in der Mitte des Skripts; der "Hausaufgaben"-Block ganz am Ende ist für nächstes Mal.
+
+## 3. Vorlesung (2023-10-24)  
+
+- Tabellen (aus vorigem Skript)
+
+- Skript: [Tidyverse und NHANES](tidyverse_1.html)
+  - Hintergrund zu R und Tidyverse
+  - NHANES-Daten
+  - Tidyverse-Verb "mutate"  
+  - Tidyverse-Verb "filter"
+  - Beispiel: BMI
+  
+## 4. Vorlesung (2023-10-26)    
+  
+- weiter im Skript von der vorigen Vorlesung  
+  
+- [Video-Aufzeichnung](https://youtu.be/-S_d9L5IAKw)  
+
+## 5. Vorlesung (2023-10-31)    
+  
+- Skript: [Tidyverse: Grouping und Summarizing](tidyverse_group_by_and_summarise.html)
+- [Video-Aufzeichnung](https://youtu.be/-kitjlamb_M)
+
+## 6. Vorlesung (2023-11-07)
+
+- Skript: [Diskretisierung und anderes](diskretisierung.html)
+  - Hausaufgabe aus der 5. Vorlesung
+  - zur Erinnerung: Standardfehler des Mittelwerts, t-Test
+  - Fehlerbalken in Plots
+  - t-Test mit R
+  - Diskretisierung durch Binning
+  - Säulendiagramme
+  
+- Skript: [Table Joining](left_join.html)  
+  - Erstellung der "nhanes"-Tabelle aus den Tabellen DEMO_J und BMX_J
+  - Tidyverse-Verb `select` 
+  - Tidyverse-Verb `left_join`
+  - Hausaufgaben
+  
+- [Video-Aufzeichnung](https://youtu.be/XV7wt6fNm48)  
+
+## 7. Vorlesung (2023-11-09)
+
+- Skript: [Experimente mit dem Zufall](experimenting_with_randomness.html)
+  - Pseudo-Zufallszahlen
+  - random seed
+  - Die Kreiszahl Pi wird statistisch geschätzt
+  - Definition von Funktionen
+  - Simulation von Zufallsexperimenten
+  - Beispiel einer Stichproben-Verteilung
+  - Genauigkeit von Messwerten
+  
+- [Video-Aufzeichnung](https://youtu.be/lLYGHSSK4xg)
+
+## 8. Vorlesung (2023-11-14)
+
+- [Video-Aufzeichnung](https://youtu.be/R5NSLkzS0Bo)
+
+- Inhalt:
+  - Quarto-Notebooks
+    - Erklärung siehe Video
+    - Code für "Stand-Alone"-Notebooks, siehe [hier](https://hackmd.io/@simon-anders/HkVpu1koj)
+  - Besprechung der Hausaufgabe aus der 6. Vorlesung
+     - Lösungen wurden dort ins Skript eingefügt
+     
+## 9. Vorlesung (2023-11-16)
+
+- [Video-Aufzeichnung](https://youtu.be/_alJjmQiyoY)
+
+## 10. Vorlesung (2023-11-21)
+
+- [Skript](norm2.html)
+- [Video-Aufzeichnung](https://youtu.be/PGaBccIEw0E)
+  
+## 11. Vorlesung (2023-11-23)
+
+- [Konfidenzintervalle für Mittelwerte](confint.html)
+- [Video-Aufzeichnung](https://youtu.be/iZEdPxkKvmA)
+
+## 12. Vorlesung (2023-11-23)
+
+- [Konfidenzintervalle für Differenzen und t-Tests](ttest.html)

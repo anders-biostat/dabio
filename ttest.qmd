@@ -1,0 +1,552 @@
+---
+title: "Konfidenzintervalle für Differenzen und t-Tests"
+format: html
+toc: true
+---
+
+Vorlesung "Datenanalyse in der Biologie"
+
+## "Zwiebel"-Hausaufgabe
+
+
+```{r}
+suppressPackageStartupMessages( library(tidyverse) )
+set.seed( 13245768 )
+```
+
+In der Hausaufgabe sollte simuliert werden, wie 10 Zwiebeln geerntet werden, von einem Feld, in dem Zwiebel-Massen normalverteilt sind mit Erwartungswert 80 g und Standardabweichung 9 g:
+
+```{r}
+onions_control <- rnorm( 10, mean=80, sd=9 )
+```
+
+Eine weitere Stichprobe aus 10 Zwiebeln wurde geerntet von einem Feld, wo der Erwartungswert der Masse um 8 g höher liegt, da das Feld mit einem Dünger behandelt wurde..
+
+```{r}
+onions_treated <- rnorm( 10, mean=88, sd=9 )
+```
+
+Wir berechnen Mittelwerte und Standardfehler dieser beiden Stichproben. Zunächst per Hand, und für die Zwiebeln vom ungedüngten "control field":
+
+```{r}
+mean_control <- mean( onions_control )
+sem_control <- sd( onions_control ) / sqrt( length(onions_control) )  
+   # length(onions_control) = 10   (Anzahl der Zwiebeln)
+sf <- qt( 0.975, length(onions_control) - 1 )   # sf: "Student factor"
+ci_control <- c( mean_control - sf*sem_control, mean_control + sf*sem_control )
+ci_control
+```
+
+Hier dasselbe nochmal mit Verwendung der `t.test`-Funktion:
+
+```{r}
+tres <- t.test( onions_control )
+tres$conf.int
+```
+
+Zur Erinnerung: `t.test` gibt uns auch den Mittelwert, im Slot "estimate":
+
+```{r}
+tres$estimate
+```
+
+Für die gedüngten Zwiebeln ("treated field") erhalten wir:
+
+```{r}
+tres <- t.test( onions_treated )
+tres$conf.int
+```
+
+
+Die beiden Konfidenz-Intervalle überlappen sich. Wenn wir nicht wüssten, dass die wahren Erwartungswerte 80 g und 88 g sind (und als Experimentatoren würden wir das nicht wissen), dann würden wir aus diesen Beobachtungen nicht die Schlussfolgerung ziehen wollen, dass der Dünger die Zwiebel-Masse wirklich erhöht. Es erschiene uns sehr gut möglich, dass der Erwartungswert bei beiden Feldern derselbe ist.
+
+<center>*</center>
+
+Übrigens: Manchmal stört es, dass `t.test` immer so einen großen Block ausgibt. Die
+Funktion `broom::tidy` formt die Ausgabe zu einer Tabelle mit einer Zeile um. Das ist nützlich, wenn man `t.test` in einer Tidyverse-Pipeline benutzt, wie wir gleich sehen werden:
+
+```{r}
+t.test( onions_control ) %>% broom::tidy()
+```
+
+## Graphische Darstellung
+
+Nun möchten wir unsere Daten in einem Plot darstellen.
+
+Dazu erstellen wir zunächst eine Tabelle:
+
+```{r}
+bind_rows(
+  tibble( weight = onions_control, field = "control" ),
+  tibble( weight = onions_treated, field = "treated" ) ) -> onion_tbl
+onion_tbl
+```
+
+Dann bestimmen wir nochmals die Mittelwerte und ihre KIs:
+
+```{r}
+onion_tbl %>%
+group_by( field ) %>%
+summarise( broom::tidy( t.test( weight ) ) ) %>%
+select( field, mean=estimate, conf.low, conf.high ) -> mean_and_ci
+
+mean_and_ci
+```
+
+Nun können wir plotten:
+
+```{r}
+ggplot( NULL ) +
+  geom_point( aes( x=field, y=weight ), data = onion_tbl, 
+      position = position_jitter( width=.1, height = 0 ) ) +
+  geom_errorbar( aes( x=field, ymin=conf.low, ymax=conf.high ), data = mean_and_ci,
+      width = .3 ) +
+  geom_errorbar( aes( x=field, ymin=mean, ymax=mean ), data = mean_and_ci,
+      width = .15 ) 
+  
+```
+
+Neu hier:
+
+- `ggplot` bekommt keine Daten (NULL). Stattdessen bekommt jedes `geom` seine eigenen Daten via `data`.
+
+- `geom_errorbar` zeichnet Fehlerbalken, von `ymin` bis `ymax.` Mit `width` kann man angeben, wie breit die "Whisker" sein sollen.
+
+- Um den Mittelwert zu verwenden, habe ich auch `geom_errorbar` verwendet, aber für `ymin` und `ymax` denselben Wert angegeben, so dass die beiden Whisker übereinander liegen und nur ein Strichy gzeichnet wird.
+
+
+### Fehlerbalken
+
+Fehlerbalken findet man oft in Plots. Leider hersscht keine Einigkeit darüber, was sie darstellen.
+
+Meist zeigen sie an
+
+- die Standardabweichung der Einzelwerte,
+
+- den Standardfehler des Mittelwerts der Einzelwerte oder
+
+- das 95%-Konfidenzintervall des Mittelwerts der Einzelwerte.
+
+Wenn man Fehlerbalken verwendet, muss man daher stets im Text klarstellen, was sie darstellen.
+
+## Das Zwiebel-Experiment vielfach wiederholt
+
+Wenn wir das Experiment nun sehr oft wiederholen würden, wie oft geschieht es, dass sich die Konfidenzintervalle überlappen?
+
+Dazu schreiben wir uns Code, der beide Konfidenzintervalle, zusammen mit beiden Mittelwerten, in eine Zeile schreibt:
+
+```{r}
+tres_control <- t.test( onions_control )
+tres_treated <- t.test( onions_treated )
+
+result <- c(
+  control_mean = unname(tres_control$estimate),
+  control_ci_lower = tres_control$conf.int[1],
+  control_ci_upper = tres_control$conf.int[2],
+  
+  treated_mean = unname(tres_treated$estimate),
+  treated_ci_lower = tres_treated$conf.int[1],
+  treated_ci_upper = tres_treated$conf.int[2]
+)  
+
+result
+```
+
+Hier habe ich mittels `c` eine Vektor zusammen gebaut, der die 6 Werte enthält, die uns interessieren. Dabei habe ich ein Feature von `c` verwendet, dass wir bisher nicht kannten: Man kann jedem Wert einen "Namen" geben, so dass man auf den Wert danach auf zwei Wege zugreifen kann:
+
+```{r}
+result[1]
+result["control_mean"]
+```
+
+Allerdings hatte `t.test` selbst auch schon solche Namen vergeben, die ich oben mit `unname` entfernt habe, um nur meine eigenen Namen zu erhalten.
+
+Das war alles vielleicht etwas umständlich, hilft uns aber gleich, den Überblick zu bewahren.
+
+Wir erstellen eine Funtktion, die die Schritte von oben alle zusammen fasst. Die Funktion hat zwei Parameter:
+- die Anzahl $n$ der Zwiebeln, die pro Feld geerntet werden (bisher stets 10)
+- die Wirkung des Düngers, gegeben als die Massenzunahme `delta_m`, die im Mittel pro Zwiebel erwartet wird (bisher stets 8 g)
+
+```{r}
+onion_experiment <- function( n, delta_m ) {
+  
+  # Ernte die Zwiebeln (Ziehe die Zufalslzahlen):
+  onions_control <- rnorm( n, mean=80, sd=9 )
+  onions_treated <- rnorm( n, mean=80 + delta_m, sd=9 )
+
+  # Berechne Mittelwerte und Konfidenzintervalle
+  tres_control <- t.test( onions_control )
+  tres_treated <- t.test( onions_treated )
+  
+  # Stelle Ergebnis-Vektor zusammen:
+  c(
+    control_mean = unname(tres_control$estimate),
+    control_ci_lower = tres_control$conf.int[1],
+    control_ci_upper = tres_control$conf.int[2],
+    
+    treated_mean = unname(tres_treated$estimate),
+    treated_ci_lower = tres_treated$conf.int[1],
+    treated_ci_upper = tres_treated$conf.int[2]
+  )  
+}
+
+onion_experiment( 10, 8 )
+```
+
+Nun können wir dies bequem 20 mal aufrufen:
+
+```{r}
+replicate( 20, onion_experiment( n=10, delta_m=8 ) )
+```
+
+Leider hat `replicate` die Angewohnheit, `repolicate` hat uns die 20 Ergebnis-Vektoren zu einer Matrix zusammen gestellt, aber leider mit jedem Experiment in eienr Spalte, statt in einer Zeile, wie wir es gewohnt sind. Wir benutzen die Funktion `t` (für "transpose"), die die Matrix transponiert, d.h., Zeilen und Spalten tauscht, und wandeln dann die Matrix in eine TIdyverse-Tabelle um:
+
+```{r}
+replicate( 20, onion_experiment( n=10, delta_m=8 ) ) %>% 
+  t() %>% as_tibble()
+```
+
+Das das etwas umständlich war, leigt daran, dass `replicate` "altes R" ist. Die "moderne" Schreibweise ist
+
+```{r}
+map_dfr( 1:20, ~ onion_experiment( n=10, delta_m=8 ) )
+```
+
+Die Tidyverse-Funktion`map_dfr` kann immer verwendet werden, wenn die  inner Funktion (hier `onion_experiment`) einen vektor zurückgibt. Die Vektoren der einzelnen Durchläufe verwendet `map_dfr` dann als Zeilen, um daraus eine Tabelle zusammen zu setzen. (Die `map` functionen haben noch einige weiter wichtige Fähigkeiten, die wir ein anderes Mal behandeln.)
+
+Nun können wir zählen, wie oft die Konfidenzintervalle von *control* und *treated* überlappen, indem wir die Untergrenze von *treated* mit der Obergrenze von *control* vergleichen:
+
+```{r}
+map_dfr( 1:20, ~ onion_experiment( n=10, delta_m=8 ) ) %>%
+mutate( ci_overlap = control_ci_upper > treated_ci_lower )  
+```
+
+Dies machen wir jetzt 10000 mal (statt nur 20 mal) und zählen:
+
+```{r}
+map_dfr( 1:10000, ~ onion_experiment( n=10, delta_m=8 ) ) %>%
+mutate( ci_overlap = control_ci_upper > treated_ci_lower ) %>%
+group_by( ci_overlap ) %>%
+summarise( n() )
+```
+
+Wie sehen: Die Konfidenzintervalle überlappen mit Wahrscheinlichkeit 84%. Bei diesem Experiment besteht also nur eine Wahrscheinlichkeit von 16%, dass der Dünger uns von seiner Wirksamkeit überzeugen kann.
+
+Nur zur Erinnerung: Wir können den Code aus dem vorstehendem Chunk auch folgendermaßen schreiben, und erhalten direkt den Anteil der Durchgänge ohne Überlapp:
+
+```{r}
+map_dfr( 1:10000, ~ onion_experiment( n=10, delta_m=8 ) ) %>%
+mutate( ci_overlap = control_ci_upper > treated_ci_lower ) %>%
+summarise( mean( !ci_overlap ) )
+```
+
+## Statistical Power
+
+Was wir eben durchgeführt haben, nennt man eine "Power Calculation". So etwas wichtig ist, wenn Sie ein Experiment planen. 
+
+Wir haben hier das folgende *experimentelle Design* (auch "Versuchsplan" genannt) gewählt: Ein Feld wird gedüngt, eines nicht. Von jedem Feld werden $n$ Zwiebeln geerntet. 
+
+Ausserdem haben wir als Teil unseres Versuchsplans folgende Entscheidungsregel vorab festgelegt: Wenn das 95%-Konfidenzintervalle für die behandelte Stichprobe vollständig, also ohne Überlapp, über dem 95%-KI der Vergleichs-Probe liegt, dann (und nur dann) werden wir folgern, dass der Dünger wirkt.
+
+Nun fragen wir uns: Wie wahrscheinlich ist es, dass der Dünger uns überzeugen kann, wenn
+
+- die wahre Wirkung des Düngers eine Erhöhung der Zwiebel-Masse um (im Mittel) 8 g ist, 
+
+- die Masse von Zwiebeln unserer Sorte eine Standardabweichung von 8 g um ihren Mittelwert bildet?
+
+Wie wir gesehen haben, ist unter diesen Annahmen die *statistische Power* unseres Versuchsplans --also die Wahrscheinlichkeit, dass wir zu einem positivem Ergebnis kommen-- nur 16%.
+
+Wie wäre es, wenn wir den Stichproben-Umfang pro Feld von 10 auf 30 erhöhen?
+
+```{r}
+map_dfr( 1:10000, ~ onion_experiment( n=30, delta_m=8 ) ) %>%
+mutate( ci_overlap = control_ci_upper > treated_ci_lower ) %>%
+summarise( mean( !ci_overlap ) )
+```
+
+Mit $n=30$ swtatt $n=10$ steigt unsere Power von 10% auf etwa 70%.
+
+Und wie wäre es, wenn wir bei 10 Zwiebeln pro Feld bleiben, aber optimistischer darin sind, wie gut der Dünger wirkt? Nehmen wir an, der Dünger erhöhe die Zwiebel-Masse im Mittel um 15 g:
+
+```{r}
+map_dfr( 1:10000, ~ onion_experiment( n=10, delta_m=15 ) ) %>%
+mutate( ci_overlap = control_ci_upper > treated_ci_lower ) %>%
+summarise( mean( !ci_overlap ) )
+```
+
+### Zusammengefasung
+
+Wenn man ein Experiment plant, kann es sehr hilfreich sein, Simulationen wie eben gezeigt durchzuführen. Wir gehen dabei wie folgt vor:
+
+- Wir erstellen einen Versuchsplan und legen eine Entscheidungsregel fest.
+
+- Wie machen Annahmen darüber, wie die wahre Verteilung aussehen könnte, die unseren Messwerten zugrunde liegt.
+
+- Wir schreiben Code, der
+  - mit Hilfe von Zufallszahlen simulierte Messwerte gemäß unserer Annahmen generiert, und
+  - diese Messwerte anhand unserer Entscheidungsregel auswertet
+  
+- Wir lassen den Code mehrere tausend Mal laufen und zählen, wie oft unsere Entscheidungsregel ein positives Ergebnis liefert. 
+
+- So  können wir die statistische Power unseres Versuchsplans (zusammen mit unserer Entscheidungsregel) ermitteln, also die Wahrscheinlichkeit, ein positives Ergebnis zu bekommen und somit mit dem Versuch einen Erfolg zu erzielen.
+
+Wichtig: Eine negative Antwort der Entscheidungsregel ist hier kein Erfolg, denn es gibt nicht die Antwort "Nein, es gibt keinen Effekt", sondern als die Antwort "Wir können nicht sagen, ob es einen Effekt gibt". Das wird klar, wenn Sie daran denken, dass unsere Entscheidungsregel in der Simulation ein negative Ergebnis liefern kann, obwohl wir ja den fall simulieren, dass es einen wahren Effekt gibt!
+
+Wenn uns die statistische Power zu gering erscheint, haben wir drei Möglichkeiten:
+
+#### Größere Stichprobe
+
+Wir können den Stichproben-Umfang erhöhen und die Simulation wiederholen. So finden wie wir heraus, wie groß der Stichprobenumfang mindestens sein muss, um gute Erfolgs-Chancen zu haben.
+
+**Aber:** Wir könnten zum Ergebnis kommen, dass wir mehr den Stichproben-Umfang so extrem erhöhen müssen, dass das Experiment mit den vorhandenen Resourcen schlicht nicht durchführbar ist.
+
+So ein Ergebnis muss man ernst nehmen! Einfach trotzdem mit zu kleinem Stichproben-Umfang weiter zu machen, hat schon viele Forschngsprojekte ruiniert.
+
+#### Optimistischere Annahmen zur Effektstärke
+
+Wir können unsere Annahmen überprüfen. Vielleicht waren wir bei unserer Schätzung zur Effektgröße (*effect strength*, bei uns: Massenzunahme pro Zwiebel) zu pessimistisch.
+
+**Aber:** Hüten Sie sich hier von falschem Optimismus und Wunschdenken ("wishful thinking")! Das hat schon oft zu Misserfolgen mit großer Verschwendung von Geld und Zeit geführt, und kann
+
+#### Versuchsplan ändern
+
+Wir soltlen auch Versuchsplan und Entscheidungsregel überprüfen: Manchmal kömnnen Verbesserungen hier den entscheidenden Unterschied machen. Hierzu ist aber statistische Expertise wichtig, weswegen man spätestens jetzt als Laborbiologe ohne weitergehende Statistik-Kenntnisse einen Statistiker um Rat fragen sollte.
+
+Die/Den Statistiker/in erst um Rat zu fragen, wenn das Experiment bereits durch geführt wurde, ist eine (leider viel zuhäufige) Todsünde in der experimentellen Forschung.
+
+*"To consult the statistician after an experiment is finished is often merely to ask him to conduct a post mortem examination. He can perhaps say what the experiment died of."* -- R. A. Fisher
+
+#### Zielsetzung ändern
+
+Wenn die Power-Calculation ergibt, dass ihr geplantes Experiment nicht durchführbar ist, auch nicht, wenn Sie Versuchsplan und Auswertung optimieren, bleibt nur eins: Geben Sie dieses Ziel auf und suchen Sie sich ein anderes!
+
+## Konfidenz-Intervall von Differenzen und der t-Test
+
+ZUrück zu Student's t-Verteilung uns seinem t-Test.
+
+Betrachten wir nochmal unser Zwiebel-Experiment:
+
+```{r}
+set.seed( 13245768 )
+onions_control <- rnorm( 10, mean=80, sd=9 )
+onions_treated <- rnorm( 10, mean=88, sd=9 )
+
+t.test( onions_control )$conf.int
+t.test( onions_treated )$conf.int
+```
+
+Eigentlich interessieren uns die Mittelwerte der beiden Stichproben nicht direkt. 
+Was uns wirklich interessiert, ist ihre *Differenz*: Ist der Mittelwert der gedüngten Zwiebeln *höher* als der der der unbehandelten?
+
+```{r}
+mean( onions_treated ) - mean( onions_control )
+```
+
+Wenn wir ein 95%-KI für diese Differenz hätten, dann könnten wir fragen, ob es über seine ganze Spanne gröser als 0 ist, oder ob er die Null überlappt. In ersterem Fall hätten wir 95% Konfidenz dafür, dass der Dünger die Zwiebelmasse wirklich erhöht.
+
+Die `t.test`-Funktion hilft uns hier weiter:
+
+Wenn man der `t.test`-Funktion zwei Vektoren gibt (statt nur einen wie bisher), dann berechnet sie die Mittelwerte der beiden Vektoren sowie das *Konfidenzintervall der Differenz der beiden Mittelwerte*, nicht mehr das KI der Mittelwerte selbst:
+
+```{r}
+t.test( onions_treated, onions_control )
+```
+
+Wie sehen, dass das KI die Null nicht überlappt. Beide Grenzen sind rechts der Null. Also dürfen wir mit 95% Konfidenz sagen, dass der Dünger eine Wirkung hat.
+
+Das mag erstaunen, denn die KIs der Einzelwerte haben überlappt. Es ist aber korrekt: Konfidenzintervalle von Differenzen sind stets kürzer als die Summe der Konfidenzintervalle der Werte, die voneinander subtrahiert werden.
+
+##### Konfidenzintervall der DIfferenz, von Hand berechnet
+
+Wir können das auch "per Hand" berechnen:
+
+Die Standardfehler der beiden Mittelwerte sind:
+
+```{r}
+sem_control <- sd( onions_control ) / sqrt( length(onions_control) )
+sem_control
+
+sem_treated <- sd( onions_treated ) / sqrt( length(onions_treated) )
+sem_treated
+```
+
+Vermutlich kennen Sie die folgende Regel zur "Fehlerrechnung": Wenn man zwei Werte, die mit Standardfehlern assoziert sind, addiert oder voneinander abzieht, ist das Quadrat des Standardfehlers der Summe/Differenz die Summe der Quadrate der Standardfehler der beiden Werte: `sem_differenz^2 = sem_control^2 + sem_treated_2`.
+
+(Grund: Das Quadrieren verwandelt die Standardabweichungen in Varianzen, und Varianzen sind additiv.)
+
+Also:
+
+```{r}
+sem_difference = sqrt( sem_control^2 + sem_treated^2 )
+sem_difference
+```
+Um ein 95%-KI zu erhalten, müssen wir den Student-Faktor bestimmen:
+
+```{r}
+sf <- qt( 0.975, 9 )
+```
+
+```{r}
+difference <- mean(onions_treated) - mean(onions_control)
+sf <- qt( 0.975, 9 )
+c( difference - sf * sem_difference, difference + sf * sem_difference )
+```
+Dies ist allerdings nicht ganz derselbe Wert, den auch `t.test` liefert:
+
+```{r}
+t.test( onions_treated, onions_control )
+```
+Der Unterschied rührt daher, dass wir unseren Student-Faktor mit 9 Freiheitsgraden berechnet haben, weil wir unseren Standardfehler aus 10 Werten berechnet haben (10-1=9). Student und Welch haben erkannt, dass man bei einer Differenz zwischen zwei Größen mehr Freiheitsgrade ansetzten darf als bei den Einzelwerten, weil sich die Abweichungen der Einzelwerte von ihren jeweiligen wahren Werten beim Differenzbilden gegenseitig kompensieren können. Hier hat `t.test` daher die Anzahl der Freiheitsgrade von 9 auf 16.1 erhöht, was den STudent-Faktor verringert und somit unser Konfidenzinterval schmäler gemacht hat. Den Wert 16.1 hat R mit Hilfe eine Formel bestimmt, die von B. L. Welch stammt, weswegen die Ausgabe mit "Welch's t test" (statt "Student's t-test") überschrieben ist. Die Formel finden Sie im Wikipedia-Artikel zu [Welch's t-Test](https://de.wikipedia.org/wiki/Zweistichproben-t-Test#Welch-Test).
+
+#### Differenz mit gleicher Varianz
+
+Student's ursprüngliche Lösung war, anzunehmen, dass bei beiden Stichproben die wahre Standardabweichung dieselbe ist. Das ist bei uns auch in der Tat der Fall: wir haben ja auch angenommen, dass der Dünger nur den Erwartungswert um 8 g erhöht, die Standardabweichung von 9 g sich aber nicht ändert. Diese Annahme ermöglicht es, für beide Stichproben einen gemeinsamen Wert für den Standardfehler zu ermitteln. 
+
+Dazu bestimmt man zunächst die sog. "gepoolte Stichprobenvarianz", für die die normale Formel für die Stichproben-Varianz etwas abwandelt wird: Man nimmt die Einzelwerte beider Stichproben zusammen, zieht von jedem Einzelwert den jeweils zugehörigen Mittelwert ab, quadriert diese Abweichungen, summiert sie und teilt die Summe dann nicht, wie sonst, durch die $n-1$ (wobei $n$ die Anzahl der Einzelwerte in beiden Stichproben zusammen ist, bei uns also 20), sondern durch $n-2$, da 2 Mittelwerte vorkamen. Dies teilt man durch $\sqrt{n}$, um den "gepoolten Standardfehler" (pooled SEM zu erhalten). Diese Details müssen Sie sich nicht merken, Sie können Sie bei Bedarf z.B. [hier auf Wikipedia](https://en.wikipedia.org/wiki/Pooled_variance) nachlesen. 
+
+Wir machen das einmal per Hand -- auch wenn wir in der Praxis diese mühsame Rechnung der `t.test`-Funktion überlassen.
+
+```{r}
+pooled_sd <- 
+  sqrt( sum( 
+    c( ( onions_control - mean(onions_control) )^2, 
+       ( onions_treated - mean(onions_treated) )^2 ) ) / 18 )
+```
+
+Damit haben beide Mittelwerte den geschätzten Standardfehler
+
+```{r}
+sem_pooled <- pooled_sd / sqrt(10)
+sem_pooled
+```
+
+Also ist der Standardfehler der Differenz
+
+```{r}
+sem_diff <- sqrt( sem_pooled^2 + sem_pooled^2 )
+sem_diff
+```
+
+Nun berechnen wir den Student-Faktor. Diesmal haben wir 18 Freiheitsgrade, denn der Standardfehler wurde aus 20 Einzelwerten, minus zwei Mittelwerten, berechnet:
+
+```{r}
+sf <- qt( .975, 18 )
+```
+
+Also beträgt das Konfidenz-Interval der Differenz bei Annahme gleicher Varianz in beiden Stichproben
+
+```{r}
+c( difference - sf * sem_diff, difference + sf * sem_diff )
+```
+
+Wenn wir `t.test` mitteilen, dass es dieselbe Annahme machen sollen (indem wir `var.equal=TRUE` setzen), so erhalten wir genau dasselbe Konfidenz-Intervall:
+
+```{r}
+t.test( onions_treated, onions_control, var.equal=TRUE )
+```
+
+Da wir nun gesehen haben, dass `t.test` das Konfidenzintervall einer Differenz zweier Mittelwerte berechnen kann, können Sie sich nun nur dies merken und alle mathematschen Details wieder vergessen.
+
+### Zusammenfasung
+
+- Oft interessiert man sich für die Differenz zweier Mittelwerte.
+
+- Meist geht es um die Differenz zwischen dem Mittelwert einer behandelten Stichprobe (*treated sample*) und einer Vergleichs-Stichprobe (*control sample*).
+
+- Hier interessiert uns ob die Differenz "statistisch signifikant" von Null abweicht, denn dann können wir auf dem zugehörigen Konfidenz-Niveau folgern, dass die Behandlung wirklich einen Effekt hatte.
+
+- Dazu berechnen wir ein Konfidenz-Intervall für die Differenz zu einem gegebenen Konfidenz-Niveau (*confidence level*, z.B. 95%).
+
+- Hierzu verwenden wir die Funktion `t.test`, der wie die beiden Vektoren mit den Einzelwerten der behandelten und der unbehandelten Stichprobe als erstes und zweites Argument übergeben. 
+
+- Die Funktion gibt uns dann ein 95%-Konfidenz-Intervall für die Differenz aus (da wir bei Bedarf mit `t.test(...)$conf.int` extrahieren können).
+
+- Wenn wir ein anderes Konfidenz-Niveau als 95% wünschen, übergeben wir `t.test` den optionalen Parameter `conf.level`, z.B. `t.test( ...., conf.level=.99 )`.
+
+- Wenn wir guten Grund zur Annahme haben, dass die wahre Varianz durch die Behandlung nicht beeinflusst wird, dann dürfen wir das Zusatz-Argument `var.equal=TRUE` verwenden. Es erhöht die statistische Power, d.h., das Konfidenz-Intervall wird dadurch schmäler.
+
+- Der t-Test mit `var.equal=TRUE` ist der ursprüngliche "Students t-Test", wie ihn Student/Gosset vorgeschlagen hat. Wenn man die Option weglässt, nimmt `t.test` `var.equal=FALSE` and und führt die Variante des t-Tests durch, die diese Annahme nicht verwendet. Sie wird in der Literatur als "Welch's t-Test" bezeichnent.
+
+<center>*</center>
+
+*Einschub zur Terminologie:* Oben habe ich geschrieben: "Meist geht es um die Differenz zwischen dem Mittelwert einer behandelten Stichprobe (*treated sample*) und einer Vergleichs-Stichprobe (*control sample*)." Hier unterscheidet sich die Verwendung des Wortes "sample" zwischen den Disziplinen: Statistiker sagen: "The treatment sample comprises 10 onions", d.h. alle Zwiebeln zusammen sind eine Stichprobe. Biologen und Mediziner sagen gerne: "This onion is a sample from the treated field.", d.h. jede einzelne Zwiebel ist eine Probe. Im Deutschen löst sich das Problem, da Statistiker das Wort "Stichprobe" verwenden, Biologen und Mediziner aber nur "Probe" sagen. 
+
+### Interpretation des t-Test-Ergebnisses
+
+- Wenn das Konfidenzintervall die Null überdeckt, können wir **nicht** mit der gewünschten Konfidenz sagen, ob die Behandlung der behandelten Stichprobe irgendeine Wirkung hatte. Wir können also die *Nullhypothese* (*null hypothesis*), dass die Behandlung **keinerlei** Einfluss (*no effect*) auf die Messwerte hat, nicht verwerfen.
+
+- Wenn das Konfidenzintervall hingegen die Null nicht überlappt, können wir diese Nullhypothese *verwerfen* (*reject the null hypothesis*). Wir dürfen also sagen: Der Behandlung hatte vermutlich eine Wirkung.
+
+Beispiel: Die Differenz in unserem Zwiebel-Beispiel beträgt die Differenz der Stichproben-Mittelwerte 6 g, ihr 95%-KI geht von 1 g bis 11 g.
+
+- Richtig: "Auf einem Konfidenzniveau von 95% können wir ausschließen, dass der Dünger völlig wirkungslos ist."
+
+- Falsch: "Mit einem Konfidenzniveau von 95% können wir sagen, dass der Dünger wirkt; die Wirkung ist eine Erhöhung der Zwiebelmasse um durchschnittlich 6 g."
+
+- Richtig: "Mit einem Konfidenzniveau von 95% können wir sagen, dass der Dünger wirkt und die Wirkung eine Erhöhung der mittleren Zwiebelmasse um mindestens 1 g ist."
+
+Die falsche Formulierung ist leider die, die die meisten Experimentatoren verwenden.
+
+### p-Werte
+
+Betrachten wir nochmals die Ausgabe des t-Tests, diesmal mit Stichproben zu je 50 Zwiebeln:
+
+```{r}
+set.seed( 13245768 )
+onions_control <- rnorm( 30, mean=80, sd=9 )
+onions_treated <- rnorm( 30, mean=88, sd=9 )
+
+t.test( onions_treated, onions_control )
+```
+
+Angenommen, es ginge uns *nur* darum, zu wissen ob der Dünger irgendeine Wirkung hat. Wie stark die Wirkung ist, ist uns völlig egal. Die Aussage "Der Dünger hat eine Wirkung" können wir mit mehr Konfidenz machen als 95%, denn wenn wir `t.test` bitten, uns ein 99%-Konfidenzintervall zu bestimmen, überlappt auch dieses die Null nicht:
+
+```{r}
+t.test( onions_treated, onions_control, conf.level=0.99 )
+```
+
+Wenn ich aber ein 99,9%-Intervall fordere, verlange ich zu viel:
+
+```{r}
+t.test( onions_treated, onions_control, conf.level=0.999 )$conf.int
+```
+
+Wo genau liegt die Grenze? 
+
+Ich könnte probieren, aber `t.test` hat die Grenze bereits ausgerechnet. Es ist der p-Wert: in der Ausgabe von `t.test` steht: `p-value = 0.001138`. Noch genauer:
+
+```{r}
+pvalue <- t.test( onions_treated, onions_control )$p.value
+pvalue
+```
+
+Wir berechnen das Komplement zu 100%, und fordern also ein 99,886%-Konfidenzintervall:
+
+```{r}
+t.test( onions_treated, onions_control, conf.level=1-pvalue )$conf.int
+```
+
+Nun liegt die Untergrenze bei $4\cdot 10^{-15}$, also bei Null. (Die Rechengenauigkeit von R liegt in etwa bei $10^{-15}$.)
+
+Wir erkennen: *Der p-Wert, den uns ein t-Test liefert, gibt an, bei welchem Konfidenzniveau das Konfidenzintervall der Differenz die Null gerade berührt.*
+
+Bei diesem Konfidenz-Niveau können wir die Nullhypothese ("Der Dünger hat überhaupt keine Wirkung") gerade noch ablehnen, aber keine Aussage mehr über die Stärke des Effekts machen. 
+
+Unser als "Richtig" markierte Satz von oben lautete also:
+
+- "Mit einem Konfidenzniveau von 95% können wir sagen, dass der Dünger eine Wirkung auf die Zwiebeln hat und dass diese Wirkung eine Erhöhung der mittleren Zwiebelmasse um mindestens 3.25 g ist."  
+
+und
+
+- "Mit einem p-Wert von 0.11%, also einem Konfidenzniveau von 99,88%, können wir sagen, dass der Dünger eine Wirkung auf die Zwiebeln hat ~~und die Wirkung eine Erhöhung der mittleren Zwiebelmasse um mindestens 0 g ist.~~"
+
+Der letzte Halbsatz ist gestrichen, nicht weil er falsch ist, sondern weil er inhaltsleer ist.
+
+Wenn wir beide Sätze zusammenfassen möchten, sollten wir schreiben: "Mit einem p-Wert von 0.11% (also auf einem Konfidenzniveau von 99.88%) können wir sagen, dass der Dünger die mittlere Zwiebelmasse erhöht, und auf einem Konfidenzniveau von 95% können wir sagen, dass die Erhöhung der mittleren Zwiebelmasse mindestens 3.25 g aber nicht mehr als 12.38 g beträgt."
+
+All das können wir aus der Ausgabe von `t.test` bequem ablesen:
+
+```{r}
+t.test( onions_treated, onions_control )
+```
+

@@ -1,0 +1,94 @@
+---
+title: "Der zentrale Grenzwertsatz"
+format: html
+---
+
+Vorlesung "Datananalyse in der Biologie"
+
+## Körpergrößen sind normalverteilt
+
+Die Normalverteilung (*normal distribution*) findet sich in der Natur fast überall. Die Körpergröße erwachsener Menschen ist ein typisches Beispiel.
+
+```{r}
+suppressPackageStartupMessages( library(tidyverse) )
+
+read_csv( "~/Downloads/nhanes.csv", show_col_types=FALSE ) -> nhanes
+
+nhanes %>%
+filter( gender == "male", age >=18, !is.na(height) ) -> nhanes_men
+
+nhanes_men %>% 
+ggplot( aes(x=height) ) + 
+  geom_histogram( bins=50 )
+```
+
+Hier sind Mittelwert und Standardabweichung:
+
+```{r}
+nhanes_men %>% summarise( mean(height), sd(height) )
+```
+
+Durch diese beiden Parameter ist eine Normalverteilung eindeutig definiert.
+
+Die FUntion`dnorm` berechnet die Wahrscheinlichkeitsdichte einer Normalverteilung mit
+gegebenem Mittelwert und Standardabweichung. Was das genau bedeutet, wiederholen wir später noch mal. Hier ist erstmal eine Wertetabelle:
+
+```{r}
+tibble( x = 145:200 ) %>%
+mutate( y = dnorm( x, mean=173.48, sd=7.676 ) ) -> men_norm
+
+men_norm
+```
+Wir plotten nun diese Verteilung in unser Histogramm:
+
+```{r}
+nhanes_men %>% 
+ggplot( aes(x=height) ) + 
+  geom_histogram( aes(y=after_stat(density)), bins=30 ) +
+  geom_line(aes(x=x,y=y), data=men_norm, col="magenta"  )
+```
+
+Anmerkungen zum Code:
+
+- Normalerweise haben ggplot-Histogramme in der y-Achse die Anzahl der Werte für jedes Bin (jede Säule). Diesmal möchten wir die sog. Dichte (*density*), d.h., die y-Achse soll so skaliert werden, dass die Gesamt-Fläche des Histogramms sich zu 1 addiert. Deshalb die Spezial-Anweisung `y=after_stat(density)`.
+- Bei geom_line sollen die Daten nicht der Tabelle entnommen werden, die wir via `%>%` in `ggplot` hinein geschoben haben, sondern aus einer anderen Tabelle, nämlich `men_norm` aus dem vorigen Chunk. So eine alternative Datentabelle kann man für ein geom mit `data=` angeben.
+
+Interpretation des Plots:
+
+- Die Wahrscheinlichkeitsdichte unserer Normalverteilung (mit demselben Mittelwert und derselben Standardabweichung wie die Werte im Histogramm) ist durch die Linie in Magenta gegeben.
+- Da Wahrschienlichkeitsverteilungen stets zu 1 integrieren, mussten wir das Histogramm auch auf Fläche 1 normieren, um vergleichen zu können. Daher die Anweisung `y=after_stat(density)`.
+- Wir sehen, dass das Histogramm der Kurve gut folgt.
+
+--> Die Körpergröße ist also durch eine Normalverteilung gut beschrieben.
+
+### Der zentrale Grenzwertsatz
+
+Ein grundlegender Lehrsatz der mathematischen Statistik ist der **zentrale Grenzwertsatz** (*central limit theorem*):
+
+Wenn mann eine große Anzahl voneinander unabhängiger Zufallsgrößen aufsummiert, so ist die Summe näherungsweise normalverteilt. Je mehr Werte man aufaddiert, desto näher kommt man der exakten Normalverteilung.
+
+Der Satz gilt nur unter gewissen Voraussetzungen, insbesondere, dass die einzelnen Zufallsgrößen endliche Varianz haben, aber das ist fast immer der fall, daher ignorieren wir es.
+
+### Würfel
+
+Wir testen das an einem Beispiel:
+
+Die Funktion `sample.int( m, 1 )` wählt eine zufällige Zahl zwischen 1 und m aus. Damit können wir einen Würfel simulieren:
+
+```{r}
+sample.int( 6, 1 )
+```
+
+Wir können auch drei Würfel simulieren:
+
+```{r}
+sample.int( 6, 3, replace=TRUE )
+```
+
+Das `replace=TRUE` ist erforderlich, da R sonst erzwingt, dass keine Zahl mehrfach vorkommt.
+
+Wie oft kommt wohl jeder Würfel vor? Wir simulieren 3000 Würfe und zählen:
+
+```{r}
+
+```

@@ -1,0 +1,347 @@
+---
+title: "Grouping and Summerizing"
+format: html
+toc: true
+---
+
+Vorlesung "Datananalyse in der Biologie"
+
+## Erinnerung: Summarizing functions
+
+Wir laden wieder unsere [NHANES-Tabelle](https://papagei.bioquant.uni-heidelberg.de/simon/Vl2021/nhanes.csv):
+
+```{r}
+library( tidyverse )
+
+read_csv( "~/Downloads/nhanes.csv" ) -> nhanes
+nhanes
+```
+
+Heute lernen wir, wie man "summerizing functions" auf Tabellen anwendet. Wichtiger Zweck solcher
+Funktionen ist die Erstellungs beschreibender Statistiken (*descriptive statistics*) wie z.B.
+Mittelwert, Median, etc.
+
+Zur Erinnerung: Eine *summerizing function* fasst einen Vektor mit vielen Zahlen (z.B. eine Tabellen-Spalte) 
+zu einer Zahl zusammen.
+
+Beispiele: Mittelwert (`mean`), Summe (`sum`), Median (`median`), Varianz (`var`), Standardabweichung (`sd`),
+aber auch Maximum (`max`), Minimum (`min`), Anzahl der Werte (`length`, oder, nur in Tidyverse, `n`), uvm.
+
+Unsere Aufgabe: Berechne die mittlere Körpergröße der erwachsenen Frauen und Männer.
+
+## NA-Filtern
+
+Eigentlich können wir das mit dem Gelernten schon lösen:
+
+Wir erstellen erst eine Tabelle aller erwachsenen Männer:
+
+```{r}
+nhanes %>% filter( gender == "male", age >= 18 ) -> nhanes_adult_men
+
+nhanes_adult_men
+```
+
+Nun können wir `mean` auf die Spalte anwenden:
+
+```{r}
+mean( nhanes$height )
+```
+
+Warum hat das nicht geklappt? Anscheinend fehlt bei ein paar Männern die Angabe der Größe.
+
+Wir können `mean` anweisen, diese fehlenden Werte (die in der Tabelle mit `NA`, für *not available*, 
+merkiert sind) zu überspringen, indem wir das Zusatz-Argument `na.rm` (für *NA removal*) angeben:
+
+```{r}
+mean( nhanes$height, na.rm=TRUE )
+```
+
+Eine andere Lösung ist, unseren Filter zu erweitern, um die störenden Zeilen aus der Tabelle
+ganz zu entfernen:
+
+```{r}
+nhanes %>% filter( gender == "male", age >= 18, !is.na(height) ) -> nhanes_adult_men
+
+nhanes_adult_men
+```
+Nun haben wir in `filter` drei Filter-Kriterien: männlich; erwachsen; mit Angabe der Körpergröße.
+
+Der dritte Filter funktioniert so: Die Funktion `is.na` prüft, ob der Wert `NA` (*not available*)
+ist:
+
+```{r}
+is.na( c( 2, 3, NA, 6, 5, NA, 7 ) )
+```
+Da `filter` die Zeilen behält, bei denen die Bedingung wahr (`TRUE`) ist, müssem wir die
+Wahrheitswerte invertieren, mit dem Ausrufezeichen, das als "Nicht-Operator" (*not operator*) wirkt:
+
+```{r}
+!is.na( c( 2, 3, NA, 6, 5, NA, 7 ) )
+```
+
+Also:
+
+```{r}
+nhanes %>% filter( gender == "male", age >= 18, !is.na(height) ) -> nhanes_adult_men
+
+mean( nhanes_adult_men$height )
+```
+
+Jetzt funktioniert es. 
+
+Unschön ist aber, dass wir die `mean`-Funktion nicht in unsere Tidyverse-Pipeline 
+eingebaut haben.
+
+## Das Tidverse-Verb "summarise"
+
+So ist es schöner:
+
+```{r}
+nhanes %>% 
+filter( gender == "male", age >= 18, !is.na(height) ) %>%
+summarise( mean(height) )
+```
+
+Das Tidyverse-Verb `summarise` (oder `summarize`) erlaubt es, *summerizing functions*
+in einer Tidyverse-Pipeline einzubauen. Man erhält dann eine Tabelle mit nur einer Zeile.
+
+Man kann auch mehrere Summarisierungen durchführen:
+
+```{r}
+nhanes %>% 
+filter( gender == "male", age >= 18, !is.na(height) ) %>%
+summarise( mean(height), min(height), max(height) )
+```
+
+## Gruppieren: Das Tidyverse-Verb "group_by"
+
+Wie können wir die Summarisierung auf einmal für beide Geschlechter machen?
+
+Wir entfernen zunächst den Filter für die Männer:
+
+```{r}
+nhanes %>% 
+filter( age >= 18, !is.na(height) ) %>%
+summarise( mean(height), min(height), max(height) )
+```
+
+Nun fügen wir eine *Gruppierung* ein:
+
+```{r}
+nhanes %>% 
+filter( age >= 18, !is.na(height) ) %>%
+group_by( gender ) %>%
+summarise( mean(height), min(height), max(height) )
+```
+
+Das  `group_by( gender )` hat die Zeilend er Tabelle in zwei Gruppen eingeteilt,
+gemäß dem Inhalt der Spalte `gender`, die entweder `male` oder `female` enthält.
+
+Das nachfolgende `summerise` führt dann die Sumamrisierung *für jede Gruppe getrennt durch*. Die
+erzeugt Tabelle enthält dann eine Zeile pro Gruppe.
+
+Wir können die Gruppen auch feiner einteilen:
+
+```{r}
+nhanes %>% 
+filter( age >= 18, !is.na(height) ) %>%
+group_by( gender, ethnicity ) %>%
+summarise( mean(height), min(height), max(height) )
+```
+
+Nun haben wir 12 Gruppen (2 Geschlechter x 6 Ethnien) und entsprechend 12 Zeilen in
+der Ausgabe von `summarize`. Die Ausgabe hat 5 Zeilen, nämlich
+
+- zwei Spalten mit den Gruppen-Labels, die in `group_by` angegeben wurden (`gender`, `ethnicity`)
+- drei Spalten mit Ergebnissen der drei Summarisierungs-Operationen, die in `summerize` angegeben wurden
+
+**Merke:** `group_by` und `summarize` werden meist zusammen verwendet. Ersteres teilt die Zeilen in Gruppen
+ein, letzteres fasst die Zeilen jeder Gruppe zu einer einzelnen Zeile zusammen.
+
+## Zählen in Gruppen
+
+Der Mittelwert (`mean`) ist eine einfache Statistik; die Anzahl der Zeilen (`n`) eine noch einfachere.
+
+Wir verwenden dies, um zu unsere Frage zurück zu kommen, welcher Prozentsatz der Frauen und Männer
+übergewichtig bzw. adipös ist.
+
+**Aufgabe:** Erstellen Sie dafür eine Tabelle wir folgt:
+
+- Beginnen Sie mit der `nhanes`-Tabelle
+- Filtern Sie, dass nur die Erwachsenen Probanden/Probandinnen verbleiben
+- Fügen Sie eine Spalte mit dem BMI hinzu (wie zuvor)
+- Fügen Sie eine Spalte `obese` hinzu, die angibt, ob die person adipös ist, d.h.,
+  einen BMI über 30 hat:
+
+So soltle die Tabelle aussehen:
+
+```{r echo=FALSE}
+nhanes %>%
+filter( age >= 18 ) %>%
+mutate( bmi = weight / (height/100)^2 ) %>%
+mutate( obese = bmi > 30 )
+```
+
+**Aufgabe:** Teilen Sie die Tabellenzeilen nun mit `group_by` in vier Gruppen ein, nämlich gemäß dem Geschlecht (male/female) und nach dem Adipositas-Status (obese TRUE/FALSE). Lassen Sie dann mit `summerize` für jede Gruppe die Summarisierungs-Operation `n()` ausführen, die einfach zählt, wie viele
+Zeilen in der Gruppe sind.
+
+So soltle Ihr Ergebnis aussehen:
+
+```{r eval=FALSE}
+nhanes %>%
+filter( age >= 18 ) %>%
+mutate( bmi = weight / (height/100)^2 ) %>%
+filter( !is.na(bmi) ) %>%
+mutate( obese = bmi > 30 ) %>%
+group_by( gender, obese ) %>%
+summarise( n() )
+```
+
+## Faktoren und Diskretisierung
+
+### Faktoren
+
+Unsere Tabelle hat zwei Arten von Daten:
+
+- Werte wie Größe und Gewicht sind *kontinuierlich* ("continuous"), d.h., es gibt
+  beliebige Zwischenwerte.
+- Werte wie Geschlecht und Ethnie sind *kategorisch* ("categorical"): Es gibt eine
+  vorgegebene Liste von Werten (z.B. "male" und "female") und andere als diese sind
+  nicht möglich. Manchmal spricht man auch von "diskreten" Werten.
+
+Bei kategorischen Werten macht es oft Sinn, nicht jedesmal das Wort ("male" oder 
+"female") anzugeben, sondern einfach einen Code (eine Zahl) zu speichern, zusammen
+mit einer Kodierungstabelle (z.B. 1="male", 2="female"). Einen auf diese Art 
+angelegten Vektor nennt man in R einen "Faktor" (*factor*), die möglichen Werte
+nennt man *Levels*.
+
+### Diskretisierung
+
+Oft macht es Sinn, kontinuierliche Werte anhand eines Rasters aus Grenzen zu diskretisieren.
+
+Beispiel 1: Beim Histogramm bildet R den Wertebereich auf ein Raster von "Bins" (Eimern) ab, und
+ordnet jeden Wert in eine Bin, die dann als ein Balken im Diagramm dargestellt wird.
+
+Beispiel 2: Die WHO schlägt vor, BMI-Werte wie folgt zu interpretieren:
+  
+- unter 18.5: untergewichtig
+- 18.5 bis 25: normal
+- 25 - 30: übergewichtig
+- über 30: adipös
+
+Die R-Funktion `cut` ermöglicht uns, die BMI-Werte entlang dieser Grenzen zu
+diskretisieren.
+
+```{r}
+nhanes %>%
+filter( age >= 18 ) %>%
+mutate( bmi = weight / (height/100)^2 ) %>%
+filter( !is.na(bmi) ) -> nhanes_adults
+```
+
+```{r}
+nhanes_adults %>%
+mutate( weight_state = cut( bmi, breaks = c( 0, 18.5, 25, 30, Inf ) ) )
+```
+Beachte: Die Liste mit den Grenzwerten füë `cut` muss auch die  "äußeren" Grenzen enthalten, hier `0` und `Inf` (= infinity).
+
+Wir können auch Labels (Faktor-Levels) angeben:
+
+```{r}
+nhanes_adults %>%
+mutate( weight_state = cut( bmi, 
+     breaks = c( 0, 18.5, 25, 30, Inf ),
+     labels = c( "underweight", "normal", "overweight", "obese" ) ) )
+```
+
+Nun können wir nochmals zählen:
+
+```{r}
+nhanes_adults %>%
+mutate( weight_state = cut( bmi, 
+     breaks = c( 0, 18.5, 25, 30, Inf ),
+     labels = c( "underweight", "normal", "overweight", "obese" ) ) ) %>%
+group_by( gender, weight_state ) %>%
+summarize( n = n() )
+```
+
+Hier haben wir bei `summarise` einen Spaltennamen angegeben, nämlich `n` (statt bisher `n()`), 
+indem wir den gewünschten Spaltennamen, gefolgt von einem `=`, *vor* die Summarisierungs-Operation
+gesetzt haben.
+
+Nun möchten wir die diese Tabelle noch um eine Spalte mit Prozenten ergänzen:
+
+```{r}
+nhanes_adults %>%
+mutate( weight_state = cut( bmi, 
+     breaks = c( 0, 18.5, 25, 30, Inf ),
+     labels = c( "underweight", "normal", "overweight", "obese" ) ) ) %>%
+group_by( gender, weight_state ) %>%
+summarize( n = n() ) %>%
+  
+group_by( gender ) %>%
+mutate( percent  = n / sum(n) * 100 )
+```
+
+Wie funktioniert dies?
+
+- Das zweite `group_by` teilt die 8 Zeilen in zwei Gruppen (male, female) zu je 4 Zeilen ein.
+- Das nachfolgende  `mutate` wird für jede Gruppe getrennt durchgeführt. Daher ergibt `sum(n)` die
+  Summe der Spalte `n` *nur* über die Zeilen der Gruppe. Jedes `n` wird also durch die Summe der
+  vier `n`-Werte des jeweiligen Geschlechts geteilt. Somit addieren sich die Geschlechter jeweils
+  getrennt zu 100%.
+  
+## Hausaufgabe
+
+Hier ist ein Plot mit der Durschschnitts-Größe der Probanden jedes Jahrgangs,
+aufgeschlüsselt nach Geschlecht:
+
+```{r echo=FALSE}
+nhanes %>%
+filter( !is.na(height) ) %>%
+group_by( age, gender ) %>%
+summarise( mean_height= mean(height) ) %>% 
+ggplot( aes( x=age, y=mean_height, color=gender ) ) + 
+  geom_point() + geom_line() + xlim( 4, 30 )
+```
+Versuchen Sie, diesen Plot selbst zu erstellen.
+
+Bauen Sie dazu eine Tidyverse-Pipeline, die die folgenden Schritte durchführt:
+
+- Beginnen Sie mit der NHANES-Tabelle
+- Entfernen Sie alle Tabellen-Zeilen, bei denen die Körpergröße fehlt (d.h., als NA markiert ist)
+- Gruppieren sie die Tabelle mit `group_by`, so dass jede Gruppe jeweils Zeilen enthält, die
+  das selbe Geschlecht und dasselbe Lebensalter in Jahren aufweist. Da die Alters-Zahlen von
+  4 bis 80 gehen (also 77 verschiedene Werte), soltlen Sie 2x77=158 Gruppen erhalten.
+- Berechnen Sie für jede Gruppe den mittelwert von `height` und nennen Sie diese neue 
+  Spalte `mean_height`. Nun sollle Ihre Tabelle so aussehen:
+
+```{r eval=FALSE, warning=FALSE, message=FALSE}
+nhanes %>%
+filter( !is.na(height) ) %>%
+group_by( age, gender ) %>%
+summarise( mean_height= mean(height) ) 
+```
+
+- Geben Sie diese Tabelle an ``gplot` weiter. Legen Sie per `aes` fest, aus welchen
+  Spalten für `x`, `y` und `color` entnommen werden sollen.
+- Als Geom können Sie `geom_point` verwenden, um ein Streudiagramm (scatter plot) zu erhalten.
+  Wenn Sie als zweites Geom noch `geom_line` hinzu addieren, werden die Punkte durch
+  Linien verbunden.
+- Mit `xlim` können Sie in die x-Achse "hinein zoomen", so dass man die Jahre, in denen
+  die Probanden noch nicht ausgewachsen sind, besser sehen kann.
+  
+Intepretieren Sie den Plot:
+
+- Wie entsteht der Unterschied zwischen Frauen und Männern aus? Wann sind Jungen und Mädchen
+  ausgewachsen>?
+  
+- Wann sind Jungen größer und wann Mädchen? Glauben Sie, dass es unter 13 Jahren einen 
+  Unterschied gibt?
+  
+Facetting:
+
+- Können Sie den Plot so erweitern, dass Sie einen Plot pro Ethnie haben? Benutzen Sie
+  `facet_grid`.
+  
+Laden Sie Ihren Plot und Ihren Code bitte auf Moodle hoch.  

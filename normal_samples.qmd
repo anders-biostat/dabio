@@ -1,0 +1,318 @@
+---
+title: "Normalverteilte Stichproben und ihre Mittelwerte"
+format: html
+toc: true
+---
+  
+Vorlesung "Datananalyse in der Biologie"
+
+## Körpergrößen sind normalverteilt
+
+Die Normalverteilung (*normal distribution*) findet sich in der Natur fast überall. Die Körpergröße erwachsener Menschen ist ein typisches Beispiel.
+
+```{r}
+suppressPackageStartupMessages( library(tidyverse) )
+
+read_csv( "~/Downloads/nhanes.csv", show_col_types=FALSE ) -> nhanes
+
+nhanes %>%
+filter( gender == "male", age >=18, !is.na(height) ) -> nhanes_men
+
+nhanes_men %>% 
+ggplot( aes(x=height) ) + 
+  geom_histogram( bins=50 )
+```
+
+Hier sind Mittelwert und Standardabweichung:
+
+```{r}
+nhanes_men %>% summarise( mean(height), sd(height) )
+```
+
+Durch diese beiden Parameter ist eine Normalverteilung eindeutig definiert.
+
+Die FUntion`dnorm` berechnet die Wahrscheinlichkeitsdichte einer Normalverteilung mit
+gegebenem Mittelwert und Standardabweichung. Was das genau bedeutet, wiederholen wir später noch mal. Hier ist erstmal eine Wertetabelle:
+
+```{r}
+tibble( x = 145:200 ) %>%
+mutate( y = dnorm( x, mean=173.48, sd=7.676 ) ) -> men_norm
+
+men_norm
+```
+Wir plotten nun diese Verteilung in unser Histogramm:
+
+```{r}
+nhanes_men %>% 
+ggplot( aes(x=height) ) + 
+  geom_histogram( aes(y=after_stat(density)), bins=30 ) +
+  geom_line(aes(x=x,y=y), data=men_norm, col="magenta"  )
+```
+
+Anmerkungen zum Code:
+
+- Normalerweise haben ggplot-Histogramme in der y-Achse die Anzahl der Werte für jedes Bin (jede Säule). Diesmal möchten wir die sog. Dichte (*density*), d.h., die y-Achse soll so skaliert werden, dass die Gesamt-Fläche des Histogramms sich zu 1 addiert. Deshalb die Spezial-Anweisung `y=after_stat(density)`.
+- Bei geom_line sollen die Daten nicht der Tabelle entnommen werden, die wir via `%>%` in `ggplot` hinein geschoben haben, sondern aus einer anderen Tabelle, nämlich `men_norm` aus dem vorigen Chunk. So eine alternative Datentabelle kann man für ein geom mit `data=` angeben.
+
+Interpretation des Plots:
+
+- Die Wahrscheinlichkeitsdichte unserer Normalverteilung (mit demselben Mittelwert und derselben Standardabweichung wie die Werte im Histogramm) ist durch die Linie in Magenta gegeben.
+- Da Wahrschienlichkeitsverteilungen stets zu 1 integrieren, mussten wir das Histogramm auch auf Fläche 1 normieren, um vergleichen zu können. Daher die Anweisung `y=after_stat(density)`.
+- Wir sehen, dass das Histogramm der Kurve gut folgt.
+
+--> Die Körpergröße ist also durch eine Normalverteilung gut beschrieben.
+
+## Stichproben aus einer Normalverteilung
+
+Nehmen wir an, die *wahre* Verteilung der Körpergrößen aller erwachsenen Männer sei eine Normalverteilung mit Mittelwert 173.5 cm und Standardabweichung 7.7 cm.
+
+Eine Gruppe von Forschern wählt nun aus der Gesamtbevölkerung 2500 Männer aus und bestimmt Ihre Körpergröße. Dir R-Funktion `rnorm` erlaubt uns, dieses Experiment nachzubilden:
+
+```{r}
+rnorm( 2500, mean=173.5, sd=7.7 ) -> heights
+
+head( heights )
+```
+
+Die Funktion `rnorm` hat uns eine *Stichprobe der Länge 2500* aus einer Normalverteilung
+mit Mittelwert 173,5 und Standardabweichung 7,7 *gezogen*. (in English: The function `rnorm` has drawn a sample of size 2500 from a normal distribution with mean 173.5 and standard deviation 7.7.)
+
+Wir zeichnen ein Histogramm:
+
+```{r}
+tibble( heights ) %>%
+ggplot( ) +
+  geom_histogram( aes( x=heights, y=after_stat(density) ), bins=30 ) +
+  geom_line(aes( x=x,y=y), col="magenta", data = {
+    tibble( x=145:200 ) %>% mutate( y = dnorm( x, mean=173.5, sd=7.7 ) )
+  })
+```
+
+Hier sehen wir nun, wie stark eine Stichprobe aus einer exakten Normalverteilung gegen diese schwankt.
+
+Wie stark aber unterscheidet sich der Mittelwerte der Stichprobe vom "erwarteten" Mittelwert 173.5?
+
+```{r}
+mean( heights )
+```
+
+Um zu sehen ob diese Abweichung nun typisch ist, wiederholen wir das Experiment 3000 mal. Wir bestimmen also 3000-mal den Mittelwert eine Stichprobe des Umfangs 2500.
+
+```{r}
+sample_means <- replicate( 3000, {
+  mean( rnorm( 2500, mean=173.5, sd=7.7 ) )
+})
+```
+
+Sehen wir uns ein Histogramm der Verteilung der Stichproben-Mittelwerte (a histogram of
+the distribution of sample means) an:
+
+```{r}
+tibble( sample_means ) %>% 
+ggplot( aes(sample_means) ) +
+  geom_histogram()
+```
+Beachten Sie die x-Achse: alle Werte liegen bei 173 c.m
+
+
+Es überrascht nicht, dass der Mittelwert aller dieser Mittelwerte recht nah am Mittelwert der Ausgangs-Verteilung liegt:
+
+```{r}
+mean( sample_means )
+```
+
+Interessanter ist die Standardabweichung:
+
+```{r}
+sd( sample_means )
+```
+
+Dieser Wert gibt uns nun an, wie nah ein Stichproben-Mittelwert (*sample mean*),
+gebildet aus einer Stichprobe des Umfangs $n=2500$, typischerweise am wahren
+Mittelwert (Mittelwert der Grundgesamtheit, *population mean*) liegt. Man nennt ihn
+den "Standardfehler des Mittelwerts" (*standard error of the mean*, abgekürzt SEM).
+
+Man erwartet:
+$$ \text{SEM} = \frac{\text{SD}}{\sqrt{n}}, $$
+wobei SD die Standardabweichung in der Grundgesamtheit (Ausgangsverteilung) ist;
+bei uns also 7.7.
+
+Wir erwarten also, dass `sd( sample_means )` den folgenden Wert hat:
+
+```{r}
+7.7 / sqrt(2500)
+```
+
+Dies ist auch der Fall.
+
+Wie sieht es aus, wenn unsere Stichprobe nur 20 Männer umfasst?
+
+In diesem Fall erwarten wir als SEM:
+
+```{r}
+7.7 / sqrt(20)
+```
+
+Wir ziehen eine Stichprobe:
+
+```{r}
+heights <- rnorm( 20, mean=173.5, sd=7.7 ) 
+
+heights
+```
+
+und bestimmen den Mittelwert
+
+```{r}
+mean( heights )
+```
+
+Nun machen wir das 3000-mal um die Stichproben-Verteilung zu bestimmen:
+
+```{r}
+sample_means <- replicate( 3000, {
+  mean( rnorm( 20, mean=173.5, sd=7.7 ) )
+})
+
+tibble( sample_means ) %>%
+ggplot() +
+  geom_histogram( aes(x=sample_means), bins=30 ) 
+```
+
+Die Standardabweichung in diesem Histogramm beträgt
+
+```{r}
+sd( sample_means )
+```
+was nah am erwarteten Standardfehler ist.
+
+Hier nochmal das Histogramm, mit eingezeichneter Standardabweichung:
+
+```{r}
+tibble( sample_means ) %>%
+ggplot() +
+  geom_histogram( aes(x=sample_means), bins=30 ) +
+  geom_vline( xintercept=173.5, col="red" ) +
+  geom_vline( xintercept=mean(sample_means), col="purple" ) +
+  geom_vline( xintercept=mean(sample_means)+sd(sample_means), col="blue" ) +
+  geom_vline( xintercept=mean(sample_means)-sd(sample_means), col="blue" )
+```
+
+Man beachte: Ein erheblicher Teil der Mittelwerte liegt nicht innerhalb der blauen Linien. Das ist auch so zu erwarten. In einer Normalverteilung (und dieses Histogramm sieht recht normalverteilt aus) liegen nur 68% der Werte innerhalb des Bereichs, der durch Mittelwert +/- Standardabweichung gegrenzt wird. 
+
+## Etwas Terminologie
+
+Die eben besprochene Situation kommt oft vor, daher möchten wir sie in allgemeinen Begriffen beschreiben:
+
+Wir würden gerne den Mittelwert der Körpergröße aller männlichen erwachsenen Einwohner der USA bestimmen. Da das nicht möglich ist, wählen wir eine machbare Anzahl Personen zufällig aus und bestimmen den Mittelwert deren Körpergröße. WIr fragen uns wie nah der so ermittelte Wert an dem Wert ist,d er uns eigentlich interessiert.
+
+Nun dasselbe in allgemeinen Begriffen:
+
+Wir haben eine *Grundgesamtheit* (*population*) von *Subjekten*. Zu jedem Subjekt lässt sich im Prinzip ein bestimmter Wert (*value*) bestimmen [hier: die Körpergröße], und wir möchten diese Werte durch eine *Statistik* (*statistic*) -- hier: durch den *Mittelwert* (*mean*) -- zusammen fassen. 
+
+Da es nicht praktikabel ist, den Wert (Körpergröße) für alle Subjekte in der Grundgesamtheit in Erfahung zu bringen, *ziehen* wir eine *Stichprobe* des *Umfangs* (oder: der Länge) $n$ (*draw a sample of size n*), d.h. wir wählen aus der Grundgesamtheit aller Subjekte zufällig $n$ Subjekte aus.
+
+Nun bestimmen für jedes Subjekt in der Stichprobe den gesuchten Wert (die Körpergröße) und mitteln diese Stichproben-Werte. Wir erhalten den Stichproben-Mittelwert (*sample mean*). Wir wissen, dass der Stichproben-Mittelwert vom eigentlich gesuchten Mittelwert der Grundgesamtheit (*sample mean*) abweicht. Daher bezeichnen wir unseren Wert als eine Schätzung (*estimate*) des gesuchten Wertes. 
+
+(Beachte: In der Statastik verwndet man den Begriff "schätzen" anders als in normalen Sprachgebrauch. "Schätzen" bedeutet: nach einem genau definierten Verfahren eine Stichprobe ziehen und aus ihr den gesuchten Wert berechnen. Das Verfahren bezeichnet man als Schätzer (*estimator*).)
+
+Unser Schätzung ist nur von Nutzen, wenn wir wissen, wie *genau* sie ist. Wir fragen also:
+
+Wenn man unser Vorgehen zum Schätzen (nämlich: $n$ Subjekte auswählen und vermessen, die so erhaltenen Werte mitteln) sehr sehr oft anwenden würde, was wäre die *Verteilung* (*distribution*) der so ermittelten Schätzwerte? Diese Verteilung nennt man die Stichproben-Verteilung (*sampling distribution*). 
+
+Die Stichproben-Verteilung lässt sich nicht direkt ermitteln. Man müsste dafür das Ziehen der Stichprobe sehr oft zu wiederholen, aber man hat ja nur eine Stichprobe! Man kann aber theoretische Angaben über die Stichproben-Verteilung machen.
+
+## Die Stichprobenverteilung von Mittelwerten
+
+Es gilt: 
+
+Zieht man aus einer Grundgesamtheit mit Mittelwert $\mu$ und Standardabweichung $\sigma$ Stichproben mit jeweils Umfang $n$, so hat Verteilung der Mittelwerte der Stichproben (die *sampling distribution of the mean*) den Mittelwert $\mu$ und die Standardabweichung $\sigma/\sqrt{n}$. 
+
+Desweiteren ist die Stichprobenverteilung des Mittelwerts eine Normalverteilung, wenn die Werte in der Grundgesamtheit normalverteilt sind. Wenn $n$ nicht sehr klein ist (Faustregel: $n>7$), dann ist die Stichprobenverteilung selbst dann in guter Näherung normalverteilt, wenn die Werte der Grundgesamtheit es nicht sind.
+
+Die Standardabweichung der Stichproben-Verteilung einer Statistik (wie z.B. des Mittelwerts) nennt man den *Standardfehler* (*standard error*) dieser Statistik.
+
+(Zur Erinnerung: Der Begriff *Statistik* (*statistic*) bezeichnet jede Funktion oder Rechenvorschrift, die eine Vielzahl von Werten zu einem einzelnen Wert zusammen fasst. In R werden solche Rechenvorschriften durch die *summarizing functions* bereit gestellt. Beispiele sind Mittelwert, Standardabweichung, Median, Quartil, usw.)
+
+## Angabe von Werten mit Standardfehler
+
+Um zu sehen, warum das ein Problem ist, gehen wir zurück zu unserem Beispiel der Männer, deren Körpergrößen normalverteilt sind mit Mittelwert 178,5 cm und Standardabweichung 7,7 cm.
+
+Wir ziehen wieder eine Stichprobe von 2500 Probanden:
+
+```{r}
+rnorm( 2500, mean=178.5, sd=7.7 ) -> heights
+```
+
+Der Stichproben-Mittelwert beträgt
+
+```{r}
+mean( heights )
+```
+
+Der erwartete Standardfehler beträgt
+
+```{r}
+7.7 / sqrt(2500)
+```
+Aber: Im "echten Leben" wissen wir nichts über die Grundgesamtheit. Wenn wir deren Mittelwert und Standardabweichung schon kennen würden, bräuchten wir ja keine Stichprobe. Wir wissen also nicht, dass die Standardabweichung 7,7 cm beträgt.
+
+Wir müssen die Standardabweichung also aus der Stichprobe schätzen:
+
+```{r}
+sd(heights)
+```
+Zum Glück liegen wir nah am wahren Wert. Daher ist der Wert, den wir für unseren Standardfehler ermitteln, recht genau:
+
+```{r}
+sd(heights) / sqrt(2500)
+```
+
+Wir können also berichten: Die mittlere Größe der Männer ist `r round( mean(heights), 2)` mit einem Standardfehler von `r round( sd(heights) / sqrt(2500) + 0.005, 2 )`.
+
+Dies wird oft kurz als `r round( mean(heights), 2)`±`r round( sd(heights) / sqrt(2500) + 0.005, 2 )` geschrieben. 
+
+Hier sollten wir aber vorsichtig sein und nicht vergessen, dass nur 68,3% der Werte einer Normalverteilung weniger als eine Standardabweichung vom Mittelwert abweicht. Das durch die ±-Angabe beschriebene Intervall ist daher ein sog. 68%-Konfidenzintervall (*68% confidence interval*), d.h., für die Annahme, dass der "wahre" Mittelwert der Grundgesamtheit innerhalb des Intervalls liegt, sollte unsere *confidence* 68% sein.
+
+Wir könnten auch ein Intervall mit der doppelten Standardabweichung bilden. Da bei einer Normalverteilung 95,4% aller Werte höchstens zwei Standardabweichungen entfernt sind, haben wir dann ein 95%-KI. 
+
+Wir rechnen:
+
+```{r}
+c( 
+  ci_lower_bound = mean(heights) - 2 * sd(heights)/sqrt(length(heights)),
+  sample_mean = mean(heights), 
+  ci_upper_bound = mean(heights) + 2 * sd(heights)/sqrt(length(heights)) )
+```
+
+und schreiben:
+
+*The sample mean of the subjects' body height is 178.30 cm with a 95%-C.I. of (177.99 cm, 178.60 cm).*
+
+## Der Haken bei kleinen Stichproben
+
+Die Formel $\text{SEM}=\text{SD}/\sqrt{n}$ hat einen Haken: Das $\text{SD}$ hier steht für den wahren Wert der Standardabweichung der Grundgesamtheit.
+
+Bei kleinen Stichproben lässt sich die Standardabweichung aber nicht so genau berechnen.
+
+Wir probieren das aus.
+
+Zunächst bestimmen wir die Standardabweichungen von 30 Stichproben mit jeweils 2500 Probanden:
+
+```{r}
+replicate( 30, sd( rnorm( 2500, mean=178.5, sd=7.5 ) ) )
+```
+
+Wir sehen dass wir selten mehr als ein paar Prozent vom wahren Wert abweichen.
+
+Nun dasselbe mit nur 10 Probanden pro Stichprobe:
+
+```{r}
+replicate( 30, sd( rnorm( 10, mean=178.5, sd=7.5 ) ) )
+```
+
+Wie wir sehen, schätzen wir deutlich ungenauer. Gelegentlich ist unser geschätzer Wert kaum mehr als die Hälfte des wahren Werts. Wenn wir mit so einer Standardabweichungs-Schätzung einen Standardfehler oder eine Konfidenzintervall berechnen würden, würden wir fälschlich behaupten, dass unser Stichproben-Mittelwert doppelt so genau ist als er wirklich ist.
+
+Das ist gefährlch: Unterschätzen der Stichproben-Standardabweichung führt dazu, dass wir unseren Mittelwert für genauer halten als er ist.
+
+Daher darf die simple Formel $\text{SEM}=\text{SD}/\sqrt{n}$ nicht angewndet werden, wenn $n \lesssim 20$ ist!
