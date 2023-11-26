@@ -12,7 +12,7 @@ Die Normalverteilung (*normal distribution*) findet sich in der Natur fast über
 ```{r}
 suppressPackageStartupMessages( library(tidyverse) )
 
-read_csv( "~/Downloads/nhanes.csv", show_col_types=FALSE ) -> nhanes
+read_csv( "Downloads/nhanes.csv", show_col_types=FALSE ) -> nhanes
 
 nhanes %>%
 filter( gender == "male", age >=18, !is.na(height) ) -> nhanes_men

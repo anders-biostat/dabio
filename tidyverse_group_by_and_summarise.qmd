@@ -13,7 +13,7 @@ Wir laden wieder unsere [NHANES-Tabelle](https://papagei.bioquant.uni-heidelberg
 ```{r}
 library( tidyverse )
 
-read_csv( "~/Downloads/nhanes.csv" ) -> nhanes
+read_csv( "Downloads/nhanes.csv" ) -> nhanes
 nhanes
 ```
 

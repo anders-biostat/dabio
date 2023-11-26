@@ -216,7 +216,7 @@ Man kann sich auch merken:
 Wir laden nochmal die NHANES-Daten und sehen uns die Körpergrößen der Männer an:
 
 ```{r}
-read_csv( "~/Downloads/nhanes.csv", show_col_types=FALSE ) -> nhanes
+read_csv( "Downloads/nhanes.csv", show_col_types=FALSE ) -> nhanes
 
 nhanes %>%
 filter( gender == "male", age >=18, !is.na(height) ) %>%

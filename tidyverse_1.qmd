@@ -60,7 +60,7 @@ https://papagei.bioquant.uni-heidelberg.de/simon/Vl2021/nhanes.csv
 
 Wir laden diese Datei mit der Tidyverse-Fuktion `read_csv`:
 ```{r}
-nhanes <- read_csv( "~/Downloads/nhanes.csv")
+nhanes <- read_csv( "Downloads/nhanes.csv")
 ```
 
 Wir sehen uns die Tabelle an:

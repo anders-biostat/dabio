@@ -23,7 +23,7 @@ suppressPackageStartupMessages( {
   library( tidyverse )
   library( haven ) } )
 
-read_xpt( "~/Downloads/DEMO_J.XPT" ) -> demo_j
+read_xpt( "Downloads/DEMO_J.XPT" ) -> demo_j
 
 demo_j
 ```
@@ -157,7 +157,7 @@ left_join( ethnicity_codes,
 ### Alles zusammen
 
 ```{r}
-read_xpt( "~/Downloads/DEMO_J.XPT") %>% 
+read_xpt( "Downloads/DEMO_J.XPT") %>% 
 select( 
   subjectId = SEQN, 
   gender_code = RIAGENDR, 
@@ -181,7 +181,7 @@ werden beibehalten. Damit haben wir die beiden Code-Spalten entfernt, da wir sie
 Nun laden wir noch die Body-Measures-Tabelle. Sie finden die Datei `BMX_J.XPT` auf der NHANES-Webseite, Bereich "Survey Data and Documentation", Durchgang J (2017/18), Abschnitt "Examination Data".
 
 ```{r}
-read_xpt( "~/Downloads/BMX_J.XPT" )
+read_xpt( "Downloads/BMX_J.XPT" )
 ```
 
 ### Aufgabe
@@ -197,7 +197,7 @@ Probanden-ID-Nummer als Schlüssel verwenden.
 Hier ist die Tabelle mit den gewünschten Spalten:
 
 ```{r}
-read_xpt( "~/Downloads/BMX_J.XPT" ) %>%
+read_xpt( "Downloads/BMX_J.XPT" ) %>%
 select( subjectId = SEQN, height = BMXHT, weight = BMXWT  ) -> bmx
 
 bmx
@@ -262,7 +262,7 @@ Denken Sie bitte an die Hausaufgabe am Ende des [Skripts zur Diskretisierung](di
 Zunächst nehmen wir den Code von oben ("Alles zusammen") und fügen im `select`-Befehl noch die neue Spalte INDHHIN2 hinzu.
 
 ```{r}
-read_xpt( "~/Downloads/DEMO_J.XPT") %>% 
+read_xpt( "Downloads/DEMO_J.XPT") %>% 
 select( 
   subjectId = SEQN, 
   gender_code = RIAGENDR, 

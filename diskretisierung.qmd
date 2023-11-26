@@ -17,7 +17,7 @@ Wir laden zunächst Tidyverse und die Tabelle
 suppressPackageStartupMessages(
   library( tidyverse ) )
 
-read_csv( "~/Downloads/nhanes.csv", show_col_types=FALSE ) -> nhanes
+read_csv( "Downloads/nhanes.csv", show_col_types=FALSE ) -> nhanes
 
 nhanes
 ```
