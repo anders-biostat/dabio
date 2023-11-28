@@ -133,3 +133,4 @@ stellen Sie sie bitte auf unserem Slack-Workspace.
 ## 12. Vorlesung (2023-11-23)
 
 - [Konfidenzintervalle für Differenzen und t-Tests](ttest.html)
+- [Video-Aufzeichnung](https://youtu.be/mLfHauS34Vo)
