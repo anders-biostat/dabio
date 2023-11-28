@@ -214,6 +214,23 @@ map_dfr( 1:20, ~ onion_experiment( n=10, delta_m=8 ) )
 
 Die Tidyverse-Funktion`map_dfr` kann immer verwendet werden, wenn die  inner Funktion (hier `onion_experiment`) einen vektor zurückgibt. Die Vektoren der einzelnen Durchläufe verwendet `map_dfr` dann als Zeilen, um daraus eine Tabelle zusammen zu setzen. (Die `map` functionen haben noch einige weiter wichtige Fähigkeiten, die wir ein anderes Mal behandeln.)
 
+Hier ist ein versuch, die Tabelle graphisch darzustellen:
+
+```{r fig.height=9,fig.width=6}
+map_dfr( 1:20, ~ onion_experiment( n=10, delta_m=8 ) ) %>%
+mutate( run = row_number() ) %>%
+ggplot() +
+  geom_segment( aes( x=control_ci_lower, xend=control_ci_upper, y=run-.1, yend=run-.1 ), col="brown" ) +
+  geom_segment( aes( x=treated_ci_lower, xend=treated_ci_upper, y=run+.1, yend=run+.1 ), col="darkorange2" ) +
+  geom_point( aes( x=control_mean, y=run-.1 ), col="brown" ) +
+  geom_point( aes( x=treated_mean, y=run+.1 ), col="orange" ) +
+  geom_vline( xintercept = 80, color="brown", lty="dotted" ) +
+  geom_vline( xintercept = 88, color="orange", lty="dotted" ) +
+  theme_minimal( ) + xlab("x") + ylab("")
+
+```
+
+
 Nun können wir zählen, wie oft die Konfidenzintervalle von *control* und *treated* überlappen, indem wir die Untergrenze von *treated* mit der Obergrenze von *control* vergleichen:
 
 ```{r}
