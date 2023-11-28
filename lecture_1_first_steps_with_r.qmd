@@ -138,7 +138,7 @@ turtle_forward( 20 )
 turtle_right( 90 )
 turtle_forward( 20 )
 ```
-![](turtle_square.png)
+![](img/turtle_square.png)
 
 Wenn wir nochmals 
 

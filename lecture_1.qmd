@@ -33,7 +33,7 @@ Messen des pH-Werts auslesen. Wir haben dazu Phenolrot zugegeben, um
 Wir hatten 96 klinische Proben (Rachenabstriche), die bereits vom Labor der Uniklinik 
 mit PCR getestet wurden. Hier ist ein Bild der Platte:
 
-![](lamp_place.jpg)
+![](img/lamp_place.jpg)
 
 Wells, in denen DNA durch LAMP vervielfältigt wurde, sind von rot auf gelb umgeschlagen.
 
@@ -46,7 +46,7 @@ von Licht bei zwei Wellenlängen (434 nm [blau] and 560 nm [gelb]) zu messen. Da
 wussten, wie lange man inkubieren muss, haben wir die Platte alle 5 Minuten auf Eis gelegt und
 mit dem Scanner gemessen, dann wieder erwärmt. Hier sind die 96 Kurven:
 
-![](lamp_curves.png)
+![](img/lamp_curves.png)
 
 - Jeder Kurve (Linie) steht für eine Probe, d.h., ein Well der 96-Well-Platte
 - Die Farben der Kurven zeigend as Ergebnis des PCR-Tests des Klinik-Labors
@@ -66,7 +66,7 @@ Wir erkennen:
 
 Der nächste Plot zeigt einen Vergleich der Ergebnisse der beiden Analyse-Verfahren:
 
-![](PCR_LAMP_cmp.png)
+![](img/PCR_LAMP_cmp.png)
 
 In diesem Streudiagramm (*scatter plot*) gilt:
 - Jeder Punkt ist eine Probe
@@ -296,6 +296,6 @@ Wenn Sie Schwierigkeiten haben, kein Sorge! WIr besprechen alles am Donnerstag n
 
 ## Webseite zur Vorlesung:
 
-![](qr_url.png)
+![](img/qr_url.png)
 
 `https://papagei.bioquant.uni-heidelberg.de/simon/Vl2324/`
