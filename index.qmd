@@ -130,7 +130,27 @@ stellen Sie sie bitte auf unserem Slack-Workspace.
 - [Konfidenzintervalle für Mittelwerte](confint.html)
 - [Video-Aufzeichnung](https://youtu.be/iZEdPxkKvmA)
 
-## 12. Vorlesung (2023-11-23)
+## 12. Vorlesung (2023-11-28)
 
 - [Konfidenzintervalle für Differenzen und t-Tests](ttest.html)
 - [Video-Aufzeichnung](https://youtu.be/mLfHauS34Vo)
+
+## 13. Vorlesung (2023-11-30)
+
+- [Video-Aufzeichnung](https://youtu.be/LLWE3NGHzmU)
+  - p-Werte
+  - Binomialtest
+  
+- Skript:
+  - Das [t-Test-Skripts](ttest.html) habe ich um einen Abschnitt zum p-Wert ergänzt.
+  - Zum Thema [Binomialverteilung und Binomialtest](binom.html) habe ich nun ein Skript erstellt, dass allerdings ausführlicher ist als die Vorlesung war. 
+  
+- Hausaufgabe: Steht am Ende des [t-Test-Skripts](ttest.html)  
+
+## 14. Vorlesung (2023-12-05)
+
+In der nächsten Vorlesung werden wir voraussichtlich weiter das Skript zur Binomialverteilung besprechen, sowie mit [Binomial-KIs](binom_ci.html) beginnen.
+
+## Übung statt Vorlesung (2023-12-07)
+
+Am 7.12. bin ich verreist, daher wird statt der Vorlesung ein Übungsstunde mit den Tutoren bearbeitet wird. Das Übungsblatt hierfür ist noch nicht fertig.

@@ -1,0 +1,568 @@
+---
+title: "Binomialverteilung und Binomialtest"
+format: html
+toc: true
+---
+
+Vorlesung "Datenanalyse in der Biologie"
+
+```{r}
+suppressPackageStartupMessages( library(tidyverse) )
+```
+
+### Einführendes Beispiel: Ein gezinkter Würfel
+
+Sie haben einen Würfel, bei dem Sie vermuten, dass er manipuliert wurde, so dass die Sechs häugiger erscheint als in 1/6 der Würfe. Sie werfen den Würfel 600 mal und erhalten 130 mal die Sechs, also 30% öfter als die erwartetem 100 mal. Wie beurteilen wir dieses Ergebnis?
+
+### Simulation von Würfen: Bernoulli-Versuche und die Binomial-Verteilung
+
+Wir stellen folgende *Nullhypothese* auf: "Der Würfel ist nicht manipuliert; die Wahrscheinlichkeit, eine Sechs zu werfen, ist also 1/6."
+
+Um den Wurf einen solchen normalen Würfels zu simulieren, bietet uns R eine Reihe von Möglichkeiten, von denen wir nun eine verwenden.
+
+#### Benoulli-Versuche
+
+Als Bernoulli-Versuch (Bernoulli trial) bezeichnet man ein Zufallsexperiment, bei dem es genau *zwei* mögliche Ausgänge gibt, z.B. Kopf oder Zahl beim Münzwurf, Sechs oder Nicht-Sechs bei unserem Würfel, oder z.B. Treffer oder kein Treffer, wenn das Experiment ist, in einer Jahrmarkt-Schießbude ein Ziel zu treffen. 
+
+Bei Bernoulli-Experimenten bezeichnet man eines der beiden möglichen Ergebnisse als "Erfolg" (success) und das andere als Fehlschlag (failure). Zum Beispiel könnte man beim Münzwurd Kopf als Erfolg und Zahl als Fehlschlag ansehen, beim Würfel Sechs als Erfolg und alle anderen als Fehlschlag, und beim Jahrmarkt-Schießen ist natürlich der Treffer der Erfolg.
+
+Für die *Erfolgs-Wahrscheinlichkeit* (success probability) hat man häufig eine Vermutung oder Null-Hypothese: 1/2 bei der Münze, 1/6 beim Würfel. Beim Jahrmarkt-Schießen variiert hingegen die Erfolgs-Wahrscheinlichkeit sicher von Schütze zu Schütze (und von Gewehr zu Gewehr).
+
+#### Simulation eines Bernoulli-Versuchs
+
+Mit `runif` können wir eine im Interval 0 bis 1 gleichverteilte Zufallszahl (uniformly distributed random number) ziehen:
+
+```{r}
+runif(1)    # 1 ist die Anzahl der zu ziehenden Zahlen
+```
+Da aus einer Gleichverteilung von 0 bis 1 gezogen wird, ist die Zahl mit  Wahrscheinlichkeit 1/6 kleiner als 1/6 ist. Wenn mir also 600 Zahlen ziehen, werden ungefähr 100 davon kleiner als 1/6 sein
+
+```{r}
+runif(100) < 1/6
+```
+
+Mit `sum` können wir die Anzahl der TRUEs unter den 600 Werten ermitteln:
+
+```{r}
+sum( runif(600) < 1/6 )
+```
+
+Wenn wir dies mehrmals durhführen, erhalten wir natürlich jedes mal leicht unterschiedliche Werte
+
+```{r}
+sum( runif(600) < 1/6 )
+sum( runif(600) < 1/6 )
+sum( runif(600) < 1/6 )
+sum( runif(600) < 1/6 )
+```
+
+#### Die Binomialverteilung aus Simulation
+
+Wenn wir den Code von eben sehr oft durchführen, sehen wir, wie häufig jeder Wert ist:
+
+```{r}
+set.seed( 13245768 )
+replicate( 10000, {
+  sum( runif(600) < 1/6 )
+} ) -> many_tries
+
+head( many_tries )
+```
+
+Jede einzelne dieser Zahlen ist die Simulation des folgenden Versuchs: Ein Würfel wird 600 mal geworfen, dann wird gezählt, wie oft eine Sechs geworfen wurde.
+
+Wir erwarten natürlich, dass diese Anzahl über sehr viele Versuche sich zu einem Wert von 600/6=100 mittelt. Man sagt: Der **Erwartungswert** (*expectation value*) der Versuchs-Statistik "Anzahl der Sechsen" ist 100.
+
+Was ist der Mittelwert über unsere 10000 Versuche?
+
+```{r}
+mean( many_tries )
+```
+
+
+Was aber ist die **Verteilung** (distribution)? Wie häufig komt jeder mögliche Wert jeweils vor?
+
+Wir zählen durch:
+
+```{r}
+tibble( numSix = many_tries ) %>%
+group_by( numSix ) %>%
+summarise( n = n() ) -> distr
+distr
+```
+
+und erstellen einen Plot
+
+```{r}
+distr %>%
+ggplot +
+  geom_col( aes( x=numSix, y=n ))
+```
+Natürlich können wir die y-Ache auch mit Anteilen (proprtions) ebschriften, indem wir durch 10000 (die Anzahl der Versuche) teilen:
+
+```{r}
+distr %>%
+ggplot +
+  geom_col( aes( x=numSix, y=n/sum(n) )) +
+  xlab("number of sixes in 100 dice throws") + ylab("frequency")
+```
+Nun können wir für jeden Wert $k$ ablesen, wie häufig es vorgekommen ist, dass  bei $n=600$ Würfen genau $k$ mal die Sechs gewürfelt wurde.
+
+##### Zurück zum gezinkten Würfel
+
+Wie häufig ist es vorgekommen, dass unser normaler Würfel 130 mal oder noch öfter eine Sechs gezeigt hat?
+
+```{r}
+sum( many_tries >= 130 )
+```
+
+Das war nur in 13 der 10000 Versuche der Fall.
+
+Wir hätten übrigens auch die `distr`-Tabelle verwenden können:
+
+```{r}
+distr %>%
+filter( numSix >= 130 ) %>%
+summarise( sum(n) )
+```
+
+In jedem Fall ist es nur in 13/1000=0.13% der Versuche vorgekommen, dass 130 oder mehr Sechsen geworfen wurden. 
+
+Bei dem "verdächtigen" Würfel aus dem Beispiel ganz am Anfang haben wir einen Versuch gemacht, in dem wir den Würfel 600 mal geworfen haben, und dabei 130 mal eine Sechs erhalten.
+
+Die Wahrscheinlichkeit, dass so etwas mit einem fairen Würfel geschieht, ist, wie wir gerade gesehen haben, nur etwa 0.13%. Das ist nicht unmöglich, aber sehr unwahrscheinlich.
+
+Wir können also die Nullhypothese, dass der verdächtige Würfel ganz normal und nicht manipuliert war, mit einem p-Wert von 0,13% ablehnen und sagen: Dieser Würfel ist gezinkt.
+
+##### Der Zentraler Grenzwertsatz zeigt sich wieder
+
+Sehen Sie sich noch mal das Histogramm von oben an. Warum wirkt es so glockenförmig (normalverteilt)? 
+
+Der Wert $K$, dessen Verteilung dargestellt ist, also die Anzahl der Sechsen in 600 Würfen, kann als Summe von vielen unabhqngigen Zufallszahlen dargestellt werden: $K$ ist die Summe aus 600 Zufallswerten, die jeweils entweder 0 (keine Sechs) oder 1 (Sechs) ist. Folglich gilt der zentrale Grenzwertsatz und $K$ ist näherungsweise normalverteilt. Zusätzlich zu dieser Nqherung gibt es auch eine exakte Formel, die wir gleich kennen lernen.
+
+### Binomialverteilung: Definition und Verteilungsfunktion
+
+Definition: Ein Bernoulli-Versuch mit Erfolgswahrscheinlichkeit $p$ werde $n$ mal wiederholt. Dabei werde gezählt, wie viele der $n$ Versuche erfolgreich waren; diese Zahl werde mit $K$ bezeichnet. Dann sagt nennt man die Verteilung der Zufallsvariablen $K$ die **Binomialverteilung** für $n$ Versuche mit Erfolgswahrscheinlickeit $p$ (binomial distribution for $n$ trials with success probability $p$).
+
+Also: Die Anzahl $K$ der Sechsen, die man erhält, wenn man einen Würfel 600 mal wirft, ist binomialverteilt mit $n=600$ und $p=1/6$. Man schreibt: $K \sim \text{Binom}(n\!=\!600,\,p\!=\!1/6)$
+
+##### Herleitung der Binomialverteilung
+
+(nur für Interessierte)
+
+Wie groß ist die Wahrscheinlichkeit, bei z.B. $n=10$ Würfen genau $k=2$ mal eine Sechs zu erhalten? Wir schreiben `E` (Erfolg) für eine Sechs und `F` (Fehlschlag) für eine Nicht-Sechs. Dann beschreibt die Zeichenkette `FFFEFFFFEF` einen Möglichen Ausgang des Versuchs, nämlich, dass man zweimal eine Sechs gewürfelt hat, nämlich beim 4. und 8. Wurf. Die Wahrscheinlichkeit für genau dieses Ergebnis ist $\left(\frac{1}{6}\right)^2\left(\frac{5}{6}\right)^8$, da die zwei Erfolge jeweils die Wahrscheinlichkeit 1/6 haben und die 8 Fehlschläge jeweils 5/8. Es gibt aber $\left( 10\atop 2\right) = 10\cdot 9/2$ Möglichkeiten, die zwei `E` auf die 10 Würfe zu verteilen. Also ist die Wahrscheinlichkeit, 2 Sechsen in 10 Würfen zu werfen: $10\cdot 9/2 \cdot \left(\frac{1}{6}\right)^2\left(\frac{5}{6}\right)^8=0.29$.
+
+Allgemein schreiben wir also
+
+$$\text{Prob}_\text{binom}(k;n,p) = \left( n \atop k \right) p^n (1-p)^{n-k}.$$
+Der [Binomialkoeffizient](https://de.wikipedia.org/wiki/Binomialkoeffizient) $\left(n \atop k\right)$ in der Formel gibt der Verteilung ihren Namen.
+
+In R können wir die Formel so schreiben:
+
+```{r}
+n <- 10
+p <- 1/6
+k <- 2
+
+choose( n, k ) * p^k * (1-p)^(n-k)
+```
+
+##### Die Binomialverteilung in R
+
+Diese Formel müssen wir natürlich nicht jedesmal tippen. Sie ist in R fest eingebaut, als die Funktion `dbinom`:
+
+```{r}
+dbinom( k, n, p )
+```
+
+Damit können wir nun exakt ausrechnen, wie wahrscheinlich es ist, $k$ Sechsen zu erhalten, wenn man einen Würfel $n$ mal wirft:
+
+```{r}
+tibble( numSix = 0:600 ) %>%
+mutate( prob = dbinom( numSix, 600, 1/6 ) )
+```
+Wir plotten das als Säulendiagramm:
+
+```{r}
+tibble( numSix = 0:600 ) %>%
+mutate( prob = dbinom( numSix, 600, 1/6 ) ) %>%
+ggplot +
+  geom_col( aes( x=numSix, y=prob ) )
+```
+Vielleicht soltlen wir uns auf die Werte $k$ beschränken, wo die Wahrscheinlichkeit nicht winzig ist
+
+
+```{r}
+tibble( numSix = 60:150 ) %>%
+mutate( prob = dbinom( numSix, 600, 1/6 ) ) %>%
+ggplot +
+  geom_col( aes( x=numSix, y=prob ) )
+```
+
+Dies ist dasselbe Histogramm wie weiter oben. Nun sehen wir aber, wie es auussähe, wenn wir nicht 10000 Versuche, sondern unendlich viele machen könnten.
+
+Damit können wir nun auch unsere ursprüngliche Frage beantworten: Wie wahrscheinlich ist es, dass man mit mindestens 130 mal eine Sechs wirft, wenn man 600 mal würfelt. Dazu berechnen wir für alle Zahlen von k=130$ bis $k=600$, wie wahrschenlich es ist, genau $k$ Sechsen zu erhalten:
+
+```{r}
+dbinom( 130:600, 600, 1/6 )
+```
+Wir addieren alle diese Werte:
+
+```{r}
+sum( dbinom( 130:600, 600, 1/6 ) )
+```
+
+Dies ist nun der exakte p-Wert, mit dem wir unsere Nullhypothese "Der Würfel ist nicht gezinkt" verwerfen. (Der Wert, den wir zuvor erhalten hatten, war ungenau, da wir ja nicht unendlich viele, sondern nur 10000 Versuche gemacht hatten).
+
+Wir können die Rechnung von eben auch schreiben, indem wir berechnen, wie wahrscheinlich es ist, höchstens 129 Sechsen zu werfen
+
+```{r}
+sum( dbinom( 0:129, 600, 1/6 ) )
+```
+
+und das von 1 abziehen:
+
+```{r}
+1 - sum( dbinom( 0:129, 600, 1/6 ) )
+```
+
+Wir erhalten denselben Wert.
+
+Für die Frage "Wie wahrscheinlich ist es, höchstens $k$ Sechsen zu erzielen?" gibt es in R eine Abkürzung für die Summe:
+
+Statt
+
+```{r}
+sum( dbinom( 0:129, 600, 1/6 ) )
+```
+
+kann man auch schreiben
+
+```{r}
+pbinom( 129, 600, 1/6 ) 
+```
+
+**Allgemein**: Die R-Funktionen für Verteilungen, die mit `d` beginnen (`dbinom`, `dnorm` etc.) berechnen die Wahrscheinlichkeit(sdichte) für einen Wert; die, die mit `p` beginnen (`pbinom`, `pnorm`) die Gesamtwahrscheinlichkeit für alle Werte, die kleienr oder gleich dem gegebenen Wert sind; sie stellen also die Summe (oder das Integral) aller `d`-Werte bis zum angegeben Wert dar.
+
+### Der Binomialtest
+
+Die Methode, wie wir eben einen p-Wert erhalten haben, nennt man einen **Binomialtest**. Parallel zur FUnktion `t.test` für t-Tests gibt es auch eine Funktion `binomial.test` für Binomial-Tests, die im Wesentlichen genau die Rechnung durchführt, die wir eben per Hand gemacht haben:
+
+Die Funktion benutzt man wie folgt:
+
+```{r}
+binom.test( 130, 600, 1/6, alternative="greater" )
+```
+
+Wir haben der `binom.test` Funktion als Argumente übergeben: Die Anzahl der Erfolge (130 Sechsen), die Anzahl der Versuche (600 Würfe) und die in der Nullhypothese angenommene Erolgswahrscheinlichkeit (1/6 für einen nicht gezinkten Würfel). 
+
+Dann hat uns `binom.test` die Wahrscheinlichkeit berechnet, dass man das beobachtete Ergebnis (130 Sechsen) oder ein noch extremeres (mehr als 130 Sechsen) erhält, wenn die Nullhypothese (Wahrscheinlichkeit für eine Sech ist 1/6) zutrifft, und diese Wahrscheinlichkeit als p-Wert ausgegeben.
+
+#### Ein- und zweiseitige Tests
+
+Was bedeutet im vorigen Absatz "oder ein noch extremeres Ergebnis"? Wenn wir viel weniger Sechsen erhieltem als erwartet, z.B. nur 50 statt der erwarteten 100, wäre das nicht auch ein Grund, die Nullhypothese abzulehnen?
+
+Bisher sind wir implizit davon ausgegangen, dass der Falschspieler den Würfel zu seinem Vorteil manipuliert hat, also die Sechs mit Zink beschwert hat. Die Möglichkeit, dass der Würfel "in die andere Richtung" manipuliert wurde, haben wir außer acht gelassen.
+
+Wir haben der `binom.test`-Funktion diese Annahme mitgeteilt, indem wir durch die Angabe `alternative="greater"` vorgegeben werden soll, dass nur die Alternativ-Hypothese "Die tatsächliche Wahrscheinlichkeit ist größer als 1/6" berücksichtig werden soll.
+
+Die umfassendere Alternative zur Nullhypothese wäre "Die Wahrscheinlichkeit ist kleiner oder größer, also einfacher: ist ungleich 1/6."
+
+Wenn wir `binom.test` nicht anderweitig anweisen, verwendet es diese sog. "zweiseitige" Alternative:
+
+```{r}
+binom.test( 130, 600, 1/6 )    # Verwende Default-Wert alternative="two.sided" )
+```
+
+Der p-Wert ist nun ein wenig höher als zuvor. 
+
+Der zweiseitige Test liefert stets einen höheren p-Wert als der einseitige Test. Man sagt, er sei **konservativer** (more conservative). Damit ist gemeint, dass seine Verwendung die Wahrscheinlichkeit einer falsch-positiven Schlussfolgerung verringert, und man ihn daher vorzieht, wenn man nicht ganz sicher ist, dass die Verwendung eines einseitigen Tests gerechtfertigt ist.
+
+##### Berechnung des zweiseitigen p-Werts
+
+(nur für Interessierte)
+
+(oder eigentlich: nur als Notiz für mich selbst; da ich es gerade selbst nachschlagen musste; Sie können diesen Einschub ignorieren)
+
+Die Formulierung "so extrem wie 160 Sechsen, oder *noch extremer*" wird beim einseitigen Test interpretiert als "160 Secseh oder mehr", beim zweiseitigemn Test jedoch wie folgt:
+
+Wir berechnen die Wahrscheinlichkeit für jede mögliche Anzahl $k$ an Sechsen und markieren, welche Anzahlen genauso oder noch unwahrscheinlicher ist als die Anzahl 130:
+
+```{r}
+tibble( numSix = 0:600 ) %>%
+mutate( prob = dbinom( numSix, 600, 1/6 ) ) %>%
+mutate( as_or_even_less_likely = prob <= dbinom( 130, 600, 1/6 ) )
+```
+Dann summieren wir die Wharscheinlichkeiten aller so amrkierten Ausgaben:
+
+```{r}
+tibble( numSix = 0:600 ) %>%
+mutate( prob = dbinom( numSix, 600, 1/6 ) ) %>%
+mutate( as_or_even_less_likely = prob <= dbinom( 130, 600, 1/6 ) ) %>%
+filter( as_or_even_less_likely ) %>%
+summarise( sum(prob) )
+```
+
+Die ist der p-Wert, den uns `binom.test` oben geliefert hat.
+
+Grafishe Darstellung:
+
+```{r}
+tibble( numSix = 60:150 ) %>%
+mutate( prob = dbinom( numSix, 600, 1/6 ) ) %>%
+mutate( prob_less_or_equal = prob < dbinom( 130, 600, 1/6 ) ) %>%
+ggplot +
+  geom_col( aes( x=numSix, y=prob, fill=prob_less_or_equal ) ) +
+  scale_y_continuous( limits=c( 0, .0075 ), oob = scales::rescale_none )
+```
+
+Dargestellt ist die Binomialverteilung für $n=600$ und $p=1/6$, mit Zoom auf den Fuß. Hellblau markiert alle Säulen, der Höhe kleiner oder gleich der Höhe der Säule bei $k=130$ ist. Der p-Wert des zweiseitigen Binomialtest ist die Summe aller hellblauen Säulen. Beim einseitigen Test werden nur die Säulen auf einer Seite aufsummiert.
+
+
+#### Weiteres Beispiel
+
+Die Hilfe-Seite zu `binom.test` hat ein weiteres Beispiel, dass aus der Biologie stammt:
+
+"Under (the assumption of) simple Mendelian inheritance, a cross between plants of two particular genotypes produces progeny 1/4 of which are "dwarf" and 3/4 of which are "giant", respectively. In an experiment to determine if this assumption is reasonable, a cross results in progeny having 243 dwarf and 682 giant plants."
+
+(Als Quelle dieser Aufgabe ist das Buch "Practical nonparametric statistics" von W. J. Conover (Wiley, 1971), S. 97f, angegeben.)
+
+Hier besteht kein Grund, einen einseiten Test zu verwenden, wir bleiben also beim Default von `binom.test`, dem zweiseitigen Test. Wir betrachten "dwarf" als Erfolg und "giant" als Fehlschlag. Die Erfolgswahrscheinlichkeit ist also unter der Nullhypothese Mendelscher Segregation 1/4.
+
+```{r}
+binom.test( 243, 243+682, 1/4 )
+```
+
+Wenn wir den Phänotyp "giant" als Erfolg sehen, erhalten wir natürlich dasselbe Ergebnis:
+
+```{r}
+binom.test( 682, 243+682, 3/4 )
+```
+
+Auch unter Annahme der Nullhypthese (nämlich: "Der phänotypische Trait segregiert Mendelsch im Verhältnis 3:1") ist die Wahrscheinlichkeit, dass die Segretation so extrem wie beobachtet oder noch extremer vom erwarteten Verhältnis abweicht, 38%. Die Nullhypothese kann also nicht verworfen werden.
+
+Das heißt aber *nicht*, das wir folgern dürfen, dass der Trait mendelsch vererbt wird.
+
+Um das zu sehen, nehmen wir an, dass der Versuch wiederholt wird, aber mit 10 mal mehr Pflanzen, und dann genau dasselben Verhältnis, also 1430 : 6820 beobachtet wird.
+
+Dann erhalten wir:
+
+```{r}
+binom.test( 6820, 2430+6820, 3/4 )
+```
+
+Nun liegt der p-Wert unter 1%. Dieser größere Versuch liefert also nun klare Hinweise auf eine kleine, aber statistisch signifikante, Abweichung vom Mendelschen Verhältnis.
+
+Mit diesem Resultat würden wir also folgern: Es gibt mindestens zwei Gene, die den Phänotyp beeinflusst, und zwischen den beiden Genen gibt es ein zumindest leichtes Linkage-Disequilibrium.
+
+Aus dem ursprünglichen Resultat dürfen wir also gar nichts folgern!
+
+### Einschub zur Terminologie: Anteile und Verhältnisse
+
+Hüten Sie sich davor, die Begriffe "Anteil" (engl. "fraction") und "Verhältnis" (engl. "ratio") zu verwechseln.
+
+Beispiel: Bei Mendelscher Segregation ist der erwartete *Anteil* des rezessiven Phänotyp in der F2-Population 1/4, d.h. 1/4 der F2-Population hat den rezessiven Phänotyp und der *Anteil* des dominanten Phänotypen ist 3/4 der Gesamt-Population. Das *Verhältnis* dominant-zu-rezessiv beträgt also 1:3.
+
+Allgemein: Wie sagen *Anteil* (*fraction*), wenn wir einen Teil durch das Ganze teilen, und *Verhältnis* (*ratio*), wenn wir zwei Teile durcheinander teilen.
+
+Anteile schreibt man mit Bruchstrich, Verhältnisse mit Doppelpunkt.
+
+Also: "Reiner Alkohol wird mit Wasser im Verhältnis 1:9 gemischt" führt zu "Der Anteil an Alkohol in der Mischung ist 1/10."
+
+Ebenso wie *Anteil* werden verwendet die Begriffe "Bruchteil" und "Häufigkeit" verwendet.
+
+Der englische Begriff *proportion* wird in der Statstik meist in der Bedeutung "Anteil" verwendet, in anderen Bereichen der Mathematik aber egher in der Bedeutung "Verhältnis".
+
+Der Begriff *quotient* seht meist für ein Verhältnis.
+
+
+
+### Einschub: Nochmals Simulation von Binomialverteilungen
+
+Ganz oben haben wir den Versuch, einen Würfel 20 mal zu werfen, und die Sechsen zu zählen, wie folgt simuliert
+
+```{r}
+sum( runif(20) < 1/6 )
+```
+
+Wir können das auch so schreiben:
+
+```{r}
+rbinom( 1, 20, 1/6 )
+```
+
+Um den Versuch 30 mal zu wiederholen, schreiben wir
+
+```{r}
+replicate( 30, sum( runif(20) < 1/6 ) )
+```
+
+oder
+
+```{r}
+rbinom( 30, 20, 1/6 )
+```
+Beides gibt uns die Anzahl $k$ der Sechsen, nachdem 30-mal simuliert wurde, dass je $n=20$ Benoulli-Versuche (Würfe) durchgeführt und die Anzahl $k$ der Erfolge jeweils gezählt wurden, wobei die Wahrscheinlichkeit eines Erolgs $p=1/6$ betrug.
+
+`rbinom` ist aber deutlich schneller, was man merkt, wenn man statt 30 viele 1000 Wiederholungen braucht.
+
+
+### Momente der Normalverteilung
+
+##### Wiederholung: Verteilung
+
+Betrachten wir nochmals die Binomialverteilung für $n=600$ Würfe mit Erfolgs-Wahrscheinlichkeit $p=1/6$. Die Wahrscheinlichkeit, genau $k$ Erfolge zu erzielen, erhalten wir duch `dbinom( k, n, p )`.
+
+Wir simulieren 10000 Werte für `k`:
+
+```{r}
+n <- 600
+p <- 1/6
+
+k <- rbinom( 10000, n, p )
+
+head( k, 50 )  # Zeige nur die ersten 50 der 10000 Werte
+```
+
+Wie oft ist $k=112$?
+
+Zunächst der Anteil in der Stichprobe:
+
+```{r}
+mean( k == 112 )
+```
+
+Nun die exakte Wahrscheinlichkeit
+
+```{r}
+dbinom( 112, n, p )
+```
+
+##### Mittelwert
+
+Was ist der Mittelwert der Stichprobe?
+
+```{r}
+mean(k)
+```
+
+Welchen Mittelwert erwarten wir? Natürlich $\mu=np=600\cdot\frac{1}{6}=100$:
+
+**Allgemein** also: Der **Erwartungswert** der Binomialverteilung mit Versuchszahl $n$ und Erfolgswahrscheinlichkeit $p$ ist $\mu=np$.
+
+##### Varianz und Standardabweichung
+
+Die **erwartete Varianz** einer Binomialverteilung mit Versuchszahl $n$ und Erfolgswahrscheinlichkeit $p$ ist $v=np(1-p)$. 
+
+(Die Begründung überspringen wir; Sie finden sie in jedem einführendem lehrbuch der Statistik.)
+
+Bei uns also: $p=np(1-p)=100\cdot\frac{1}{6}\frac{5}{6}=500/36=83\frac{1}{3}$. In R:
+```{r}
+n * p * (1-p)
+```
+
+Die Stichproben-Varianz liegt dem erwarteten Wert recht nahe:
+
+Was ist die varianz der Stichprobe?
+
+```{r}
+var(k)
+```
+
+Die Standardabweiochung ist die Wurzel der Varianz:
+
+```{r}
+sqrt( n * p * (1-p) )
+```
+
+In der simulierten Stichprobe
+
+```{r}
+sd( k )
+```
+
+#### Näherung der Binomialverteilung durch die Normalverteilung 
+
+Wie oben erwähnt, ergibt sich aus dem Zentralen Grenzwertsatz, dass die Binomialverteilung für großes $n$ der Normalverteilung recht nahe kommt.
+
+Wir überzeugen uns davon durch ein paar Grafiken.
+
+Zunächst ein Histogramm der Stichprobe von eben:
+
+```{r}
+hist( k )
+```
+
+Wenn wir für jeden einzelnen Wert einen eigenen Balken verwenden, wird es feiner, aber rauher:
+
+```{r}
+tibble( k ) %>%
+group_by( k ) %>%
+summarise( n=n() ) %>%
+mutate( )  
+ggplot +
+  geom_col( aes( x=k, y=n/sum(n) ) )
+```
+
+Hier ist dasselbe Diagramm, mit berechneten Wahrscheinlichkeiten statt Häufigkeiten in einer simulierten Stichprobe:
+
+```{r}
+tibble( k = 60:140 ) %>%
+mutate( p_binom = dbinom( k, 600, 1/6 ) ) %>%
+ggplot + geom_col( aes( x=k, y=p ) )
+```
+
+Wir berechnen Erwartungswert und Varianz der Binomialvberteilung und zeichnen in das Diagramm zusätzlich eine Normalverteilung ein, die denselben Mittelwert und dieselbe Varianz hat:
+
+```{r}
+n <- 600
+p <- 1/6
+
+mu <- n*p
+sd <- sqrt( n*p*(1-p) )
+
+tibble( k = 60:140 ) %>%
+mutate( p_binom = dbinom( k, size=n, prob=p ) ) %>%
+mutate( p_norm = dnorm( k, mean=mu, sd=sd ) ) %>%  
+ggplot + 
+  geom_col( aes( x=k, y=p_binom ) ) +
+  geom_point( aes( x=k, y=p_norm ), shape="plus", col="magenta" )
+```
+
+Wie wir sehen, ist der Unterschied zwischen Binomialverteilung (graue Balken) Normalverteilung (magenta Kreuze) nur sehr klein. 
+
+Allerdings ist die Binomialverteilung leicht asymmetrisch. Das liegt daran, dass ihr Wertebereich auf 0 bis $n$ eingeschränkt ist, und ihr Erwartungswert $\mu$ nicht in der Mitte des Wertebereichs liegt.
+
+Bei kleinen Werten für $n$ oder $p$ passt das aber nicht so gut. Dazu zwei Beispiele:
+
+Hier derselbe Code, aber für nur 10 Würfe:
+
+```{r}
+n <- 10
+p <- 1/6
+
+mu <- n*p
+sd <- sqrt( n*p*(1-p) )
+
+tibble( k = 0:10 ) %>%
+mutate( p_binom = dbinom( k, size=n, prob=p ) ) %>%
+mutate( p_norm = dnorm( k, mean=mu, sd=sd ) ) %>%  
+ggplot + 
+  geom_col( aes( x=k, y=p_binom ) ) +
+  geom_point( aes( x=k, y=p_norm ), shape="plus", col="magenta" )
+```
+und hier nochmal für $n=600$ aber mit Erfolgswahrscheinlichkeit $p=1/200$ statt $p=1/6$.
+```{r}
+n <- 600
+p <- .005
+
+mu <- n*p
+sd <- sqrt( n*p*(1-p) )
+
+tibble( k = 0:20 ) %>%
+mutate( p_binom = dbinom( k, size=n, prob=p ) ) %>%
+mutate( p_norm = dnorm( k, mean=mu, sd=sd ) ) %>%  
+ggplot + 
+  geom_col( aes( x=k, y=p_binom ) ) +
+  geom_point( aes( x=k, y=p_norm ), shape="plus", col="magenta" )
+```

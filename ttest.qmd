@@ -567,3 +567,152 @@ All das können wir aus der Ausgabe von `t.test` bequem ablesen:
 t.test( onions_treated, onions_control )
 ```
 
+### Nullhypthese und p-Wert
+
+Unser Zwiebel-Experiment kann zwei verschiedene Zielsetzungen haben:
+
+- Quantitativ: Wir möchten herausfinden, wie gut der Dünger wirkt.
+
+- Qualitativ: Wir möchten herausfinden, ob der Dünger überhaupt irgendeinen Einfluss auf die Zwiebeln hat.
+
+Für quantitative Fragestellungen sind Konfidenzintervalle hilfreich, für qualitative wird häufig der p-Wert bevorzugt.
+
+Für letzteren stellt man eine sog. Null-Hypothese (*null hypothesis*) auf. In unserem Beispiel: *Der Dünger hat keinerlei Einfluss auf die Zwiebelmasse.* (Die durchschnittliche Erhöhung der Zwiebelmasse durch den Dünger ist also 0.)
+
+Wir fragen: Erlauben uns die Daten, diese Nullhypothese zu *verwerfen* (*reject the null hypothesis*)? 
+
+Wir bestimmen die Differenz $\Delta m$ zwischen den mittleren Zwiebelmassen in treated und control field und fragen: Wenn die Nullhypothese zuträfe, wenn der Dünger also keinen Einfluss auf die Zwiebelmasse hat, wie wahrscheinlich ist es, dass man dennnoch eine Differenz beobachtet, die mindestens $\Delta m$ beträgt?
+
+Diese Wahrscheinlichkeit hqngt natürlich von der Standardabweichung in den Stichproben ab, die wir ja auch schätzen. Daher teilen wir die Differenz durch Ihren Standardfehler, nennen diesen Quotienten $t$ und fragen: Wie groß ist die Wahrscheinlichkeit, dass man in einem Experiment einen $t$-Wert erhält, der im Betrag mindestens so groß ist wir der beobachtete Werte?
+
+Im folgenden führen wir diese Schritte in einem beispiel durch:
+
+Wir erzeugen wieder zwei Ernten, und vergleichen per t-Test.
+
+```{r}
+set.seed( 13245768 )
+onions_control <- rnorm( 10, mean=80, sd=9 )
+onions_treated <- rnorm( 10, mean=88, sd=9 )
+
+t.test( onions_treated, onions_control, var.equal=TRUE )
+```
+
+Nun berechnen wir den p-Wert "per Hand", um zu sehen, was die `t.test`-Funktion gerechnet hat.
+
+Dazu berechnen wir, wieder mit demselben Code wie oben, die gepoolte Standardabweichung der beiden Stichproben, und daraus den gemeinsamen (gepoolten) Standardfehler der beiden Mittelwerte
+
+```{r}
+pooled_sd <- 
+  sqrt( sum( 
+    c( ( onions_control - mean(onions_control) )^2, 
+       ( onions_treated - mean(onions_treated) )^2 ) ) / 18 )
+
+sem_pooled <- pooled_sd / sqrt(10)
+sem_pooled
+```
+
+Also ist der Standardfehler der Differenz (wieder derselbe Code wir oben)
+
+```{r}
+se_diff <- sqrt( sem_pooled^2 + sem_pooled^2 )
+se_diff
+```
+
+Nun teilen wir die Differenz durch ihren Standardfehler:
+
+```{r}
+t_value <- ( mean(onions_treated) - mean(onions_control) ) / se_diff
+t_value
+```
+
+Diesen Wert nennen wir den t-Wert:
+
+$$t\text{-Wert} = \frac{\text{Differenz der Stichproben-Mittelwerte}}{\text{aus der Stichproben geschätzter Standardfehler dieser Differenz}}$$
+(Zur Erinnerung: Wenn wir den Nenner nicht als Schätzung, sondern als genauen Wert betrachten, nennen wir den Quotienten einen $z$-Wert.)
+
+Unser $t$-Wert ist 2.4; unsere Differenz ist also das 2.4-fache ihres Standardfehlers. 
+
+Nehmen wir nun an, die Nullhypothese träfe zu: Der wahre Wert der Differenz wäre dann 0, und unser Wert weicht um das 2.4-fache ihres Standardfehlers von ihrem wahren Wert ab. 
+
+Wie wahrschinlich ist es, dass ein geschätzter Wert um das 2.4-fache seines Standardfehlers vom wahren Wert abweicht? Wenn man den STandardfehler exakt weiss, rechnet man:
+
+```{r}
+2* ( 1 - pnorm(2.4) )
+```
+
+Da unser Standardfehler aus 18 Freiheitsgraden (20 Werte minus 2 Mittelwerte) geschätzt ist, verwenden wir stattd er Normalverteilung die t-Verteilung mit df=18:
+
+```{r}
+2* ( 1 - pt( 2.4, 18 ) )
+```
+
+Wenn die Nullhypothese zuträfe, die wahre Differenz alson 0 wäre, wie wahrscheinlich wäre es dann, eine Differenz zu erhalten, die mehr $t=2.4$ Standardfehler, oder noch mehr, vom wahren Wert 0 abweicht? -- Die Antwort lautet $p=0.0274$ und diesen Wert nennen wir den p-Wert des t-Tests.
+
+Es ist auch tatsächlioch genau der Wert, den der Aufruf von `t.test` oben als `p value` geliefert hat.
+
+Wir argumentieren nun: Wenn die Nullhypothese zuträfe, dann wäre es ziemlich unwahrscheinlich (nämlich nur 2.74% Wahrscheinlichkeit), dass wir eine Differenz zwischen gedüngtem und ungedüngten Mittelwert erhielten, die mindestens so groß ist wie die, die wir beobachtet haben. Also schließen wir, dass es unwahrscheinlich ist, dass die Nullhyopthese zutrifft und verwefen sie daher: Wir folgern, dass der Dünger tatsächlich einen Einfluss auf die Zwiebelmasse hat. Wir beziffern unsere "Konfidenz" (confidence) in diese Aussage mit $1-0.0274=97.26\%$
+
+Bachten Sie: Das bedeutet *nicht*, dass die Aussage "Der Dünger wirkt" mit Wharscheinlichkeit 97.25% wahr wäre, oder mit Wahrscheinlichkeit 2,75% falsch.
+
+Wir sagen lediglich: Ein Ergebnis, wie wir es beobachtet haben, oder ein noch stärkeres, wäre unwahrscheinlich (nur 2.74% Wahrscheinlichkeit), wenn die Null-Hypothese ("Dünger bewirkt nichts.") zuträfe.
+
+Der Unterschied zwischen diesen Formulierungen mag klein erscheine, ist aber wichtig. Den Unterschied zu erkennen, erfordert genaues Nachdenken!
+
+#### Null-Simulationen
+
+Abschließend lassen wir unsere `onion_experiment`-Funktion nochmals mehrmals laufen, simulieren diesmal aber die Nullhypothese,  setzten also $delta_m=0$:
+
+```{r fig.height=9,fig.width=6}
+map_dfr( 1:20, ~ onion_experiment( n=10, delta_m=0 ) ) %>%
+mutate( run = row_number() ) %>%
+ggplot() +
+  geom_segment( aes( x=control_ci_lower, xend=control_ci_upper, y=run-.1, yend=run-.1 ), col="brown" ) +
+  geom_segment( aes( x=treated_ci_lower, xend=treated_ci_upper, y=run+.1, yend=run+.1 ), col="darkorange2" ) +
+  geom_point( aes( x=control_mean, y=run-.1 ), col="brown" ) +
+  geom_point( aes( x=treated_mean, y=run+.1 ), col="orange" ) +
+  geom_vline( xintercept = 80, color="brown", lty="dotted" ) +
+  geom_vline( xintercept = 88, color="orange", lty="dotted" ) +
+  theme_minimal( ) + xlab("x") + ylab("")
+
+```
+Wir können auch die 95%-Konfidenzintervalle der Differenzen 100-mal berechnen und plotten:
+
+```{r}
+map_dfr( 1:100, ~ {
+  onions_control <- rnorm( 10, mean=80, sd=9 )
+  onions_treated <- rnorm( 10, mean=80, sd=9 )
+  t.test( onions_treated, onions_control )$conf.int %>%
+    set_names( "ci_lo", "ci_hi" ) } ) %>%
+mutate( idx = row_number() ) %>%
+ggplot +
+  geom_segment( aes( x=ci_lo, xend=ci_hi, y=idx, yend=idx ) ) +
+  geom_vline( xintercept = 0 )
+```
+
+Wie wir sehen, überlappen 95% der 100 Konfidenzintervalle den wahren Wert der Differenz, also 0.
+
+Interessant ist auch, den t-Test 1000-mal für die simulierte Nullhypothese durchzuführen und ein Histogramm der p-Werte zu erstellen:
+
+```{r}
+replicate( 1000, {
+  onions_control <- rnorm( 10, mean=80, sd=9 )
+  onions_treated <- rnorm( 10, mean=80, sd=9 )
+  t.test( onions_treated, onions_control )$p.value
+}) %>% hist()
+```
+
+Wir sehen, dass die p-Werte im Intervall [0;1] gleichverteilt (uniformly distributed) sind.
+
+Wissen Sie warum?
+
+#### Definition des p-Werts
+
+Zum Abschluss nochmal das Wichtigste wiederholt: die Defintion des p-Werts
+
+Bei einem statistischen Test stellt man eine *Nullhypothese* auf (typischerweise die Hypothese, dass der vermutete Effekt *nicht* besteht) und errechnet aus der Stichprobe eine sog. Test-Statistik, die die Stärke des vermuteten Effekts quantifiziert. Dann berechnet man, wie wahrscheinlich es wäre, einen Effekt mit mindesens der ebobachteten Stärke (also eine Test-Stastistik mindestens so groß wie der beobachtete Wert) zu erhalten, wenn man annimmt, dass die Nullhypothese zutrifft (das also die Bebachtung keinen echten Effekt, sondern nu Zufallsfluktuation widerspiegelt). Diese Wahrscheinlichkeit nennt man den *p*-Wert.
+
+## Hausaufgabe
+
+Erstellen Sie ein Säulendiagramm, das die Mittelwerte der Körpergrößen der erwachsenen NHANES-Probanden zeigt, aufgeschlüsselt nach Ethnie und Gescglecht. Natürlich haben wir das bereits in früheren Aufgaben gemacht. Ergänzen Sie das Diagramm aber diesmal, indem Sie an der Oberkante jeder Säule einen Fehlerbalken einzeichnen, der das 95%-Kofidenzintervall des jeweiligen Mittelwerts zeigt.
+
+Erstellen Sie ein Quarto-Notebook, dass den Code enthält, den Plot, sowie eine kurze Beschreibung, was der Plot darstellt, erstellen Sie daraus eine [Standalone-HTML](https://hackmd.io/@simon-anders/HkVpu1koj)-Datei und laden Sie diese auf Moodle hoch.
