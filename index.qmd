@@ -149,7 +149,12 @@ stellen Sie sie bitte auf unserem Slack-Workspace.
 
 ## 14. Vorlesung (2023-12-05)
 
-In der nächsten Vorlesung werden wir voraussichtlich weiter das Skript zur Binomialverteilung besprechen, sowie mit [Binomial-KIs](binom_ci.html) beginnen.
+- Video-Aufzeichnung](https://youtu.be/fQvCHSWmv3I)
+
+- Skript: [Teil 1](binom.html) und Teil 2(binom_ci.html)
+  - Binomialverteilung
+  - Binomialtest
+  - Binomiales Konfidenzintervall
 
 ## Übung statt Vorlesung (2023-12-07)
 
