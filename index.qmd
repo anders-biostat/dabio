@@ -159,3 +159,9 @@ stellen Sie sie bitte auf unserem Slack-Workspace.
 ## Übung statt Vorlesung (2023-12-07)
 
 Am 7.12. bin ich verreist, daher wird statt der Vorlesung ein Übungsstunde mit den Tutoren bearbeitet wird. Das Übungsblatt hierfür ist noch nicht fertig.
+
+## 15. Vorlesung (2023-12-10)
+
+- Skripts:
+  - [Fisher-Test](fisher_test.html)
+  - [Pivoting](pivoting.html)

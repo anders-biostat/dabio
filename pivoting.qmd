@@ -1,0 +1,106 @@
+---
+title: "Pivoting"
+format: html
+---
+
+### Tidy tables
+
+Im Tidyverse arbeitet man meist mit langen Tabellen, bei denen jede Zeile nur ein Objekt darstellt. Wickham, der Entwickler von Tidyverse, nennt olche Tabellen "tidy".
+
+In der Praxis hat man aber oft Tabellen, wo viele Daten nebeneinander stehen, weil diese übersichtlicher sind.
+
+### Beispieldaten
+
+Mit dem Tidyverse-Paket mitgepackt ist folgende Tabelle mit Beispieldaten:
+
+```{r}
+suppressPackageStartupMessages( library(tidyverse) )
+
+relig_income
+```
+
+Ein Blick in die Hilfeseit (`?relig_income`) zeigt dass es sich hier um [Daten des Pew Research Center](https://www.pewresearch.org/religion/religious-landscape-study/) handelt.
+
+### `pivot_longer`
+
+Wir möchten die Daten Plotten, aber dazu müssen wir die Tabelle "tidy" machen, d.h., diese "breite" Tabelle in eine "lange" umwandeln. Hierzu dient `pivot_longer`:
+
+```{r}
+relig_income %>%
+pivot_longer( cols = -religion, names_to = "income", values_to = "number" ) 
+```
+
+Hier geschieht folgendes:
+
+- `pivot_longer` sammelt alle unter `cols` angegeben Spalten ein. Hier geben wir `-religion`, also alle Spalten *außer* der ersten, an.
+- Jeder Wert in den eingesammelten Spalten kommt in seine eigene Zeile. 
+- Dazu werden die eingesammelten Spalten durch genau zwei Spalten ersetzt:
+- Eine Spalte enthält, was vorher die Spaltenüberschriften waren (`names`).
+- Die andere Spalte enthält die Werte (`values`) in den Spalten.
+- Wie diese beiden neue Spalten heißen sollen, wird mit `names_to` und `values_to` angegeben.
+
+### Plots
+
+Nun können wir Plots erzeugen, z.B.
+
+```{r}
+relig_income %>%
+pivot_longer( cols = -religion, names_to = "income", values_to = "number" ) %>%
+mutate( income = fct_inorder(income) ) %>%
+ggplot +
+  geom_col( aes( x=income, y=number, fill=religion ) ) 
+```
+Das `fct_reorder` bewirkt, dass die Balken in derselben Reihenfolge im PLot auftauchen wie in der Tabelle, statt pseudo-alphabetisch sortiert zu werden.
+
+Ohne das `pivot_longer` wäre es uns nicht gelungen, den Plot zu erzeugen. Was hätten wir bei `aes(x=income)` angegeben?
+
+Hier ist ein weiteres Beispiel:
+
+Wir berechnen zunächst für jede Religion, wie viel Prozent der jeweiligen Befragten in jede Einkommenklasse fällt:
+
+```{r}
+relig_income %>%
+pivot_longer( cols = -religion, names_to = "income", values_to = "number" ) %>%
+mutate( income = fct_inorder(income) ) %>%
+group_by( religion ) %>%
+mutate( percent = number / sum(number) * 100 ) -> tbl
+
+tbl
+```
+
+Nun plotten wir dies:
+
+```{r fig.height=7,fig.width=7}
+tbl %>%
+filter( !str_detect( religion, "refused" ) ) %>%
+ggplot +
+  geom_col( aes( x=income, y=percent ) ) +
+  facet_wrap( ~religion ) +
+  theme( axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1) )
+```
+
+### `pivot_wider`
+
+Eben haben wir für jede Religion berechnet, welche Anteil auf jede Einkommensklasse fällt:
+
+Nun möchten wir diese Tabelle wieder in eine breite Tabelle zurück verwandeln, die nun statt der Anzahlen die Prozentwerte enthält, sonst aber genauso wie die ursprüngliche Tabelle aussieht.
+
+Hierzu verwenden wir `pivot_wider`, die "Umkehrung" von `pivot_longer`
+
+```{r}
+tbl %>%
+pivot_wider( id_cols="religion", names_from="income", values_from="percent" )
+```
+
+Hier ist folgendes geschehen:
+
+- Hier hat `pivot_wider` die beiden angegebenen Spalten auf neue Spalten verteilt:
+- Für jeden Wert in der bei `names_from` angegebenen Spalte wurde eine Spalte mit dem entsprechenden Namen angelegt
+- Die unter `id_cols` angegebenen Spalten werden beibehalten, alle anderen Spalten entfernt.
+- Für alle Werte-Kombinationen, die in in den unter `id_cols` angebenen Spalten auftreten, wird eine Zeile angelegt. Deshalb haben wir nun eine Zeile pro Religion.
+- Die Werte aus der bei `values_from` angegebenen Spalte wurden dann auf die neuen Spalten verteilt, und zwar unter Beachtung der Einträge in der `names_from`-Spalte (die angibt in welche Spalte der Wert soll) und `id_cols`, die angibt in welche Zeile er soll.
+
+### Zusammenfassung
+
+Die beiden pivot-Funktionen erlauben uns, Tabellen zwischen "breiten" und "langen" Anordnungen der Daten zu konvertieren.
+
