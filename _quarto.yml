@@ -9,3 +9,7 @@ toc:
 execute:
   freeze: auto
 
+website: 
+  sidebar:
+    contents: auto
+    search: true

@@ -149,9 +149,9 @@ stellen Sie sie bitte auf unserem Slack-Workspace.
 
 ## 14. Vorlesung (2023-12-05)
 
-- Video-Aufzeichnung](https://youtu.be/fQvCHSWmv3I)
+- [Video-Aufzeichnung](https://youtu.be/fQvCHSWmv3I)
 
-- Skript: [Teil 1](binom.html) und Teil 2(binom_ci.html)
+- Skript: [Teil 1](binom.html) und [Teil 2](binom_ci.html)
   - Binomialverteilung
   - Binomialtest
   - Binomiales Konfidenzintervall
@@ -165,3 +165,9 @@ Am 7.12. bin ich verreist, daher wird statt der Vorlesung ein Übungsstunde mit 
 - Skripts:
   - [Fisher-Test](fisher_test.html)
   - [Pivoting](pivoting.html)
+  
+- [Video-Aufzeichnung](https://youtu.be/qODjWFiiuzE)  
+
+## Übung (2023-12-14)
+
+- [Aufgaben](uebungen.html)

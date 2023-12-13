@@ -1,0 +1,32 @@
+---
+title: "Übungsaufgaben"
+format: html
+---
+
+## NYC flights
+
+Das Paket `nycflight13` enthält die Tabelle `flights` mit Daten zu allen Linien-Flügen, die im Jahr 2013 in New York gelandet oder gestartet sind.
+
+- Installieren Sie das Paket `nycflight13`. Sehen Sie sich die Tabelle `flights` an und lesen Sie die Hilfe-Seite zur Tabelle.
+
+- Filtern Sie die Tabelle so, dass Sie nur noch die Flüge sehen, die am John-F.-Kennedy-Flughafen (JFK) gelandet sind. Wie viele Flüge sind das? Wie viele entfallen auf jede der gelisteten Fluglinien?
+
+- Sortieren Sie die Tabelle von eben nach der Anzahl der Flüge. Ergänzen Sie den Code der Fluglinien durch deren Namen. Die Zuordnung der Namen zu den Codes finden Sie in der tabelle `carriers`, die auch im Paket `nycflight` enthalten ist.
+
+- In der Tabelle ist auch angegeben, mit wie viel Verspätung die Flüge gelandet sind. Berechnen Sie für jeden Monat die durchschnittliche Verspätung aller Flüge, die in diesem Monat gelandet sind. Stellen Sie das Ergebnis als Säulendiagramm dar. 
+
+- Falls Ihr Diagramm bisher die Monate nur durchnummerisert, beschriften Sie die Spalten nun mit den Monatsnamen.
+
+- Haben Sie bemerkt, dass die Verspätung oft negativ ist (nämlich wenn der Flug früher als geplant gelandet ist)? Berechnen Sie die mittlere Verspätung nochmals, werten Sie aber dieses Mal alle verfrüht gelandeten Flüge mit Verspätung 0 Minuten.
+
+- Wecher Anteil der ankommenden Flüge hat mehr als 30 Minuten Verspätung? Berechen Sie dies für jede Fluggesellschaft. Sortieren Sie die Fluggesellschaften nach Pünktlichkeit.
+
+- Ändert sich die Pünktlichkeit der Fluggesellschaften im Laufe des Jahres? Bestimmen Sie für jede FLuggesellschaft und jeden Monat den Anteil der in JFK gelandeten Flüge, die mindestens 30 Minuten verspätet gelandet sind. Stellen Sie die Daten in einer übersichtlichen Tabelle dar mit einer Zeile für jede Fluggesellschaft (mit Namen, nicht nur mit Code) und eienr Spalte für jeden Monat. 
+
+- Zu welchen Tageszeiten ist es am Flughafen JFK am ruhigsten und wann ist viel los? Überlegen Sie sich einen geeigneten Plot und erzeugen Sie ihn. 
+
+- Überlegen Sie sich eine weitere Frage, die Sie mit der Tabelle visualisieren können.
+
+## Hausarbeit vom letzten Jahr
+
+[siehe hier](https://hackmd.io/yvseZ1iER52j1_F3qq5Ejg)
