@@ -11,5 +11,5 @@ execute:
 
 website: 
   sidebar:
-    contents: auto
+#    contents: auto
     search: true

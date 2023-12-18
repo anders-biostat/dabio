@@ -5,15 +5,15 @@ format: html
 
 ## NYC flights
 
-Das Paket `nycflight13` enthält die Tabelle `flights` mit Daten zu allen Linien-Flügen, die im Jahr 2013 in New York gelandet oder gestartet sind.
+Das Paket `nycflights13` enthält die Tabelle `flights` mit Daten zu allen Linien-Flügen, die im Jahr 2013 in New York gestartet sind.
 
-- Installieren Sie das Paket `nycflight13`. Sehen Sie sich die Tabelle `flights` an und lesen Sie die Hilfe-Seite zur Tabelle.
+- Installieren Sie das Paket `nycflights13`. Sehen Sie sich die Tabelle `flights` an und lesen Sie die Hilfe-Seite zur Tabelle.
 
-- Filtern Sie die Tabelle so, dass Sie nur noch die Flüge sehen, die am John-F.-Kennedy-Flughafen (JFK) gelandet sind. Wie viele Flüge sind das? Wie viele entfallen auf jede der gelisteten Fluglinien?
+- Filtern Sie die Tabelle so, dass Sie nur noch die Flüge sehen, die am John-F.-Kennedy-Flughafen (JFK) gestartet sind. Wie viele Flüge sind das? Wie viele entfallen auf jede der gelisteten Fluglinien?
 
-- Sortieren Sie die Tabelle von eben nach der Anzahl der Flüge. Ergänzen Sie den Code der Fluglinien durch deren Namen. Die Zuordnung der Namen zu den Codes finden Sie in der tabelle `carriers`, die auch im Paket `nycflight` enthalten ist.
+- Sortieren Sie die Tabelle von eben nach der Anzahl der Flüge. Ergänzen Sie den Code der Fluglinien durch deren Namen. Die Zuordnung der Namen zu den Codes finden Sie in der Tabelle `airlines`, die auch im Paket `nycflight` enthalten ist.
 
-- In der Tabelle ist auch angegeben, mit wie viel Verspätung die Flüge gelandet sind. Berechnen Sie für jeden Monat die durchschnittliche Verspätung aller Flüge, die in diesem Monat gelandet sind. Stellen Sie das Ergebnis als Säulendiagramm dar. 
+- In der Tabelle ist auch angegeben, mit wie viel Verspätung die Flüge an ihrem jeweiligen Ziel gelandet sind. Berechnen Sie für jeden Monat die durchschnittliche Verspätung aller Flüge, die in diesem Monat gelandet sind. Stellen Sie das Ergebnis als Säulendiagramm dar. 
 
 - Falls Ihr Diagramm bisher die Monate nur durchnummerisert, beschriften Sie die Spalten nun mit den Monatsnamen.
 

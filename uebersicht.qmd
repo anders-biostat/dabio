@@ -1,0 +1,181 @@
+---
+title: "Tidyverse Übersicht"
+format: html
+---
+
+### Vorbemerkung
+
+Diese Übersicht listet alle wichtigen Tidyverse-Verben mit je einem kurzen Beispiel. Sie bietet keine vollständie Beschreibung der Verben. Hierzu schlagen Sie bitte in den ausführlichen Skripten nach -- oder lesen Sie  [Kapitel 5](https://r4ds.hadley.nz/data-transform.html) des [R4DS-Buchs](https://r4ds.hadley.nz/).
+
+Ebenso beschreibt diese Übersicht nur Funktionen, die Tidyverse-Verben sind (also die
+"äußeren" Funktionen in einer Tidyverse-Pipeline), nicht die inneren, um die eigentlichen Rechnungen (z.B. Mittelwerte usw.) auszuführen. 
+
+### Laden von Tidyverse
+
+```{r}
+suppressPackageStartupMessages(
+  library( tidyverse ) )
+```
+
+### Pfeile
+
+Für die Bedeutung der Pfeile, also, `<-`, `->` und `%>%` siehe einführende Skripten.
+
+### Tabelle erstellen: `tibble`
+
+Mit `tibble` erstellt man eine Tabelle, indem man die Spalten mit Namen (Spalten-Überschrift) und 
+Inhalt auflistet:
+
+```{r}
+tibble(
+  number = 1:7,
+  fruit = c( "apple", "pear", "apple", "cherry", "cherry", "pear", "pear" ),
+  mass_in_gram = c( 153, 122, 177, 8, 9, 129, 133  )
+) -> fruit_tbl
+
+fruit_tbl
+```
+
+### Tabelle einlesen: `read.csv` u.a.
+
+Mit `read.csv` liest man eine im CSV-Format ("comma-spearated values") als Textdatei
+gespeicherte Tabelle ein:
+
+```{r}
+read.csv( "Downloads/nhanes.csv" ) -> nhanes
+
+nhanes
+```
+
+### Tabelle ansehen: `view`
+
+Wenn eine Tabelle zu lang oder zu breit ist, um in der Konsole vollstqndig angezeigt werden, kann
+man sie mit `view` in einem eigenen RStudio-Panel mit Rollbalken betrachten:
+
+```{r eval=FALSE}
+view( nhanes )
+```
+
+
+### Spalten auswählen: `select`
+
+Mit `select` wählt aus, welche Spalten man beibehalten möchte. Die anderen qwerden verworfen:
+
+```{r}
+nhanes %>%
+select( gender, age, height )
+```
+
+Man kann auch Spalten umbenennen, indem man die Spalte mit `neuer_Name=alter_Name` aufführt.
+
+Mit `-` (für "außer") kann man Spalten markieren, die man entfernen möchte. Die anderen werden beibehalten:
+
+```{r}
+nhanes %>%
+select( -age, -ethnicity )
+```
+
+### Zeilen auswählen: `filter`
+
+Mit `filter` wählt man aus, welche Zeilen man beinehalten möchte. Die anderen werden entfernt.
+
+```{r}
+nhanes %>%
+filter( age >= 18, gender=="female" )
+```
+
+Die Filterkriterien sind Ausdrücke, die logische Vektoren erzeugen, d.h., Vektoren mit TRUE oder FALSE als Wert.
+
+### Zeilen sortieren: `arrange`
+
+Bei `arrange` gibt man eine Spalte an, nach der die Zeilen geordnet werden sollen:
+
+```{r}
+fruit_tbl %>%
+arrange( fruit )
+```
+
+
+
+### Spalten ändern / hinzufügen / berechnen: `mutate`
+
+Mit `mutate` kann man eine Rechnung durchführen und das Ergebnis einer neuen Spalte hinzufügen, oder eine exisierende Spalte mit dem Ergebnis überschreiben.
+
+```{r}
+nhanes %>%
+mutate( bmi = weight / (height/100)^2 )
+```
+
+### Zeilen in Gruppen einteilen: `group_by`
+
+Mit `group_by` teilt man die *Zeilen* einer Tabelle in Gruppen ein. Jeder Gruppe enthält diejenigen Zeilen, die in der/den als Gruppenvariable angegebene(n) Spalte(n) denselben Wert haben. Alle nachfolgenden Anweisungen werden *dann für jede Gruppe getrennt* ausgeführt.
+
+```{r}
+fruit_tbl %>%
+group_by( fruit )
+```
+Die 7 Zeilen der Tabelle `tbl` werden durch `group_by( tbl, fruit )` in 3 Gruppen eingeteilt. Der Spalte `fruit` (der sog. Gruppenvariablen) wird die Gruppenzugehöriigkeit entnommen: Die Gruppe `apple` besteht also aus den Zeilen 1 und 3, die Gruppe `cherry` aus den Zeilen 4 und 5, und die Gruppe `pear` aus den Zeilen 3, 6 und 7.
+
+### Zeilen zusammenfassen: `summarize`
+
+Mit `summarize` fast man eine Gruppe von Zeilen (oder, bei eienr ungruppierten Tabelle, alle Zeilen) zu einer einzelnen Zeile zusammen, indem man eine Operation durchführt, die einen Vektor aus Werten zu einem einzelnen Wert zusammenfasst. Man kann mehrere zusammenfassende Operationen in einem `summerize` angeben.
+
+Beispiel ohne vorherige Gruppierung:
+
+```{r}
+fruit_tbl %>%
+summarise( number=n(), mean_mass = mean( mass_in_gram ) )
+```
+
+Beispiel mit vorheriger Gruppierung:
+
+```{r}
+fruit_tbl %>%
+group_by( fruit ) %>%
+summarise( number=n(), mean_mass = mean( mass_in_gram ) )
+```
+
+Nach einem `summerize` erhält man eine Tabelle, die nur noch die Spalten für die Gruppenvariablen und die Summarisierungs-Ergebnisse enthält.
+
+### `group_by` gefolgt von `mutate`
+
+Meist steht ein `group_by` vor einem `summerize`, aber es kann auch vor einem `mutate` nützlich sein, wie das folgende Beispiel zeigt, wo wir für jede Zeile berechnen, wie die Frucht vom Mittelwert der Gruppe abweicht:
+
+```{r}
+fruit_tbl %>%
+group_by( fruit ) %>%
+mutate( residual =  mass_in_gram - mean(mass_in_gram) )
+```
+### Breite Tabelle zu langer Tabelle umformen: `pivot_longer`
+
+Beispiel für eine "breite" Tabelle: Körpergewicht von 3 Probanden am ersten Tag verschiedener Monate:
+
+```{r}
+tibble(
+  subject = c( "S1", "S2", "S3" ),
+  january = c( 61, 89, 95 ),
+  march = c( 64, 82, 94 ),
+  may = c( 69, 85, 90 ) ) -> wide_tbl
+
+wide_tbl
+```
+Umformen zu langer Tabelle:
+
+```{r}
+wide_tbl %>%
+pivot_longer( -subject, names_to="month", values_to="weight" ) -> long_tbl
+
+long_tbl
+```
+Man gibt bei `pivot_wider` an, welche Spalten eingesammelt werden sollen (hier: `-subject`, also alle außer `subject`), wie die Spalte für die Namen der eingesammalten Spalten heißen soll (`names_to="month"`) und wie die Spalte für die Werte heißen soll (`values_to="weight"`).
+
+
+### Lange Tabelle zu breiter Tabelle umformen: `pivot_wider`
+
+Mit `pivot_wider` führt man die umgekehrte umwandluing durch:
+
+```{r}
+long_tbl %>%
+pivot_wider( id_cols = "subject", names_from = "month", values_from = "weight" )
+```
+Hier gibt `names_from` an, welcher Spalte die SPaltennnamen der neu zu bildenden Spalten entnommen werden sollen, `values_from`, in welcher Spalte die zugehörigen Werte zu finden sind, und `id_cols` gibt an, anhand welcher Spalte erkannt werden soll, welche Werte in die selbe Zeile sollen.
