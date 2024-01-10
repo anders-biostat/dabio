@@ -1,0 +1,132 @@
+---
+title: "Hochdurchsatz-Sequenzierung"
+format: html
+---
+
+### DNA-Sequenzierung: Geschichte
+
+- Sanger entwickelte seine Sequenzier-Methode 1975.
+- 1977 gelang ihm die erste Sequenzierung eines vollständigen Genoms, des Bakteriophagen φX174.
+- Um 1990 wurden vollautomatische Sequenziermaschinen entwickelt, die floureszent markierte ddNTPs mit Kapillar-Elektrophorese kombinierten ("capillary sequncing") und typischerweise 96 DNA-Fragmente (mit jeweils einigen hundert Basenpaaren) parallel sequenzieren konnten.
+- Um 2000 wurden Methoden entwickelt, mit denen man Millionen von DNA-Fragmenten gleichzeitig sequenzieren konnte (Hochdurchsatz-Sequenzierung, high-throughput sequencing, HTS; auch next-generation sequencing, NGS)
+- Um 2015 wurden Methoden enwtickelt, bei denen erkannbar bleibt, welche DNA- (oder RNA-)Fragmente jeweils aus derselben Zelle stammten (Einzelzell-Sequenzierung, single-cell sequencing)
+
+### Hochdurchsatz-Sequenzierung
+
+Bei klassischer Sanger-Sequenzierung braucht jedes DNA-Fragment sein eigenes Reaktionsgefäß. Bei HTS können Millionen verschiedene Fragmente gemeinsam in einem Gefäß PCR-verfielfacht werden. 
+
+Bei der Illumina-Methode (vormals "Solexa") wird die durch die sog. Bridge-PCR ermöglicht: Auf einer Flow-Cell mit Primer-Rasen binden die DNA-Fragmente an zufälligen Stellen, und ihre PCR-Produkte liegen eng daneben, so dass man kleine Inseln ("cluster") aus DNA auf der Oberfläche hat, die alle dieselbe DNA-Sequenz haben. Durch Sequencing-by-Synthesis mit floureszent markierten Stoppgruppen wird dann die DNA ausgelesen, indem nach jedem Schritt die Farbe der Cluster durch ein automatisches Mikroskop ausgelesen wird.
+
+Neben der Illumina-Methode gibt es noch einige weitere Verfahren.
+
+### HTS-Daten
+
+Der Sequenzierer sequenziert die DNA-Fragmente von außen nach innen, d.h. er fängt an einem Ende
+an und führt dann eine vorgegebene Anzahl Lesezyklen ("cycles") durch, bei denen jeweils eine Base gelesen wird, so dass man am Ende gelesene Sequenzen (genannt "Reads") einer vorgegeben Länge (heute meist 150 Basenpaare) erhält. 
+
+Beim sog. "paired-end sequencing" lässt man dann den Sequenzierer nochmals laufen, um das Fragment vom anderen Ende her auzulesen und erhält so Paare von Reads ("read pairs"). 
+
+Der Sequenzierer liefert Daten im sog. FASTQ-Format:
+
+```
+@ERR649019.76 76/1
+TTGCACCTCGCCCATTTGGAGATATTAGTGGAGAATTGGTCTGGTCTTGATCTCTGGGTAGAGATGTGAGTGGGAGTTATCAATTTGGGAGTCATCCGAA
++
+CCCFFFFFHHHHHJJJJJJGIHIJJJJJGHIHGIJJJJIFGIJJIIIJJIJJJJIIJJHHJJJJJJGIJJEHHHHD?CFEEEEDEEEDDDDBDDED>@DB
+@ERR649019.77 77/1
+TGTGCCTGTAGTCCCAGCTACTCGGGAGGCTGAGGTGGGAGGATCGCTTGAGCCCAGGAGTTCTGGGCTGTAGTGCGCTATGCCAGATCGGAAGAGCACA
++
+@C@FFFFFFHHFFHIIHIJEIHIJJJHIIIJIIIJ9BFFFHIJIJJJIIII@CHHEEDFF?CEEEEEDDDDDDDDCDDDDDDDDDDDDDDDDDDDDCDDC
+@ERR649019.78 78/1
+NGGTAGATCGGAAGAGCACACGTCTGAACTCCAGTCACGGCTACNNNNNNNATGCCGNCTTCTGCTTGAAAAAANACACAAATATANNNNNNNTNGNNAG
++
+#1:BDDDDDDDDDIAEEEEF8@FEBBEEEIEIEBB?BD?A@6?B########################################################
+```
+
+Jeder Read wird durch vier Zeilen beschrieben:
+- `@`, gefolgt von der Read-ID (selten relevant, enthält oft die Seriennummer des Sequenzierers und der Flowcell, und die Position auf der Flowcell)
+- der eigentliche Read
+- ein einsames `+`
+- der Quality-String, der kodiert, wie sicher der Sequenzierer war, dass die "Base calls" (also die Buchstaben der Sequenz) richtig gelesen wurden.
+
+Eine typische FASTQ-Datei enthält viele Millionen von Zeilen. 
+
+Beim paired-end sequencing erhält man zwei FASTQ-Dateien, die die Sequenzen von den beiden Enden enthalten.
+
+### Anwendungen von HTS
+
+#### DNA-Sequenzierung zur Genom-Assemblierung:
+
+Um das Genom einer Spezies zu bestimmen, extrahiert man DNA, zerstückelt die Chromosomen in Fragmente zu je einigen hundert Basenpaaren und sequenziert diese. Anschließend "puzzlet" man die kurzen Sequenzen ("short reads") zu längeren Stücken ("contigs") zusammen, indem man überlappende Sequenzen aneinander hängt. 
+
+Hierbei helfen "long reads", d.h. Sequenzen mit einigen zehntausend Basenpaaren, die man mit anderen Verfahren erhält, die zwar weniger Durchsatz haben und mehr Lesefehler aufweisen, aber dafür mit deutlich längeren Fragmenten arbeiten können.
+
+Das Ziel ist es, ein "genome assembly" zu erhalten, das die Sequenz aller Chromosomen von Telomer zu Telomer komplett wiedergibt. Für diese Aufgabe gibt es viele Software-Werzeuge, sog. genome assemblers.
+
+Für Modell-Organismen gibt es Konsortien, die alle paar Jahre aktualisierte Versionen eines sog. Referenzgenoms veröffentlichen, insbesondere das Genome Reference Consortium (GRC), das u.a. für das Assembly für Mensch (aktuelle Fassung: GRCh38.p14) und Maus (GRCm39.p6) zuständig ist.
+
+#### DNA-Sequenzierung zum Auffinden von Varianten (resequencing)
+
+Oft interessiert die Abweichung des Genoms eines Individuums vom Referenzgenom. Hierzu sequenziert man die DNA des Individuums und sucht für jeden Read die Stelle im Genom, wo diese Sequenz vorkommt. Dies nennt man "mapping" oder "aligning"; die hierzu verwendeten Software-Tools nennt man "short-read aligners". 
+
+Wenn der Read nicht exakt auf das Genom passt, kann man abweichungen von der Referenz erkennen:
+
+- single-nucleotid variation (SNV): eine einzelne Base ist anders als in der Referenz
+- insertion: im Read finden sich einige zusätzliche Basen, die in der Referenz fehlen
+- deletion: im Read fehlen einige Basen, die in der Referenz stehen
+- indel: Kurzwort für "insertion or deletion"
+
+Schwieriger zu erkennen sind "structural variations" (SVs), d.h. größere Teile des Genoms (deutlich länger als die Readlänge) fehlen oder sind mehrfach vorhanden.
+
+Anwendungen:
+
+- Das 1000-Genomes-Projekt hat die Genome vieler Tausend Menschen aus verschiedenen Orten der Erde (und somit verschiedenen Ethnien) resequenziert und konnte so einen Katalog der Polymorphien des menschlichen Genoms erstellen, und die Häufigkeiten der Varianten in verschiedenen Ethnien bestimmen.
+
+- Durch Auswertung dieser Daten kann viel über historische Völkerwanderungen und Migrationen erkannt werden.
+
+- Hat man von den Probanden auch medizinische Daten, oder sequenziert man gezielt Patienten mit einer bestimmten Krankheit sowie gesunde Vergleichspersonen, so kann man sog. genome-wide association studies (GWAS) durchführen, die Assoziationen zwischen Krankheiten oder phänotypischen Traits mit dem Genom untersuchen. 
+
+- In der Krebsforschung sequenziert man Tumore und vergleicht mit gesundem Gewebe desselben Patienten, um die somatischen Mutationen des Tumors zu erkennen. 
+
+- Bei angeborenen Krankheiten, die erblich sein könnten, hilft eine DNA-Sequenzierung bei der Diagnose.
+
+#### RNA-Sequenzierung
+
+Alle Zellen eines Organismus haben dieselbe DNA, aber unterschiedliche Gene sind aktiv, so dass die in den Zellen vorliegende mRNA sich von Zelle zu Zelle unterscheidet. Um zu sehen, welche Gene in einer Gewebeprobe aktive sind, lysiert man die Zellen der Probe, extrahiert die mRNA und führt eine Revers-Transkription (RT) durch, um die mRNA in komplementäre DNA (cDNA) umzusetzen, die man dann sequenziert.
+
+##### Alignment
+
+Um RNA-Seq-Daten auzuwerten, aliniert man die Reads wieder gegen das Referenz-Genom. Diesmal benötigt man einen Aligner, der "splcie-aware" ist, also damit umgehen kann, dass ein Read in einem Exon beginnt und im nächsten endet und dabei ein Intron überspringt.
+
+##### Gen-Modelle
+
+Aus RNA-Seq-Daten kann man erkennen, welche Teile des Genoms transkribiert werden, d.h. welche Transkripte gebildet werden können. Die meisten Gene haben mehrere Transkripte, die sich darin unterscheiden, wo die Transkription beginnt, wo sie endet, und welche Exons enthalten sind oder übersprungen wurden.
+
+Für die Modellorganismen werden RNA-Seq-Daten von allen Geweben in allen Entwicklungsstadien systematisch gesammelt, um alle Transkripte zu finden. Solche Daten bilden die "Annotation" eines Genom-Assemblies, die von EnsEMBL und UCSC zusammengestellt werden.
+
+##### Genexpression
+
+Meist wird RNA-Seq verwendet, um quantitativ zu untersuchen, wie stark die Gene in einer Gewebe-Probe exprimiert sind. Dazu bestimmt man für jeden Read durch Mapping, von welchem Locus im Genom er stammt, schlägt in der Annotation nach, und welches Gen sich dort befindet. Im einfachsten fall fasst man die Daten von eine Probe zusammen, in dem man für jedes der in der Annotation verzeichneten gene angibt, wie viele Reads auf dieses Gen gefallen sind.
+
+Man erhält so aus mehreren Proben eine sog. "Expressionsmatrix" oder "count matrix", mit einer Zeile für jedes gen und einer Spalte für jede Probe, die in jeder Zelle angibt, wie viele Reads von dieser Probe auf dieses Gen gefallen sind.
+
+#### Differential gene expression (DGE)
+
+Häufig hat man Proben von zwei Gruppen, z.B. Gewebeproben von Patienten und Proben desselben Gewebes von gesunden Vergleichsprobanden. Man sucht dann Gene, deren Expression sich zwischen den beiden Proben-Gruppen statistisch signifikant unterscheidet.
+
+#### ChIP-Seq
+
+Um Mechanismen der Gen-Regulation zu untersuchen, wird of ChIP-Seq (chromatin immunoprecipitation followed by sequencing) verwendet: Um für einen gegebenen Transkriptionsfaktor zu ermitteln, wo im Genom er bindet, verwendet man einen Antikörper gegen den Faktor. Man fragmentiert die DNA (bzw. das Chromatin) und "zieht" dann mit Hilfe des Antikörpers diejenigen Fragmente heraus, an die der Faktor gebunden ist und sequenziert sie. Dann bestimmt man für jedes Basenpaar im Genom die Anzahl der Reads, die diese Position überlappen ("coverage"). Bindestellen des Faktors erkennt man dann daran, dass die Coverage dort eine Hqufung von Reads ("peak") aufweist. Man kann dann nach Sequenzmustern ("motifs") suchen, die an diesen Stellen besonders häufig vorkommen.
+
+#### weitere Methoden zur Chromatin-Untersuchung
+
+- ATAC-Seq zeigt an, wo das Chromatin "offen" ("accessible") ist, weil die DNA dort frei sowohl von Nukleosomen wie auch von anderen Faktoren ist.
+
+- HiC findet Stellen, wo Chromsomen Schleifen gebildet haben, d.h. DNA von verschiedenen Loci durch Proteine aneinander gezogen wurden.
+
+- Darüber hinaus gibt es eine Vielzahl weiterer Methoden
+
+#### Einzelzell-RNA-Seq
+
+Beim gewöhnlichen RNA-Seq ("bulk RNA-Seq") lysiert man eine Gewebeprobe, wodurch die mRNA aller Zellen in der Probe vermischt wird. Seit einigen Jahren gibt es Methoden, die jeder Zelle eine zufällige DNA-Sequenz als "molekularen Barcode" zuweisen, der bei der Revers-Transkription an die cDNA des Transkripts anghängt wird, so dass man beim Sequenzieren später sagen kann, welche Transkripte aus derselben Zelle stammen.
+

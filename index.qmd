@@ -168,7 +168,15 @@ Am 7.12. bin ich verreist, daher wird statt der Vorlesung ein Übungsstunde mit 
   
 - [Video-Aufzeichnung](https://youtu.be/qODjWFiiuzE)  
 
-## Übungen (2023-12-14 und 2023-12-19)
+## Übungen (2023-12-14, 2023-12-19 und 2024-01-09)
 
 - [Aufgaben](uebungen.html)
 - [Tidyverse-Übersicht](uebersicht.html)
+
+
+## 16. Vorlesung (2024-01-11)
+
+- Skripts:
+  - [Übersicht Hochdurchsatz-Sequenzierung](seq_intro.html)
+  - [Präprozessierung von RNA-Seq-Daten](alignment.html)
+
