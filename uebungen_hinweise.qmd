@@ -1,0 +1,46 @@
+---
+title: "Tipps zur Hausaufgabe"
+format: html
+---
+
+Hier einige Tipps für die [Hausaufgabe](uebungen.html):
+
+- Stellen Sie zunächst sicher, dass Sie den Code aus der Präsenzübung wirklich verstehen. Gehen Sie ihn dazu Zeile für Zeile durch, d.h. führen Sie den Code teilweise aus, immer jeweils vom Anfang bis zum Ende *jeder einzelnen* Zeile, um zu sehen, wie jede zusätzliche Zeile die Ausgabe verändert, und überzeugen Sie sich, dass Sie verstehen, wie der Code der Zeile dies bewirkt. Wenn Sie etwas nicht verstehen, fragen Sie auf Slack. (Dies ist eine essenzielle Übung, die Sie auch auf die Klausur vorbereitet!)
+
+- Ich betone nochmals, wie wichtig es ist, dass Sie das Zeilenpaar mit `group_by` und `summarize` wirklich verstehen. Hier liegt der Schlüssel, um Tidyverse zu verstehen. Wenn Sie damit noch Schwierigkeiten haben, fragen Sie!
+
+- Beachten Sie, dass diesmal die Verspätung zum Abflug, nicht bei der Ankunft gefragt wird.
+
+- Fügen Sie der Tabelle zu Anfang eine neue Spalte `delayed` hinzu, die `TRUE` oder `FALSE` enthält, und so anzeigt, ob die Abflugs-Verspätung (welche Spalte ist das?) größer als 30 min ist.
+
+- Wie berechnen Sie den Anteil der TRUEs unter allen Werten in dieser Tabelle? Wenn Sie das nicht wissen, sehen Sie sich das Beispiel unten an
+
+#### Ermittlung von Anteilen
+
+Hier ist ein Vektor vom Typ "logical" (auch "Boolean" genannt), der drei mal den Wert TRUE und sieben mal den Wert FALSE enthält. Der Anteil an TRUEs ist also 0.3:
+
+```{r}
+lvec <- c( TRUE, FALSE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE )
+```
+
+Diesen Anteil ermitteln man wie folgt:
+
+```{r}
+mean( lvec )
+```
+
+Warum funktioniert das? Warum ermittelt die Funktion `mean`, die ja eigentlich Mittelwerte berechnet, hier einen Anteil?
+
+Erinnern Sie sich daran, dass R intern `FALSE` als 0 und `TRUE` als 1 wertet, wann immer diese Boolschen Werte in einer Rechnung auftauchen. Wenn wir die Elemente von `lvec` aufaddieren, wird für jedes FALSE ein 0 und für jedes TRUE eine 1 gezählt. Wir erhalten also die Anzahl der TRUEs:
+
+```{r}
+sum( lvec )
+```
+
+Die Funktion `mean` berechnet den Mittelwert eines Vektors, indem sie die Elemente des Vektors aufaddiert (genauso wie `sum`), und teilt den Wert dann durch die Anzahl der Elemente (hier 10). Daher
+
+```{r}
+mean( lvec )
+```
+
+Wenn Sie `mean` auf diese Weise für die Aufgabe nutzen, denken Sie daran, das in `group_by` und `summerize` einzubetten.

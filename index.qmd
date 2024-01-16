@@ -176,7 +176,10 @@ Am 7.12. bin ich verreist, daher wird statt der Vorlesung ein Übungsstunde mit 
 
 ## 16. Vorlesung (2024-01-11)
 
-- Skripts:
-  - [Übersicht Hochdurchsatz-Sequenzierung](seq_intro.html)
-  - [Präprozessierung von RNA-Seq-Daten](alignment.html)
+- Skripts [Übersicht Hochdurchsatz-Sequenzierung](seq_intro.html)
+- [Video-Aufzeichnung](https://youtu.be/MkuXPCcnavY)  
 
+## 17. Vorlesung
+
+- [Präprozessierung von RNA-Seq-Daten](alignment.html)
+- [Video-Aufzeichnung](https://youtu.be/ef62F3XbVZs)  

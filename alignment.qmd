@@ -256,6 +256,8 @@ our_counts %>% select( GeneID = Geneid, count = "1743sTS.Mouse.Liver.0dpb.Female
 head( our_counts )
 ```
 
+#### Gen-IDs
+
 Damit wir zu den Gen-IDs auch die Gen-Symbole haben, basteln wir uns eine Tabelle in Ensembl-BioMart:
 
 - Wir wählen die Ensembl-Archiv-Version 102, und dort "BioMart"
@@ -270,11 +272,26 @@ read_tsv( "Downloads/Ensembl_102_GRCm38.p6_Gene_names.tsv" ) -> gene_names
 head(gene_names)
 ```
 
-Nun können wir die Spalten unserer Tabelle mit den Reas-Zahlen anhängen:
+Nun können wir die Spalten unserer Tabelle mit den Read-Zahlen anhängen:
 
 ```{r}
-left_join( our_counts, gene_names, by = c( "GeneID" = "Gene stable ID" ) )
+left_join( our_counts, gene_names, by = c( "GeneID" = "Gene stable ID" ) ) -> our_counts
+
+our_counts
 ```
+
+
+#### Hochexprimierte Gene
+
+Welche Gene sind wohl besonders stark exprimiert?
+
+```{r}
+our_counts %>%
+arrange( -count ) %>%
+head(20)
+```
+
+#### Normalisierung
 
 Wie viele Reads haben wir insgesamt?
 
@@ -287,25 +304,16 @@ Wie viele Reads man insgesamt aus einer Probe erhält, ist eine rein technische 
 
 ```{r}
 our_counts %>%
-mutate( cpm = count / sum(count) * 1e6 ) %>%
-left_join( gene_names, gene_names, by = c( "GeneID" = "Gene stable ID" ) ) -> our_counts
+mutate( cpm = count / sum(count) * 1e6 ) -> our_counts
 
-head( our_counts )
-```
-
-### Hochexprimierte Gene
-
-Welche gene sind wohl besonders stark exprimiert?
-
-```{r}
-our_counts %>%
-arrange( -cpm ) %>%
-head(20)
+our_counts %>% select( `Gene name`, count, cpm ) %>% head()
 ```
 
 
 
-### Die Matrix der Autoren
+
+
+#### Die Matrix der Autoren
 
 Nun laden wir die Matrix vom Paper:
 

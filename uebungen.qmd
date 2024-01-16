@@ -3,6 +3,8 @@ title: "Übungsaufgaben"
 format: html
 ---
 
+<span style="color:brown">*Für die Hausaufgabe, siehe [unten](#hausaufgabe-zum-18.1.)*</span>
+
 ## NYC flights
 
 Das Paket `nycflights13` enthält die Tabelle `flights` mit Daten zu allen Linien-Flügen, die im Jahr 2013 in New York gestartet sind.
@@ -30,3 +32,40 @@ Das Paket `nycflights13` enthält die Tabelle `flights` mit Daten zu allen Linie
 ## Hausarbeit vom letzten Jahr
 
 [siehe hier](https://hackmd.io/yvseZ1iER52j1_F3qq5Ejg)
+
+## Hausaufgabe zum 18.1.
+
+In den Präsenzübungen in den letzten Wochen haben wir die obige Aufgabe bis zur Teilaufgabe zur negativen Verspätung gemeinsam bearbeitet.
+
+Als Hausaufgabe bearbeiten Sie bitte, unter Verwendung dessen, was wir uns in der Präsenzübung bereits erarbeitet haben, folgende Aufgabe in einem Quarto-Notebook und laden Sie dieses als HTML-Datei auf Moodle hoch ([hier](https://moodle.uni-heidelberg.de/mod/assign/view.php?id=1010501)).
+
+1. Erstellen Sie eine Tabelle, die für jede Fluggesellschaft, die vom JFK-Flughafen abflog, abgibt, welcher Anteil ihrer Flüge mit mehr als 30 Minuten Verspätung gestartet (nicht: gelandet!) ist.
+
+2. Schlüsseln Sie die Tabelle nach Monaten auf, so dass erkennbar ist, in welchen Monaten die jeweiligen Gesellschaften besonders viele Probleme hatten. Versuchen Sie, die Tabelle in eine Matrix-Form zu bringen: eine Zeile für jede FLuggesellschaft, eine Spalte für jeden der 12 Monate, und in den Matrix-Elementen jeweils der Anteil der verspäteten Flüge in Prozent.
+
+Falls Sie Schwierigkeiten haben, fragen Sie auf Slack, oder werfen Sie einen Blick auf die Tipps [hier](uebungen_hinweise.html).
+
+## Musterlösung
+
+Die Musterlösung für die Aufgaben werden wir später hier veröffentlichen. Also Starthilfe hier der Code, den wir in den Präsenzübungen gemeinsam entwickelt haben, um die durschnicttliche Verspätung in Minuten (nicht: den Anteil der Flüge mit über 30 Minuten Verspätung) zu ermitteln.
+
+```{r}
+suppressPackageStartupMessages({
+  library( tidyverse )
+  library( nycflights13 )  })
+
+tibble(
+  month_number = 1:12,
+  month_name = fct_inorder(month.name)
+) -> months_table
+
+flights %>%
+filter( !is.na(arr_delay) ) %>%
+mutate( arr_delay = ifelse( arr_delay<0, 0, arr_delay ) )%>%
+group_by( month ) %>%
+summarise( mean_delay = mean(arr_delay) ) %>%
+left_join( months_table, by = c( "month"="month_number" ) )%>%
+ggplot +
+  geom_col( aes( x=month_name, y=mean_delay ) ) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```

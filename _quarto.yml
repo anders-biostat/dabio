@@ -3,8 +3,9 @@ project:
   type: website
   output-dir: _html
 
-toc:
-  true
+toc: true
+
+toc-depth: 3
 
 execute:
   freeze: auto
