@@ -119,17 +119,25 @@ unzip hisat2-2.2.1-Linux_x86_64.zip
 
 Nun brauchen wir ein Assembly des Maus-Genoms, also eine Textdatei mit der vollständigen Sequenz aller Chromosomen der Maus. Wir finden so etwas zum Beispiel auf [EnsEMBL](https://www.ensembl.org/), genauer, auf der [Ensembl-FTP-Seite](https://ftp.ensembl.org/pub/).
 
+Dort finden wir u.a. diese Datei hier enthält die 22 Sequenzen, nämlich die Autosomen 1 bis 19, die Sex-Chromosomen X und Y, sowie das Genom der Mitochondrien (MT): https://ftp.ensembl.org/pub/current_fasta/mus_musculus/dna/Mus_musculus.GRCm39.dna.toplevel.fa.gz
 
-https://ftp.ensembl.org/pub/current_fasta/mus_musculus/dna/Mus_musculus.GRCm39.dna.toplevel.fa.gz > 
-[...]
+Jede Sequenz beginnt mit einer Zeile, die mit `>` beginnt und dann den Namen der Sequenz (1, 2, 3, ..., 19, X, Y, MT) enthält, dann ein Leerzeichen und dannn einige weitere Information. Ab der nächsten Zeile beginnt dann die eigentliche Sequenz, die sich über sehr viele Zeilen erstreckt, bis schließelich eine Zeile mit `>` am Anfang den Beginn des nächsten Chromosoms ankündigt.
+
+Hisat2 kann mit einer solchen sog. FASTA-Datei nicht direkt arbeiten. Es muss erst aus dieser Datei einen sog. Index erstellen, d.h., es muss sich das Genom so aufbereiten, dass es schnell und effizient darin suchen kann. Man bunutzt daszu das Programm `hisat-build` und übergibt ihm den namen der FASTA-Datei mit den Genom-Sequenzen, und den namen, den die Index-Dateien erhalten sollen. 
+
+Dieser Schritt kann einige Stunden dauern. WIr überspringen ihn daher, denn von der Hisat2-Webseite können fertige Indexe für einige Genome herunter geladen werden.
+
+Wir suchen den Link für den Index "grcm38", laden die Datei herunter und entapcken sie:
 
 ```sh
 wget --content-disposition https://cloud.biohpc.swmed.edu/index.php/s/grcm38/download  
 tar xvf grcm38.tar.gz 
 ```
-
+Das gz-Archiv enthält mehrere Dateiem, die alle zusammen den Index bilden. Alle diese dateien werden in ein Verzeichnis `grcm38` entpackt; die Dateinamen starten alle mit `genome`.
 
 ### Alignment
+
+Nun können wir das Aligment durchführen. Wir rufen `hisat2` wie folgt auf:
 
 ```sh
 ../hisat2-2.2.1/hisat2 -x ../grcm38/genome -U 1743sTS.Mouse.Liver.0dpb.Female.fastq.gz -p 10 > 1743sTS.Mouse.Liver.0dpb.Female__.sam
@@ -140,9 +148,11 @@ Dies bedeutet:
 - Benutze das Programm `hisat2`, dass sich im Verzeichnis `../hisat2-2.2.1/` befindet.
 - Dann folgen die Argumente für das Programm (wie in R die Argumente für einen Funtionsaufruf, aber ohne Klammern und Kommas):
   - `-x ../grcm38/genome`: Der Genom-Index findet sich in den Dateien im Verzeichnis `../grcm38`, deren Namen mit `genome` anfängt
-  - `-U 1743sTS.Mouse.Liver.0dpb.Female.fastq.gz`: Die Reads finden sich in dieser Datei
+  - `-U 1743sTS.Mouse.Liver.0dpb.Female.fastq.gz`: Die Reads finden sich in dieser Datei. Das "U" steht für "unpaired", da es sich nicht um paired Reads handelt.
   - `-p 10`: Benutze 10 Prozessor-Kerne gleichzeitig
 - `> 1743sTS.Mouse.Liver.0dpb.Female.sam`: Sammle die Ausgabe von `hisat2` auf und speichere sie in dieser Datei.
+
+Alle diese Argumente, und viele weitere, können in der Dokumentation zu hisat2 nachgeschlagen werden.
 
 Nach etwa 5 Minuten sind die 19 Millionen Reads aliniert. (Mit nur einem Prozessor hätte es 10mal so lange gedauert). Hisat2 fasst zusammen:
 
@@ -161,7 +171,7 @@ Die Ausgabedatei enthält nun etwa 21 Millionen Zeilen, die z.B. so aussehen:
 HISEQ:49:C2MJ0ACXX:1:1101:5228:58316	0	17	57217281	60	52M1126N49M	*	0	0	CTGGGTCCAGTGTATGGATGGCCACAGTTTTGTTGATTCTCATTCCTTCTGGCACGACCTTCAGTGTCTTCTTGACACCATCACTGATGAAGTGATTGAAG	CCCFFDFFHHHHHJJJJHIJIJJJIJJJJJJJIIIIIJIJJJJJJIJIIJJIJJJJHJJJGHJJHIIJJJHHHHHHCFFFFECEECCDCEDD@CDEECDD>	AS:i:0	XN:i:0	XM:i:0	XO:i:0	XG:i:0	NM:i:0	MD:Z:101YT:Z:UU	XS:A:-	NH:i:1
 ```
 
-Diese lange kryptische Zeile kann man mit Hilfe der [Spezifikation des SAM-Formats]() entschlüsseln:
+Diese lange kryptische Zeile kann man mit Hilfe der [Spezifikation des SAM-Formats](https://samtools.github.io/hts-specs/SAMv1.pdf) entschlüsseln:
 
 - `HISEQ:49:C2MJ0ACXX:1:1101:5228:58316`: Das ist die ID des Reads, die vom Sequencer vergeben wurde. (Sie verrät uns, dass die Sequenz von einem Gerät des Typs "HiSeq" gelesen wurde; wir finden die Seriennummer des Sequenzierers oder der Flowcell, die Nummer der Lane, der Tile und die x- und y-Koordinate des Clusters im Tile.)
 - Dann folgt das sog. Flag-Field; die 0 zeigt ein normales Alignment an. 16 bedeutet z.B., dass der Read auf das reverse complement des Genoms gemappt wurde.
@@ -173,13 +183,13 @@ Diese lange kryptische Zeile kann man mit Hilfe der [Spezifikation des SAM-Forma
 
 Wir werfen im Ensembl-Genom-Browser einen Blick auf die Position 57,217,281 auf Chromosom 17 und die darauf folgenden 2000 Basenpaare: https://www.ensembl.org/Mus_musculus/Location/View?r=17%3A57217281-57219281
 
-Wir merken gleich, dass dort kein Gen ist. Aber: Ensembl zeigt version 39 der Maus-Genoms; wie haben aber GRCm38 verwendet. Ein Klick recht unten ("View in Archive") erlaubt uns, auf Ensembl 102 (mit Version 38) zurück zu gehen: http://nov2020.archive.ensembl.org/Mus_musculus/Location/View?r=17%3A57217281-57219281
+Wir merken gleich, dass dort kein Gen ist. Aber: Ensembl zeigt Version 39 der Maus-Genoms; wie haben aber GRCm38 verwendet. Ein Klick recht unten ("View in Archive") erlaubt uns, auf Ensembl 102 (mit Version 38) zurück zu gehen: http://nov2020.archive.ensembl.org/Mus_musculus/Location/View?r=17%3A57217281-57219281
 
 Wir sehen nun, das unser Read auf das Gen "C3" (complement component 3) fällt, und das er tatsächlich ein gut 1000 bp langes Intron überspringt.
 
 ### Feature counting
 
-Wir würden nun gerne für jeden einzelnen read wissen, von welchem Gen er stammt. 
+Wir würden nun gerne für jeden einzelnen Read wissen, von welchem Gen er stammt. 
 
 Auch hierfür gibt es Werkzeuge, z.B.:
 
@@ -198,7 +208,7 @@ featureCount braucht eine Annotations-Datei im GTF-Format. Wir finden auch diese
 wget --content-disposition https://ftp.ensembl.org/pub/release-102/gtf/mus_musculus/Mus_musculus.GRCm38.102.gtf.gz
 ```
 
-Diese datei enthält nun Zeilen wie z.B. die folgende
+Diese Datei enthält nun Zeilen wie z.B. die folgende
 
 ```
 17	havana	exon	57219966	57219972	.	-	.	gene_id "ENSMUSG00000024164"; gene_version "15"; transcript_id "ENSMUST00000176457"; transcript_version "1"; exon_number "1"; gene_name "C3"; gene_source "ensembl_havana"; gene_biotype "protein_coding"; havana_gene "OTTMUSG00000042133"; havana_gene_version "5"; transcript_name "C3-202"; transcript_source "havana"; transcript_biotype "processed_transcript"; havana_transcript "OTTMUST00000110722"; havana_transcript_version "1"; exon_id "ENSMUSE00000983017"; exon_version "1"; transcript_support_level "5";
