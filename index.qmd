@@ -179,7 +179,10 @@ Am 7.12. bin ich verreist, daher wird statt der Vorlesung ein Übungsstunde mit 
 - Skripts [Übersicht Hochdurchsatz-Sequenzierung](seq_intro.html)
 - [Video-Aufzeichnung](https://youtu.be/MkuXPCcnavY)  
 
-## 17. Vorlesung
+## 17. Vorlesung (2024-01-16)
 
 - [Präprozessierung von RNA-Seq-Daten](alignment.html)
 - [Video-Aufzeichnung](https://youtu.be/ef62F3XbVZs)  
+
+## 18. Vorlesung (2024-01-16)
+- [Analysen mit den Maus-Daten](mouse_first_look.html)
