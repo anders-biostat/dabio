@@ -1,0 +1,193 @@
+---
+title: "Übung: DGE in den Maus-Daten"
+format: html
+execute:
+  echo: false
+---
+
+In dieser Übung benutzen wir die Daten aus dem Evo-Devo-Datensatz der Kaesmann-Gruppe für ein einfaches Beispiel zur Bestimmung differentiel exprimierter Gene (DGE).
+
+Wir arbeiten wieder mit der Count-Matrix zur Maus und beschränken uns diesmal auf die Daten vom Herz, und zwar auf die zwei Zeitpunkte P3 und P63. Wir fragen, welche Gene sich zwischen jungen Mäusen (P3, also 3 Tage nach Geburt) und ausgewachsenen Mäusen (P63, also zwei Monate alt) in ihrer Expressionstärke im Herz ändern.
+
+Laden Sie also zunächst die [Count-Matrix](Downloads/evodevo_mouse_counts.tsv.gz) und reduzieren Sie diese auf nur die 8 Proben vom Herz zu den Zeitpunkten P3 und P63. Sie können hierzu den Code aus der Vorlesung verwenden, mit dem wir dort die Matrix erst von breit auf lang pivotiert ahben, dann auf nur die Leber-Proben (diesmal eben, die benötigen Herz-Proben) reduziert haben.
+
+So könnte die lange Tabelle aussehen:
+
+```{r}
+suppressPackageStartupMessages( library( tidyverse ) )
+
+# Lade die Count-Matrix
+read_tsv( "Downloads/evodevo_mouse_counts.tsv.gz" ) -> mouse_counts
+
+# Erzeuge aus den Spaltennamen der Count-Matrix die Probentabelle,
+# mit dem Code aus der Vorlesung
+tibble( sample = colnames(mouse_counts)[-1] ) %>%
+separate( sample, c( "tissue", "timepoint", "replicate" ), 
+    sep="_", remove=FALSE ) %>%
+mutate( timepoint = fct_inorder( timepoint ) ) -> sample_table  
+
+# Pivotiere die Count-Matrix in ein langes Format
+mouse_counts %>%
+pivot_longer( -gene_id, names_to="sample", values_to="columns" ) %>%
+# Hänge die Probentabelle an
+left_join( sample_table ) %>%
+# Filtere
+filter( tissue=="Heart", timepoint %in% c( "P3", "P63" ) ) -> counts_long
+
+counts_long
+```
+
+Falls Ihr Computer mit der sehr großen Ausgangs-Matrix nicht zurecht kommt, können Sie auch [diese Matrix](Downloads/heart_counts_P3+P63.tsv) laden, die nur die benötigten 8 Proben enthält:
+
+```{r}
+# Erstellung der Matrix
+required_cols <-
+  colnames(mouse_counts) == "gene_id" |
+  str_detect( colnames(mouse_counts), "Heart_P3_") |
+  str_detect( colnames(mouse_counts), "Heart_P63_")
+
+mouse_counts[ , required_cols ] -> heart_subset_counts
+
+# Speichern der Matrix
+write_tsv( heart_subset_counts, file="Downloads/heart_counts_P3+P63.tsv" )
+
+heart_subset_counts
+```
+
+Normalisieren Sie nun die Count-Werte, indem Sie auf CPM (counts per million) umrechnen. Berechnen Sie dann die logarithmische Expressionsstärke, wieder als `lcpm = log10( cpm + 0.03)`. Sie sollten eine Tabelle in etwa wie diese erhalten:
+
+```{r}
+heart_subset_counts %>%
+pivot_longer( -gene_id, names_to="sample", values_to="count" ) %>%
+group_by( sample ) %>%
+mutate( cpm = count / sum(count) * 1e6 ) %>%
+mutate( lcpm = log10( count + 0.03 ) ) -> heart_long
+        
+heart_long        
+```
+
+Nun können Sie über die Replikate mitteln, um einmal die Mittwelwerte für P3 und einmal für P36 zu erhalten. Setzen Sie die Werte nebeneinander, z.B. so:
+
+```{r}
+heart_long %>%
+left_join( sample_table ) %>%
+group_by( gene_id, timepoint ) %>%
+summarise( lcpm = mean( lcpm ) ) %>%
+pivot_wider( id_cols="gene_id", names_from="timepoint", values_from="lcpm" ) -> group_means
+
+group_means
+```
+
+Bestimmen Sie nun die Gene, für die das Expressions-Verhältnis P63 zu P3 am größten ist. Denken Sie daran, dass Sie auf einer logarithmischen Skala arbeiten: Unser Expressionsverhältnis wird also zu einer Differenz. Hier ist mein Ergebnis:
+
+```{r}
+group_means %>%
+mutate( diff_log10_P63_P3 = P63 - P3 ) %>%
+arrange( diff_log10_P63_P3 )
+```
+
+Üblicherweise verwendet man für logarithmische Expressionsverhältnisse ("log fold change", LFC) den Logarithmus zur Basis 2, nicht zur Basis 10. Rechnen Sie um. Fügen Sie auch die [Gen-Namen](Downloads/Ensembl_102_GRCm38.p6_Gene_names.tsv) an.
+
+Hier ist das Ergebnis meines Codes:
+
+```{r}
+read_tsv( "Downloads/Ensembl_102_GRCm38.p6_Gene_names.tsv" ) %>%
+rename( gene_id = "Gene stable ID", gene_name = "Gene name", gene_descr = "Gene description" )-> gene_names
+
+group_means %>%
+mutate( l2fc_P63_P3 = log2( 10^P63 / 10^P3 ) ) %>%
+arrange( l2fc_P63_P3 ) %>%
+left_join( gene_names ) %>%
+head( 15 )
+```
+
+Erinnern Sie sich, wie wir die Tabelle mit der Zuordnung von Ensembl-Gen-IDs zu Gen-Symbolen aus dem Ensembl BioMart herunter geladen haben? Versuchen Sie das selbst.
+
+Zurück zu den DGEs. Plotten Sie die mittlere Expression zu P63 gegen die zu P3.
+Ihr Plot könnte z.B. so aussehen
+
+```{r}
+group_means %>%
+ggplot +
+  geom_point( aes( x=10^P3, y=10^P63 ), size=.1, alpha=.3 ) +
+  scale_x_log10() + scale_y_log10() + coord_equal() + 
+  xlab("P3 [cpm]") + ylab("P63 [cpm]")
+```
+
+(Mein Plot ist alledings nicht perfekt: Der Punkt ganz links unten entspricht 0 CPM in allen Replikaten; die Achsen sind dort aber nicht korrekt mit 0 beschriftet.)
+
+Gerne verwendet man hier einen sog. MA-Plot. Dazu verwendet man den Mittelwert über beide Gruppen als x-Achse und das logarithmische Verhältnis als y-Achse:
+
+```{r}
+group_means %>%
+mutate( l2fc_P63_P3 = log2( 10^P63 / 10^P3 ) ) %>%
+ggplot + 
+  geom_point( aes( x=10^((P63+P3)/2), y = 10^(P63 - P3) ), size=.1, alpha=.3 ) +
+  scale_x_log10() + scale_y_log10() + 
+  xlab("mean expression") + ylab( "expression ratio P63 / P3")
+```
+Erstellen Sie diesen Plot. Können Sie sehen, dass das derselbe Plot wie zuvor ist, nur um 45 Grad gedreht, und mit "gedehnter" y-Achse?
+
+Warum scheint man bei niedrig exprimierten Genen deutlich stärkere Unterschiede zu sehen?
+
+Gehen wir nun zurück zu den Genen, die in P63 deutlich stärker als in P3 exprimiert sind. Erstellen Sie eine Liste mit den 50 Genen mit den größtem Expressions-Verhältnissen.
+
+```{r}
+group_means %>%
+mutate( l2fc_P63_P3 = log2( 10^P63 / 10^P3 ) ) %>%
+arrange( l2fc_P63_P3 ) %>%
+head( 50 ) %>%
+pull( gene_id ) -> top_genes
+
+top_genes
+```
+
+Stellen Sie nun die Werte der einzelnen Replikate für diese Gene als Heatmap dar
+
+```{r fig.height=10, fig.width=6 }
+heart_long %>%
+filter( gene_id %in% top_genes ) %>%
+left_join( gene_names ) %>%
+ggplot + 
+  geom_tile( aes( x=sample, y=gene_name, fill=lcpm ) ) +
+  scale_fill_viridis_c( option="A" ) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+Entnehmen Sie nun für eines dieser Gene die log-CPM-Einzelwerte und führen Sie einen t-Test durch. 
+
+HIer z.B. für *Cemip*:
+
+```{r}
+heart_long %>%
+left_join( gene_names ) %>%
+filter( gene_name == "Cemip" ) %>%
+left_join( sample_table ) %>%
+t.test( lcpm ~ timepoint, . )
+```
+
+```{r eval=FALSE}
+# Does not work
+
+heart_long %>%
+filter( gene_id %in% top_genes ) %>%
+left_join( sample_table ) %>%
+group_by( gene_id ) %>%
+summarise( broom::tidy( t.test( lcpm ~ timepoint, . ) ) )
+```
+
+## Ausblick
+
+Hier haben wir die stark differentiell exprimierten Gene per Hand gefunden. Dieses Vorgehen ist mühsam, aber leicht nachvollziehbar. 
+
+Allerdings hat es einige Probleme:
+
+- Bei sehr schwach exprimierten Genen können schon ein oder zwei zusätzliche Reads das Expressionsverhältnis stark ändern und soclhe keine Fluktuationen den Anschein starker Expressions-Änderungen erwecken.
+
+- Die Addition von 0.03 zur Behandlung von 0 Reads ist ad hoc und mathematisch schlecht motiviert.
+
+- Bis auf den t-Test am Schluss haben wir keinerlei Versuche gemacht, sicher zu stellen, dass alle 4 Replikate ein konsistentes Bild geben.
+
+- Wenn in einer Probe ein Gen außergewöhnlich hoch exprimiert ist, erscheinen alle anderen Gene etwas schwächer exprimiert, da wir auf Anteile schauen. Auch wenn die Gene tatsächlich weniger Anteil an allen Reads haben, wenn ein einzelnes Gen eine großen Teil der Reads für sich beansprucht, wäre es dennoch nicht hilfreich, alle Gene als herunter-reguliert zu betrachten.
+
+Aus diesen Gründen gibt es eine Reihe von statistischen Methoden, die eine etwas ausgeklügeltere Analyse anbieten, und die man daher in der Praxis der einfachen Methode, die wir hier verwendet haben, vorzieht. Wir werden diese in einer der nächsten Vorlesungen ausprobieren.

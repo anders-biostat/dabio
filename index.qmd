@@ -184,5 +184,18 @@ Am 7.12. bin ich verreist, daher wird statt der Vorlesung ein Übungsstunde mit 
 - [Präprozessierung von RNA-Seq-Daten](alignment.html)
 - [Video-Aufzeichnung](https://youtu.be/ef62F3XbVZs)  
 
+## Einschub: Links
+- [Slack-Kanal](https://join.slack.com/t/datenanalyse-2324/shared_invite/zt-2ar6a4x8y-yZwMRyjTKo4F_8PE~25TZQ)
+- [Umfrage zum Klausurtermin](https://docs.google.com/forms/d/e/1FAIpQLScYWPMOHcwDXR8D_IFGV47pDLgSu9B3c6uaE_OddWakI1JYLw/viewform?usp=sf_link)
+- [Lehrveranstaltungs-Befragung](https://uni-heidelberg.evasys.de/evasys/online.php?pswd=QJX4L)
+
 ## 18. Vorlesung (2024-01-16)
+
 - [Analysen mit den Maus-Daten](mouse_first_look.html)
+- [Video-Aufzeichnung](https://youtu.be/sLGCp3zHEek)
+
+## Übung (2024-01-23)
+- [Aufgaben](uebung_Maus_herz.qmd)
+- Machen Sie sich am Wochenende mit den Aufgaben vetraut und versuchen Sie sie als Hausaufgabe schon mal selbst. Es ist eine lange Aufgabe; schauen Sie also einfach, wie weit Sie kommen.
+- In der Übung am Dienstag werden die Tutoren die Aufgabe mit Ihnen besprechen.
+- Laden Sie dann bis Donnerstag (25.1.) Ihre Lösung (zumindest für einen Teil der Aufgaben) auf Moodle hoch.
