@@ -1,0 +1,295 @@
+---
+title: "Übung: Ein \"Killing-Assay\" zur Untersuchung von Immunschwäche"
+format: html
+execute:
+  message: false
+  warning: false
+---
+
+### Unser Beispiel
+
+Wir nutzen heute Daten, die mir eine Kollegin von der Universität Helsinki zur Verfügung gestellt hat. Sie beschäftigt sich mit genetischen Krankheiten.
+
+- Der Patient P1 leidet an einer angeborenen Immunschwäche.
+
+- Bei einer DNA-Sequenzierung wurde eine seltene Mutation gefunden, die ein Gen funktionslos macht, das in der Aktivierung der [zytotoxischen T-Zellen](https://de.wikipedia.org/wiki/Zytotoxische_T-Zelle) eine Rolle spielt.
+
+- Es wird also vermutet, dass die zytotoxischen T-Zellen dieses Patienten eine im Vergleich zu gesunden Menschen verringerte Fähigkeit haben, pathologische Zellen zu bekämpfen.
+
+-   Daher sollen die zytotoxischen T-Zellen von Patient P1 in sog. Killing-Assays mit zytotoxischen T-Zellen von 3 gesunden Probanden (C1, C2 und C3) verglichen werden. Die 3 Vergleichpersonen ("control subjects") haben dasselbe Geschlecht und ein ähnliches Alter ("gender- and age-matched controls").
+
+### Killing-Assays
+
+-   Zytotoxische T-Zellen (CD8-T-Zellen) dienen dazu, virus-infizierte Zellen zu erkennen und zu eliminieren.
+
+-   Bei einem "Killing Assay" wird die Effektivität von zytotoxischen T-Zellen gemessen, in dem sie zusammen mit geeigneten "Target-Zellen" inkubiert werden. Man zählt dann, wie viele der Targetzellen von den T-Zellen eliminiert werden.
+
+-   Als Target-Zellen verwendet man gerne immortalisierte Zell-Linien, die man mit anti-CD3 belegt, damit sie von den T-Zellen als Ziel gesehen werden.
+
+-   Die Target-Zellen enthalten ein Transgene für GFP (green flourescent protein), damit sie grün floureszieren und so leicht unter dem Mikoskop erkannt und gezählt werden können.
+
+### Vorbereitung der Proben
+
+-   Von Patient und Vergleichsprobanden wurde peripheres Blut entnommen und es wurden mittels Ficoll-Gradient-Zentrifugierung die mononuklearen weißen Blutzellen extrahiert (PBMC = peripheral blood mononuclear cells).
+
+-   Um genügend Material zu haben, wurden die T-Zellen in einer Zellkultur vermehrt (Nährmedium mit anti-CD3, anti-CD28 und IL2, um die T-Zellen zu aktivieren und zur Teilung anzuregen). Nach 10 bis 13 Tagen standen 10<sup>8</sup> Zellen zur Verfügung.
+
+-   Andere Zellen als die zytotoxische T-Zellen wurden mittels MACS (magnet-assisted cell sorting) entfernt, d.h., magnetische Kügelchen, die mit Antikörpern gegen Marker der anderen PBMC-Zelltypen beschichtet sind, ziehen diese Zellen heraus.
+
+-   Als Target-Zellen wurde die murinen Zelllinie P815 verwendet. Die Targetzellen exprimieren GFP. Sie wurden mit anti-CD3 belegt, damit die T-Zellen sie als "schädlich" betrachten. Außerdem wurde Aphidicolin, ein Proliferations-Hemmer, zugegeben, um die Targetzellen an der Vermehrung zu hindern.
+
+- Für das eigentlich Assay wurde eine [96-Well-Platte](https://de.wikipedia.org/wiki/Mikrotiterplatte) verwendet, in der in jedes Well eine andere Kombination aus T-Zellen und Target-Zellen eingebracht wurde. Das Schema, wie die Proben auf der Platte verteilt wurden (das. sog. Platten-Layout) ist weiter unten beschrieben.
+
+### Automatisches Mikroskop im Inkubator
+
+Zur Durchführung des Assays wurde ein Gerät verwendet, bei dem ein automatisches Mikroskop in einem Inkubator verbaut ist. Das Gerät wird mit einer Mikrotiter-Platte mit Proben bestückt und kann so programmiert werden, dass es in regelmäßigen Abständen von jedem Well der Platte mikroskopische Bilder aufnimmt.
+
+Hier ist ein typisches Bild, wie es von dem Gerät aufgenommen wurde:
+
+![](https://papagei.bioquant.uni-heidelberg.de/simon/Vl2223/VID1991_F6_1_2022y10m20d_23h31m.png)
+
+Die großen grünen Zellen sind die Target-Zellen, die kleineren nicht-grünen die T-Zellen.
+
+Dieses Bild ist von Well F6 (siehe unten), aufgenommen nach 4 h Inkubationszeit.
+
+Das Gerät zählt automatisch die grünen Zellen und erstellt am Schluss eine Tabelle mit
+diesen Zahlen.
+
+### Plattenlayout
+
+Um alle Proben in einem Durchgang zu behandeln, wurden die Proben auf eine 96-Well-Platte verteilt. In einer 96-Well-Platte sind die 96 Wells (= Vertiefungen, um jeweils eine Probe aufzunehmen) in 12 Spalten (nummeriert von 1 bis 12) und 8 Zeilen (beschriftet mit Buchstaben von A bis H) angeordnet.
+
+Die Wells am Rand der Platte blieben unbenutzt, d.h. es wurden 60 der 96 Wells benutzt.
+
+Das Plattenlayout ist [hier](https://papagei.bioquant.uni-heidelberg.de/simon/Vl2223/Incucyte_killing_assay_test_20221020.xlsx).
+
+#### Plattenlayout: Spalten
+
+Aus dem Plattenlayout erkennen wir, dass sich die 12 Spalten der 96-Well-Platte wie folgt unterscheiden:
+
+- Die Spalten 1 und 12 wurden nicht benutzt und blieben leer.
+
+- In den Spalten 2 bis 9 wurden jeweils T-Zellen und Target-Zellen zusammen gebracht ("Kokultur"), in den Spalten 10 und 11 wurden nur Targetzellen eingebracht ("Monokultur"). Letzteres diente dazu, zu sehen, ob die Targetzellen sich teilen, wenn sie nicht von T-Zellen behelltigt werden.
+
+- Die Spalten 2 und 6 enthielten die T-Zellen des ersten Vergleichsprobanden (C1), die Spalten 3 und 7 die des Patienten (P1), die Spalten 4 und 8 die des zweiten Vergleichsprobanden (C2) und die Spalten 5 und 8 die des dritten Vergleichsprobanden (C2). 
+- In allen Wells (außer den leeren Wells in Spalten 1 und 12) wurden jeweils 12000 Targetzellen ausgesäht. In den Spalten mit T-Zellen wurden entweder ebenso viele T-Zellen wie Target-Zellen ausgesäht (Spalten 2 bis 5) oder doppelt so viele (Spalten 6 bis 9).
+- In allen Spalten außer Spalte 11 wurde der Proliferationshemmer Aphidicolin zugegeben. Lediglich in Spalte 11 wurde er weg gelassen, so dass man durch Vergeich zwischen den Spalten 10 und 11 erkennen kann, ob Aphidicolin überhaupt wirkt.
+
+Die folgende Tabelle fasst all dies zusammen:
+
+```{r}
+suppressPackageStartupMessages( library(tidyverse) )
+
+plate_cols <- tibble(
+  plate_column = 1:12,
+  used = c( FALSE, rep(TRUE, 10), FALSE ),
+  content = c( "empty", rep( "co-culture", 8 ), rep( "target cells only", 2 ), "empty" ),
+  subject = c( NA, rep( c( "C1", "P1", "C2", "C3" ), 2 ), rep( NA, 3 ) ),
+  aphidicolin = c( NA, rep( TRUE, 9), FALSE, NA ),
+  n0_target_cells = c( 0, rep( 12000, 10), 0 ),
+  n0_t_cells = c( 0, rep( 12000, 4), rep( 24000, 4), rep( 0, 3 ) ),
+)  
+```
+
+```{r echo=FALSE}
+rmarkdown::paged_table( plate_cols, options=list( paged.print=FALSE, rows.print=100 ) )
+```
+
+Bedeutung der Tabellenspalten
+
+-   `plate_column`: Index der Plattenspalte
+-   `used`: ob die Wells der Spalte benutzt oder leer gelassen wurden
+-   `content`: welche Zelltypen ins Well gesäht wurden
+-   `subject`: Ursprung der T-Zellen: P1 für den Patienten, C1-C3 für die Vergleichsprobanden, NA für Wells ohne T-Zellen
+-   `aphidicolin`: ob die Targetzellen vorab mit dem Proliferations-Hemmer Aphidocolin behandelt wurden
+-   `n0_target-cells`: Anzahl der Target-Zellen, die pro Well ausgesäht wurden (stets 12000, außer in leeren Wells)
+-   `n0_target-cells`: Anzahl der zytotoxischen T-Zellen, die pro Well ausgesäht wurden (12000, 24000 oder 0)
+
+#### Plattenlayout: Zeilen
+
+Die verschiedenen Zeilen unterscheiden sich dadurch, wie viel anti-CD3 auf die Targetzellen aufgebracht wurde:
+
+```{r echo=FALSE}
+plate_rows = tibble(
+  plate_row = LETTERS[1:8],
+  used = c( FALSE, rep( TRUE, 6 ), FALSE ),
+  conc_anti_cd3 = c( NA, 0, 0, 1, 1, 5, 5, NA )
+)
+
+plate_rows
+```
+Bedeutung der Tabellenspalten
+
+-   `plate_row`: Index der Plattenzeile
+-   `used`: ob die Wells der Zeile benutzt oder leer gelassen wurden
+-   `conc_anti_cd3`: Konzentration der Lösung aus Antikörpern gegen CD3 (in µg/ml), mit denen die Targetzellen behandelt wurden, um sie den T-Zellen "schmackhaft" zu machen.
+
+**Aufgabe:** Erstellen Sie diese Tabelle
+
+### Daten
+
+Die Platte wurde 18 Stunden inkubiert. Alle 2 Stunden wurde von jedem Well jeweils vier floureszenz-mikoskopische Aufnahmen gemacht, die vier verschiedene Bereiche im Well zeigen. In jedem mikroskopischen Bild wurde automatisch die Anzahl grün leuchtender Zellen (also, noch lebender Target-Zellen) gezählt.
+
+Das automatische Mikroskop hat die folgende Datei mit den Zell-Zahlen erzeugt: [GFP_object_count_perImage20221020withIL2.txt](https://papagei.bioquant.uni-heidelberg.de/simon/Vl2223/GFP_object_count_perImage20221020withIL2.txt).
+
+**Aufgabe**: Inspizieren die Datei mit einem Text-Viewer und/oder mit Excel.
+
+Wir laden die Tabelle wie folgt:
+
+```{r}
+read_delim( "~/Downloads/GFP_object_count_perImage20221020withIL2.txt", delim="\t", skip=6, local=locale(decimal_mark=",") ) -> table_raw
+
+table_raw
+```
+
+Das `skip=6` bewirkt, dass die ersten 6 Zeilen (die noch keine Daten enthalten) übersprungen werden sollen, und das `locale`-Argument löst das Problem, dass diese Datei mit einer finnischen Excel-Version gespeichert wurde, die (ebenso wie die deutsche) Kommas statt Punkte als Dezimaltrenner verwendet.
+
+**Aufgabe:** Zur weiteren weiteren Bearbeitung hätten wir die Tabelle gerne in langer statt breiter Form. Formen Sie dazu die Tabelle zu folgender Form um:
+
+```{r echo=FALSE}
+table_raw %>% 
+select( -1 ) %>%
+pivot_longer( -1, values_to="count") %>%
+rename( "hours_incub" = "Elapsed" ) -> tbl_intermediate
+
+tbl_intermediate
+```
+
+Die Spaltennamen enthalten drei Bestandteile: Der Buchstabe gibt die Platten-Zeile an, die Zahl direkt danach die Platten-Spalte, und die Zahl am Schluss die Nummer des Bilders. Letzteres bezieht sich darauf, dass das Sichtfeld des Mikroskops deutlich kleiner ist als die Fläche eines Wells. Daher nimmt das automatische Mikroskop zu jedem Well jeweils 4 Bilder von 4 zufällig gewählten Ausschnitten auf und nummeriert diese von 1 bis 4.
+
+Der folgende Code zerlegt die Spalte `name` in diese drei Bestandteile.
+
+```{r}
+tbl_intermediate %>% 
+mutate( matches = as_tibble( str_match( name, "(.)(..?), Image (.)" ) ) ) %>% 
+unnest( matches ) %>% 
+select( hours_incub, plate_row = V2, plate_column = V3, image_no = V4, count ) %>%
+mutate( image_no = as.integer(image_no) )  %>%
+mutate( plate_column = as.integer(plate_column) ) -> tbl_long
+
+tbl_long
+```
+
+Der Einfachkeit halber addieren wir die Zellzahlen der jeweils vier Bilder einfach auf, so dass wir eine Zellzahl pro Well und Zeitpunkt haben. (Eigentlich sollten wir vorher überprüfen, ob die vier Zahlen jeweils nicht zu weit voneinader abweichen; das überspringen wir aber diesmal.)
+
+**Aufgabe:** Addieren Sie die Zellzahlen der jeweils vier Bilder pro Well und Zeitpunkt. Ihr Ergebnis sollte so aussehen:
+
+```{r echo=FALSE}
+tbl_long %>%
+group_by( hours_incub, plate_row, plate_column ) %>%
+summarise( count = sum(count) ) -> tbl_long_per_well
+
+tbl_long_per_well 
+```
+### Monokulturen
+
+Nun betrachten wir nunächst nur die Spalten 10 und 11, die Targetzellen, aber kein T-Zellen enthalten. Hier ist ein Plot dieser Daten:
+
+```{r echo=FALSE}
+tbl_long_per_well %>%
+left_join( plate_rows ) %>%
+left_join( plate_cols ) %>%
+filter( content == "target cells only" ) %>%
+filter( used ) %>%
+mutate( conc_anti_cd3 = factor( conc_anti_cd3 ) ) %>%
+mutate( well = str_c( plate_row, plate_column ) ) %>% 
+ggplot +
+  geom_line( aes( x=hours_incub, y=count, group=well, lty=aphidicolin, col=conc_anti_cd3 ) )
+```
+**Aufgabe:** Erstellen Sie diesen Plot.
+
+Hinweise dazu: Filtern Sie die Tabelle zunächst so, dass Sie nur die Plattenspalten mit Monokultur (Spalte `content` der Tabelle `plate_cols` ist `"target cells only"`) haben, sowie natürlich nur die Zeilen, die nicht am Rand liegen und somit benutzt wurden (Spalte `used` der Tabelle `plate_rows` ist `TRUE`). 
+
+Plotten Sie dann eine Linie für jedes Well. (Hinweis: Sie müssen die `group`-`aes`thetic verwenden, um anzugeben, welche Tabellenzeile zur selben Linie des Plots gehören. Dazu können Sie sich mit `mutate( well=str_c( plate_row, plate_column) )` eine Spalte erzeugen, die für jedes Well einen anderen Wert hat.)
+
+Uns fällt auf dass die Wells zum Zeitpunkt 0 nicht alle dieselbe Zellzahl haben (obwohl ja eigentlich jedes Well anfangs dieselbe Zahl an Zellen (nämlich 12000) haben sollte). Um die Änderung mit der Zeit gut beurteilen zu können, wäre es hilreich, alle Zahlen durch den Wert bei Zeitpunkt 0 zu teilen.
+
+**Aufgabe**: Erstellen Sie die folgende Tabelle, die nur die Zellzahlen zum Zeitpunkt 0 enthält:
+
+```{r echo=FALSE}
+tbl_long_per_well %>%
+ungroup() %>%
+filter( hours_incub == 0 ) %>%
+select( plate_row, plate_column, count_at_0 = count ) -> tbl_counts_at_zero
+```
+
+```{r}
+tbl_counts_at_zero
+```
+
+**Aufgabe:** Teilen Sie in der langen Tabelle jede Zahl durch die Zellzahl zum Zeitpunkt 0.
+
+```{r echo=FALSE}
+tbl_long_per_well %>%
+left_join( tbl_counts_at_zero ) %>%
+mutate( count_ratio = count / count_at_0 ) -> tbl_long_norm
+```
+
+**Aufgabe:** Erstellen Sie nun denselben Plot wie zuvor, verwenden aber als y-Achse nun die Verhältnisse der Zellzahlen zum Zeitpunkt 0:
+
+```{r echo=FALSE}
+tbl_long_norm %>%
+left_join( plate_rows ) %>%
+left_join( plate_cols ) %>%
+filter( content == "target cells only" ) %>%
+filter( used ) %>%
+mutate( conc_anti_cd3 = factor( conc_anti_cd3 ) ) %>%
+mutate( well = str_c( plate_row, plate_column ) ) %>% 
+ggplot +
+  geom_line( aes( x=hours_incub, y=count_ratio, group=well, lty=aphidicolin, col=conc_anti_cd3 ) )
+```
+
+**Aufgabe:** Skalieren Sie nun noch die y-Achse logarithmisch
+
+```{r echo=FALSE}
+tbl_long_norm %>%
+left_join( plate_rows ) %>%
+left_join( plate_cols ) %>%
+filter( content == "target cells only" ) %>%
+filter( used ) %>%
+mutate( conc_anti_cd3 = factor( conc_anti_cd3 ) ) %>%
+mutate( well = str_c( plate_row, plate_column ) ) %>% 
+ggplot +
+  geom_line( aes( x=hours_incub, y=count_ratio, group=well, lty=aphidicolin, col=conc_anti_cd3 ) ) +
+  scale_y_log10()
+```
+
+**Aufgabe:** Interpretieren Sie den Plot. Was erkennen Sie? 
+
+Mögliche Fragen: Hat die Belegung mit anti-CD3 einen Einfluss auf die Vermehrung der Zellen?
+Hat das Aphidicolin eine Wirkung? Wenn ja, wie stark ist sie?
+
+### Kokulturen
+
+Der folgende Plot zeigt nun die Daten der Kokulturen. Die Facetten-Spalten sind die vier Probanden, die Facetten-Zeilen die beiden Verhältnisse an T-Zellen zu Targetzellen.
+
+```{r}
+tbl_long_norm %>%
+left_join( plate_rows ) %>%
+left_join( plate_cols ) %>%
+filter( content == "co-culture" ) %>%
+filter( used ) %>%
+mutate( conc_anti_cd3 = factor( conc_anti_cd3 ) ) %>%
+mutate( well = str_c( plate_row, plate_column ) ) %>%
+ggplot +
+  geom_line( aes( x=hours_incub, y=count_ratio, group=well, col=conc_anti_cd3 ) ) +
+  facet_grid( n0_t_cells ~ subject ) +
+  scale_y_log10()
+```
+
+**Aufgabe**: Erstellen Sie diesen Plot.
+
+**Aufgabe** Interpretieren Sie den Plot.
+
+<!--
+
+Mögliche Beobachtungen:
+
+- Ohne CD3-Belegung greifen die T-Zellen die Targetzellen nicht an.
+- Die Stärke der CD3-Belegung scheint aber keinen großen Unterschied zu machen.
+- Wenn man mehr T-Zellen einbringt, werden auch mehr Targetzellen vernichtet.
+- Die T-Zellen des Probanden C3 sind viel aggressiver als die der anderen drei Probanden.
+- Der Patient unterscheidet sich aber nicht sonderlich von den vergleichsprobanden C1 und C2.
+- Der durch dieses Assay gemessene Effekt kann die Symptome des Patienten also leider nicht erklären.
+
+-->

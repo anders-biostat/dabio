@@ -199,3 +199,12 @@ Am 7.12. bin ich verreist, daher wird statt der Vorlesung ein Übungsstunde mit 
 - Machen Sie sich am Wochenende mit den Aufgaben vetraut und versuchen Sie sie als Hausaufgabe schon mal selbst. Es ist eine lange Aufgabe; schauen Sie also einfach, wie weit Sie kommen.
 - In der Übung am Dienstag werden die Tutoren die Aufgabe mit Ihnen besprechen.
 - Laden Sie dann bis Donnerstag (25.1.) Ihre Lösung (zumindest für einen Teil der Aufgaben) auf Moodle hoch.
+
+## 19. Vorlesung (2024-01-25)
+- [Video-Aufzeichnung](https://youtu.be/MezRiZPSfgM)
+
+## 20. Vorlesung (2024-01-30)
+- [Video-Aufzeichnung](https://youtu.be/yNaHDlMjhEQ)
+
+## Übung (2024-02-01)
+- [Aufgabe: Killing-Assay](killing.html)
