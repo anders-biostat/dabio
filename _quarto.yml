@@ -7,10 +7,10 @@ project:
 website:
   title: "Datenanalyse in der Biologie"
   navbar:
-    left:
-      - href: index.qmd
-        text: Home
-
+    background: "#e7e0df"
+    search: true
+    logo: "https://www.bioquant.uni-heidelberg.de/themes/custom/bootstrap_bq/logo.svg"
+        
 format:
   html:
     theme: cosmo

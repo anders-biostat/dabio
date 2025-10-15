@@ -1,8 +1,22 @@
-# Vorlesung "Datenanalyse in der Biologie"
+<style>
+.quarto-title > h1.title {
+  display: none;
+}
+</style>
+
+<header>
+  <p style="text-align:right">
+  	<a href="https://www.bioquant.uni-heidelberg.de">
+  	  <img src="https://www.bioquant.uni-heidelberg.de/themes/custom/bootstrap_bq/logo.svg" style="width:30%;padding:3%"></a>
+  	<a href="https://uni-heidelberg.de">
+  	  <img src="https://www.bioquant.uni-heidelberg.de/themes/custom/bootstrap_bq/logo_hd.svg" style="width:30%;padding:3%"></a>
+  </p>
+
+<h3>Vorlesung "Datenanalyse in der Biologie"</h3>
 
 Dr. Simon Anders, Universität Heidelberg
 
-Wintersemester 2024/25
+Wintersemester 2025/26
 
 <small>[QR-Code](qr_url.html)</small>
 
@@ -18,6 +32,9 @@ Wintersemester 2024/25
   - Variablen
   - Vektoren und Vektor-Operationen
   - Data-frames
+  
+<!--
+
 - [Tabellen und Tidyverse: Grundlagen](tidyverse_intro.html)
   - Tidyverse: Grundlagen
   - Tabellen
@@ -77,8 +94,12 @@ Wintersemester 2024/25
 - zur Hausaufgabe [vom 5.12.](Loesung_Hausaufgabe_2024-11-26.html)
 - zur Hausaufgabe [vom 12.12.](Loesung_Hausaufgabe_2024-12-17.html)
 
+-->
+
 ## Weitere Links
 
-- [Quellcode](https://github.com/anders-biostat/dabio24) for Quarto notebooks and this site
+<!--
 - [Video-Aufzeichnungen der Vorlesung](https://www.youtube.com/playlist?list=PL3RVGH-VQHwIF56KXWWgCsRLHgcxNVsrE)
+-->
 - [Literatur zu R und zu Statistik](literature.html)
+- [Quellcode](https://github.com/anders-biostat/dabio) der Quarto-Notebooks auf dieser Seite
