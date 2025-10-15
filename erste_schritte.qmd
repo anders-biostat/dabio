@@ -28,15 +28,30 @@ Sie brauchen keinen leistungsfähigen Rechner; auch ein 10 Jahre alter Laptop ge
 
 ### RStudio Server
 
-Anstatt RStudio und R lokal auf dem eigenen Rechner zu installieren, kann man auch beides zentral auf einem Server
-installieren. Mehrere Benutzer können dann die Installation gemeinsam nutzen, in dem Sie über einen Webbrowser
+Anstatt RStudio und R lokal auf dem eigenen Rechner zu installieren, kann man eine zentrale Installation auf einem Srever verwenden. Mehrere Benutzer können dann die Installation gemeinsam nutzen, in dem Sie über einen Webbrowser
 darauf zugreifen. Dabei hat jeder Benutzer seinen eigenen Bereich.
 
-Für die Vorlesung habe ich einen RStudio-Server hier eingerichtet, den ich bei Bedarf hochfahre:
+Das Projekt [bwJupyter](https://www.bwjupyter.de/) des KIT stellt einen solchen RStudio-Server (und weitere Resourcen) zentral für die Lehre an baden-württembergischen
+Hochschulen bereit.
 
-<a href="https://dabio.ddns.net"><tt><span style="color:gray">https://</span><b><u>dabio.ddns.net</u></b></tt></a>
+Sie finden den Server hier:
 
-Loggen Sie sich mit einem Usernamen ein. Diese lauten `stud00` bis `stud99`.
+<a href="https://hub.bwjupyter.de/"><tt><span style="color:darkgray">https://hub.bwjupyter.de/</u></b></tt></a>
+
+Anleitung zum Einloggen:
+
+- Geben Sie in Ihrem Webbrowser die Adresse ein: [hub.bwjupyter.de](https://hub.bwjupyter.de)
+
+- Klicken Sie auf "Anmelden mit bwIDM"
+
+- Geben Sie im Textfeld "Heidelberg" ein und wählen Sie "Universität Heidelberg". Klicken Sie dann auf "Weiter"
+
+- Geben Sie ihre UniID (im Format "xy123") und Ihr Passwort ein
+
+- Akzeptieren Sie ggf. die Datenübetragung
+
+- Scrollen Sie nach unten (!) zur Box "**bwJupyter - RStudio**" und klicken Sie dort auf "Start"
+
 
 ## Erste Schritte
 
@@ -71,7 +86,8 @@ Die Grundrechenarten stellt man wie folgt dar:
 - Komma-Zahlen schreibt man mit Punkt (`.`), z.B.  `1.5` für eineinhalb
 </div>
 
-Übung: Lassen Sie R für sich rechnen: 
+**Übung**: Lassen Sie R für sich rechnen: 
+
 - Was ist 123 mal 17? 
 - 10 geteilt durch 7?
 - 4 zur dritten Potenz?
@@ -85,7 +101,7 @@ Es gibt auch eine Vielzahl von Funktionen, z.B.:
 - `round(x,n)` bedeutet: Runde die Zahl `x` auf zwei Nachkommastellen.
 </div>
 
-Aufgabe: 
+**Aufgabe**: 
 
 - Was ist die Quadratwurzel von 3?
 - Runden Sie $\sqrt{3}$ auf 4 Nachkommastellen

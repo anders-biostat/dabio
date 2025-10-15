@@ -3,10 +3,14 @@
 Diese Lehrbücher, die alle sowohl gedruckt, wie auch kostenlos online verfügbar sind, 
 können Sie neben der Vorlesung nutzen, um etwas nachzuschlagen:
 
-- Rafael Irizarry: *Introduction to Data Science* / Data Wrangling and Visualization with R. [online](http://rafalab.dfci.harvard.edu/dsbook-part-1)
+- Rafael Irizarry: *Introduction to Data Science* 
+  - Part 1: Data Wrangling and Visualization with R. [online](http://rafalab.dfci.harvard.edu/dsbook-part-1)
+  - Part 2: Statistics and Prediction Algorithms Through Case Studies. [online](http://rafalab.dfci.harvard.edu/dsbook-part-2/)
 
 - Susan Holmes and Wolfgang Huber: *Modern Statistics for Modern Biology*. [online](https://www.huber.embl.de/msmb/)
 
 - Hadley Wickham, Mine Çetinkaya-Rundel, and Garrett Grolemund: *R for Data Science* (2nd edition). [online](https://r4ds.hadley.nz/)
+
+- Michael Whitlock and Dolph Schluter: *The Analysis of Biological Data* (3rd edition). [online](https://ebookcentral.proquest.com/lib/ub-heidelberg/detail.action?docID=6235025)
 
 - Eine Vielzahl von Tutorial für R finden Sie auch hier: https://cran.r-project.org/other-docs.html

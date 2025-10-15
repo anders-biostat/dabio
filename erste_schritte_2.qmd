@@ -102,8 +102,6 @@ Die zweite Lösung finden wir, indem wir das "$\pm$" als "$-$" schreiben:
 ( -b - sqrt( b^2 - 4*a*c ) ) / ( 2*a )
 ```
 
-*[Die erste Vorlesung endete hier. Der Rest kommt nächste Woche.]*
-
 ### Namen
 
 Der Name einer Variable muss kein einzelner Buchstabe sein:
