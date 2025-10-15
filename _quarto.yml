@@ -1,5 +1,8 @@
 project:
   type: website
+  render: 
+    - "*.qmd"
+    - "!not_yet/"
   
 website:
   title: "Datenanalyse in der Biologie"
