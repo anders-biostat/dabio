@@ -1,7 +1,10 @@
 # Webseite zur Vorlesung
 
 ```
-https://papagei.bioquant.uni-heidelberg.de/simon/dabio24/
+https://papagei.bioquant.uni-heidelberg.de/simon/dabio25/
 ```
+
+Kurzform: 
+<p style="color:DarkMagenta; font-family:monospace;">https://tinyurl.com/dabio25</p>
 
 ![](img/qr_url.png)
