@@ -32,19 +32,19 @@ Wintersemester 2025/26
   - Variablen
   - Vektoren und Vektor-Operationen
   - Data-frames
-  
-<!--
-
 - [Tabellen und Tidyverse: Grundlagen](tidyverse_intro.html)
   - Tidyverse: Grundlagen
   - Tabellen
   - Tidyverse-Verben mutate, arrange, filter, und select
   - Streudiagramme
+  - [Hausaufgabe](tidyverse_einfuehrung.qmd)
 - [Reduktionen mit Tidyverse](group_by.html)
   - mehr zu group_by und summerize
   - Umgang mit fehlende Daten (`NA`s)
   - zählen mit `sum`
   - logische Operatoren: "nicht", "und", und "oder"
+
+<!--
 - Joining und Pivoting
   - [Table-Joins](left_join.html)  
   - [Pivoting](pivoting.html)

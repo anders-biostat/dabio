@@ -157,7 +157,7 @@ Leerzeichen oder Zeilenumbrüche zwischen den
 
 Wir sehen uns Funktionsaufrufe noch mal genauer an.
 
-Hier runden wir $pi$ auf drei Nachkommastellen:
+Hier runden wir $\pi$ auf drei Nachkommastellen:
 
 ```{r}
 round( 3.14159265, 3 )
@@ -497,11 +497,10 @@ kann man kurz `5:10` schreiben:
 
 ## Hausaufgaben
 
-(zum 30.10.)
 
 ### Quadratische Gleichung 
 
-Wiederholen Sie nochmal die [Aufgabe zur quadratischen Gleichung @AufgQuGl] von oben
+Wiederholen Sie nochmal die [Aufgabe zur quadratischen Gleichung|@AufgQuGl] von oben
 
 ### Mittelwert "per Hand"
 
@@ -551,9 +550,12 @@ install.packages( "tidyverse" )
 in der RStudio-Konsole einzugeben. Allerdings braucht die Installation ca. 5-10
 Minuten, daher sollten Sie das vor der nächsten Vorlesung erledigt haben.
 
+Falls `install.packages` mit der Fehlermeldung "internet routines cannot be 
+loaded" abbricht, dann geben Sie folgenden Befehl ein und versuchen es danach nochmal:
 
-*Die Vorlesung am 23.10. endete hier. Der Rest kommt nächste Woche.*
----
+```
+options(download.file.method="wget")
+```
 
 ## Tabellen
 
@@ -620,6 +622,9 @@ Hier ist unsere neue Tabelle:
 murders
 ```
 
+*Hinweis*: Der Zugriff auf Tabellen-Spalten mit `$` ist "Old-School"-R. Im nächsten Kapitel werden wir
+"Tidyverse" benutzen, das anders mit Tabellen umgeht. Wenn Sie mit Tidyverse arbeiten, brauchen Sie
+den `$`-Operator normalerweise nicht.
 
 ## Aufgaben
 
