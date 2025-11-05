@@ -39,7 +39,6 @@ Wintersemester 2025/26
   - Streudiagramme
   - [Hausaufgabe](tidyverse_hausaufgabe_1.html) zum 4.11.
 
-<!--
 - [Reduktionen mit Tidyverse](group_by.html)
   - mehr zu group_by und summerize
   - Umgang mit fehlende Daten (`NA`s)
@@ -49,6 +48,8 @@ Wintersemester 2025/26
 - Joining und Pivoting
   - [Table-Joins](left_join.html)  
   - [Pivoting](pivoting.html)
+
+<!--
   - [Hausaufgabe](hausaufgabe_join_pivot.html)
 - Histogramme und Verteilungen
   - [Histogramme](histograms.html)
@@ -104,3 +105,4 @@ Wintersemester 2025/26
 -->
 - [Literatur zu R und zu Statistik](literature.html)
 - [Quellcode](https://github.com/anders-biostat/dabio) der Quarto-Notebooks auf dieser Seite
+- [Material vom Vorjahr](https://papagei.bioquant.uni-heidelberg.de/simon/dabio24/)
