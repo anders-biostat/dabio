@@ -400,6 +400,7 @@ Geben Sie den beiden neuen Spalten geeignete Namen, indem Sie die neuen Spaltenn
 
 Berechnen Sie zuletzt die Mordrate pro 100,000 Einwohner für jede Region.
 
+<!--
 ## Hausaufgabe
 
 Das amerikanische Center for Disease Control and Prevention (CDC) führt seit längerem alle zwei Jahre eine Erhebung zu Volksgesundheit durch, die [National Health and Nutrition Examination Survey (NHANES)](https://wwwn.cdc.gov/nchs/nhanes/Default.aspx). Die Daten sind in anonymisierter Form frei zugänglich. Hier finden Sie eine Tabelle, die ich aus einem Teil der Daten von 2017-2018 erstellt habe: [nhanes.csv](data_on_git/nhanes.csv)
@@ -413,3 +414,4 @@ Das amerikanische Center for Disease Control and Prevention (CDC) führt seit l�
 - Was ist die durschnittliche Körpergröße eines erwachsenen Mannes und einer erwachsenen Frau? (Nutzen Sie `filter`, um alle minderjährigen Probanden (mit Alter unter 18) aus der Tabelle zu entfernen, gruppieren Sie dann nach Geschlecht und berechnen Sie dann die Mittelwerte von `height` in den beiden Gruppen.)
 
 - Laden Sie Ihren Code bitte auf Moodle hoch. Notieren Sie bitte unter dem Code, ob Sie den Plot generieren konnten, und geben Sie auch die beiden Mittelwerte an.
+-->

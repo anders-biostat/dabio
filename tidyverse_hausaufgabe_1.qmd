@@ -1,0 +1,21 @@
+---
+title: "Tidyverse: Hausaufgabe 1"
+---
+
+## Aufgabe 1
+
+Erstellen Sie nochmals das Streudiagramm aus der Vorlesung zu den Mordraten in den USA im Jahr 2010. Die x-Achse ist die Bevölkerung der Staaten, die y-Achse die Anzahl Morde durch Feuerwaffen pro 100.000 Einwohner. Färben Sie diesmal die Punkte, die die Staaten darstellen, so ein, dass jede der vier Regionen eine andere Farbe erhält, indem Sie die Spalte `region` der `aes`-thetic `col` übergeben.
+
+## Aufgabe 2
+
+Das amerikanische Center for Disease Control and Prevention (CDC) führt seit längerem alle zwei Jahre eine Erhebung zu Volksgesundheit durch, die [National Health and Nutrition Examination Survey (NHANES)](https://wwwn.cdc.gov/nchs/nhanes/Default.aspx). Die Daten sind in anonymisierter Form frei zugänglich. Hier finden Sie eine Tabelle, die ich aus einem Teil der Daten von 2017-2018 erstellt habe: [nhanes.csv](data_on_git/nhanes.csv)
+
+- Laden Sie die Tabelle mit `read_csv`.
+
+- Erstellen Sie ein Streudiagramm, in dem jeder Proband / jede Probandin durch einen Punkt dargestellt wird. Die x-Achse ist das Lebensalter, die y-Achse die Körpergröße. 
+
+- Ergänzen Sie Ihren Code so, dass die Punkte in zwei verschiedenen Farben eingefärbt werden, um das Geschlecht der Person zu zeigen.
+
+- Erstellen Sie dann ein Streudiagramm, das Körpergewicht gegen Körpergröße aufträgt. In diesem Diagramm sollen nur die Daten von erwachsenen Probanden gezeigt werden. Entfernen Sie also vorher alle Probanden, die nicht mindestens 18 Jahre alt sind.
+
+Laden Sie die Plots und Ihren Code auf Moodle hoch.

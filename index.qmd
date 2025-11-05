@@ -37,14 +37,15 @@ Wintersemester 2025/26
   - Tabellen
   - Tidyverse-Verben mutate, arrange, filter, und select
   - Streudiagramme
-  - [Hausaufgabe](tidyverse_einfuehrung.qmd)
+  - [Hausaufgabe](tidyverse_hausaufgabe_1.html) zum 4.11.
+
+<!--
 - [Reduktionen mit Tidyverse](group_by.html)
   - mehr zu group_by und summerize
   - Umgang mit fehlende Daten (`NA`s)
   - zählen mit `sum`
   - logische Operatoren: "nicht", "und", und "oder"
 
-<!--
 - Joining und Pivoting
   - [Table-Joins](left_join.html)  
   - [Pivoting](pivoting.html)
