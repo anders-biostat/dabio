@@ -1,0 +1,60 @@
+---
+title: "Hausaufgabe"
+---
+
+### Aufgabe 1
+
+**(a)** Fügen Sie in der NHANES-Tabelle ([nhanes.csv](data_on_git/nhances.csv)) eine Spalte
+`BMI` hinzu mit dem "Body Mass Index", den Sie mit folgender Formel berechnen:
+
+$$ \text{BMI} = \frac{\text{Körpergewicht in kg}}{\left(\text{Körpergröße in m}\right)^2} $$
+
+Beachten Sie, dass die Körpergröße im Nenner in Metern benötigt wird, in der Tabelle aber in Zentimetern angegeben ist. Sie müssen also erst durch 100 teilen. Vergessen Sie auch nicht das Quadrat im Nenner.
+
+**(b)** Als epidemiologische Faustregel gilt, dass eine Person mit einem BMI über 25 als übergewichtig (*overweight*) und ab 30 als adipös (*obese*) gilt. Personen mit einem BMI unter 18.5 werden als untergewichtig gezählt. 
+
+Diese Grenzen gelten nur für Erwachsene. Entfernen Sie also alle Probanden mit einem Lebensalter unter 18 Jahren aus der Tabelle. Fügen Sie dann eine neue Spalte `is_overweight` hinzu, in der `TRUE` stehen soll, wenn der Proband übergewichtig ist und `FALSE` für Normalgewicht oder Untergewicht. Teilen Sie dann die Tabellenzeilen anhand der Spalten `gender` und `is_overweight` in 4 Gruppen auf. Zählen Sie dann, wie viele Probanden in jeder Gruppe sind. Hierzu können Sie `summarise` zusammen mit `n()` benutzen. (An [diesem Beispiel](tidyverse_intro.html#reduktion-mit-group_by-und-summarise) sehen Sie nochmal, wie `n()` benutzt wird.) Bestimmen Sie dann den Anteil Übergewichtiger (in Prozent) unter allen Männern bzw. Frauen.
+
+Um die Prozentwerte zu bestimmen, können Sie per Hand die Anzahl Übergewichtiger durch die Gesamtzahl bestimmen.
+
+Alternativ können Sie in Ihrem `summarise`-Schritt einfügen: 
+
+`... %>% summarise( ..., proportion_overweight = mean(is_overweight, na.rm=TRUE) )` 
+
+Warum funktioniert das? (Hinweise: Wenn R mit logischen (Boolschen) Werten rechnen soll, dann wertet es `TRUE` als ` und `FALSE` als 0.)
+
+**(c)**
+
+Mit `... %>% mutate( decade = floor(age/10) )` können Sie eine Spalte `decade` hinzufügen, die für jeden Probanden das Lebensjahrzehnt angibt. Finden Sie heraus, was die Funktion `floor` macht, um zu verstehen, wie diese Zeile funktioniert.
+
+Berechnen Sie dann, nach Geschlecht getrennt, für jedes Lebensjahrzehnt den Anteil Übergewichtiger und stellen Sie Ihr Ergebnis graphisch dar.
+
+**(c)** 
+
+Die R-Funktion `cut` teilt  Werte in einem Vektor in Wertebereiche (*bins*) ein. Im folgenden Beispiel haben wir einen Vektor `v` mit 7 Werten. Wir wollen Werte von 0 bis 10 als "small", von 10 bis 20 als "medium", und über 20 als "large" bezeichnen. Um jeden Wert durch seine Kategorie zu ersetzten, rufen wir `cut` wie folgt auf:
+
+```{r}
+v <- c( 2, 3, 12, 7, 14, 4, 25 )
+cut( v, c( 0, 10, 20, Inf ), c( "small", "medium", "large" ) )
+```
+
+`cut` erwartet also drei Argumente: Erst den Vektor mit den Werten, dann einen Vektor mit den Grenzen der Wertebereiche und (optional) eine Vektor mit Bezeichnungen für die Bereiche. Es gibt
+dann eine Vektor (genauer: einen Faktor) zurück, indem jeder Wert durch eine Kategorie-Bezeichnung ersetzt wurde.
+
+Experimentieren Sie etwas mit `cut`. Was geschieht, wenn Sie die Untergrenze des ersten Bereichs auf 5 anheben oder zu `v` negative Werte hinzu fügen? Welche Beziehung muss zwischen der Länge des zweiten und des dritten Arguments bestehen? Was bedeutet wohl das `Inf` als Obergrenze?
+
+Wenn Sie `cut` verstanden haben, dann teilen Sie die Probanden gemäß der o.g. BMI-Grenzwerte in die Kategorien "underweight", "normal", "overweight" (but not obese), und "obese" ein. Berechnen Sie die Anzahl der Frauen und Männer, die in jede Kategorie fallen.
+
+**(d)** 
+
+Rechnen Sie die Anzahlen aus (c) in Prozente um. Dazu können Sie wie folgt vorgehen: Sie haben von zu vor eine Tabelle `tbl` mit 8 Zeilen (4 BMI-Kategorien mal 2 Geschlechter) und den Spalten `gender`, `category` und `number` (Anzahl). Verwenden Sie dann folgenden Code (wobei Sie die Variablen- und Spaltennamen ggf. anpassen):
+
+```
+tbl %>% 
+group_by(gender) %>% 
+mutate( percent = number / sum(number) * 100 )`
+```
+
+Warum funktioniert das? Was geschieht, wenn Sie `group_by(gender)` durch `ungroup` ersetzen?
+
+*Bitte stellen Sie Ihre Antworten und Ergebnisse in einer Text- oder PDF-Datei zusammen und laden diese auf Moodle hoch.*

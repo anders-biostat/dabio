@@ -354,52 +354,6 @@ Laden Sie die Tabelle in R mit `read_csv( dateiname )`. Alternativ können Sie a
 Erstellen Sie ein Balkendiagramm mit ggplot und `geom_col` gemäß der Anleitung oben. Übergeben Sie `geom_col` die Spalte `Spezies` für die `x`-Werte und die Spalte `Anzahl` für die `y`-Werte.
 
 
-## Reduktion mit group_by und summarise
-
-Was ist das mittlere Gewicht der Wühlmäuse in den beiden Waldgebieten?
-
-```{r}
-vole_data %>%
-group_by( habitat ) %>%
-summarise( mean(weight) )
-```
-
-Dieser Code funktioniert wie folgt:
-
-- Mit `group_by` werden die Tabellenzeilen in Gruppen aufgeteilt anhand des Werts der angegebenen Spalte(n).  Hier ist `habitat` angegeben, was zwei Werte hat, `Südwald` und `Ostforst`. Daher werden aus den Tabellen-Zeilen zwei Gruppen (Teil-Tabellen) gebildet: die Zeilen mit "Südwald" und die Zeilen mit "Ostwald".
-
-- Mit `summerise` wird dann der angegebene reduzierende Ausdruck für jede Gruppe getrennt ausgewertet.
-
-Man kann mit `summarise` auch mehr als eine Reduktion ausführen. Beispiel:
-
-```{r}
-vole_data %>%
-group_by( habitat ) %>%
-summarise( mean(weight), n() )
-```
-
-Hier haben wir nun neben `mean(weight)` nun auch noch dne Ausdruck `n()`, der einfach zählt, wie viele Zeilen in der Gruppe waren.
-
-Man kann für die so erzeugten Spalten auch Überschriften vorgeben:
-
-```{r}
-vole_data %>%
-group_by( habitat ) %>%
-summarise( 
-   average_weight = mean(weight), 
-   number_of_mice = n() )
-```
-
-### Aufgabe
-
-Teilen Sie Zeilen der `murders`-Tabelle anhand der Spalte `region` in Gruppen auf. Berechnen Sie für jede Region die Gesamt-Einwohnerzahlen, indem Sie die Werte in der Spalte `population` mit `sum` aufaddieren.
-
-Fügen Sie dann im Aufruf von `summerize` noch einen zweiten Ausdruck ein, um auch die Mord-Fallzahlen pro Region aufzuaddieren.
-
-Geben Sie den beiden neuen Spalten geeignete Namen, indem Sie die neuen Spaltennamen im `summerize`-Aufruf mit `=` vor die Ausdrücke stellen.
-
-Berechnen Sie zuletzt die Mordrate pro 100,000 Einwohner für jede Region.
-
 <!--
 ## Hausaufgabe
 

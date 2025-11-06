@@ -1,10 +1,70 @@
-# Tidyverse: weitere Details
+# Tidyverse: Reduktion mit group_by und summarise
 
-## Lösung Hausaufgabe
+### Einführendes Beispiel
 
-Wir besprechen zunächst die Hausaufgabe, dann gehen wir auf einige Schwierigkeiten ein, die dabei entstanden sein könnten.
+Wir beginnen nochmals mit der Beispiel-Tabelle vom vorigen Abschnitt
 
-### Aufgabe zur "murders"-Tabelle
+```{r message=FALSE}
+library( tidyverse)
+
+bind_rows(
+  tibble(
+    weight = c( 124.0, 135.5, 126.0, 115.0, 109.0, 152.8, 138.2 ),
+    habitat = "Südwald"
+  ),
+  tibble(
+    weight = c( 99.1, 148.3, 133.4, 116.8, 134.5, 117.4, 138.4, 159.6, 119.5 ),
+    habitat = "Ostforst" )
+) -> vole_data
+
+vole_data
+```
+
+Was ist das mittlere Gewicht der Wühlmäuse in den beiden Waldgebieten? Der folgende Code beantwortet diese Frage:
+
+```{r}
+vole_data %>%
+group_by( habitat ) %>%
+summarise( mean(weight) )
+```
+
+Dieser Code funktioniert wie folgt:
+
+- Mit `group_by` werden die Tabellenzeilen in Gruppen aufgeteilt anhand des Werts der angegebenen Spalte(n).  Hier ist `habitat` angegeben, was zwei Werte hat, `Südwald` und `Ostforst`. Daher werden aus den Tabellen-Zeilen zwei Gruppen (Teil-Tabellen) gebildet: die Zeilen mit "Südwald" und die Zeilen mit "Ostwald".
+
+- Mit `summerise` wird dann der angegebene reduzierende Ausdruck für jede Gruppe getrennt ausgewertet.
+
+Man kann mit `summarise` auch mehr als eine Reduktion ausführen. Beispiel:
+
+```{r}
+vole_data %>%
+group_by( habitat ) %>%
+summarise( mean(weight), n() )
+```
+
+Hier haben wir nun neben `mean(weight)` nun auch noch dne Ausdruck `n()`, der einfach zählt, wie viele Zeilen in der Gruppe waren.
+
+Man kann für die so erzeugten Spalten auch Überschriften vorgeben:
+
+```{r}
+vole_data %>%
+group_by( habitat ) %>%
+summarise( 
+   average_weight = mean(weight), 
+   number_of_mice = n() )
+```
+
+### Aufgabe
+
+Teilen Sie Zeilen der `murders`-Tabelle anhand der Spalte `region` in Gruppen auf. Berechnen Sie für jede Region die Gesamt-Einwohnerzahlen, indem Sie die Werte in der Spalte `population` mit `sum` aufaddieren.
+
+Fügen Sie dann im Aufruf von `summerize` noch einen zweiten Ausdruck ein, um auch die Mord-Fallzahlen pro Region aufzuaddieren.
+
+Geben Sie den beiden neuen Spalten geeignete Namen, indem Sie die neuen Spaltennamen im `summerize`-Aufruf mit `=` vor die Ausdrücke stellen.
+
+Berechnen Sie zuletzt die Mordrate pro 100,000 Einwohner für jede Region.
+
+#### Lösung
 
 Wir laden zunächst tidyverse und das `dslabs`-Paket mit Beispieldaten, zu denen auch die `murders`-Tabelle gehört:
 
@@ -16,7 +76,7 @@ suppressPackageStartupMessages({
 head( murders )
 ```
 
-Nun berechnen wir die Mordrate pro Region
+Nun berechnen wir die Mordrate pro Region, indem wir zunächst Bevölkerung und Fallzahlen nach Regionen getrennt aufaddieren und dann eine Spalte mit dem Verhältnis hinzufügen.
 
 ```{r}
 murders %>%
@@ -27,45 +87,27 @@ summarise(
 mutate( rate = murders / population * 100000 )
 ```
 
-<div class="imp">Abtasten einer Tidyverse-Pipeline: Wenn Sie verstehen wollen, wie dieser Code funktioniert, führen Sie ihn Schritt für Schritt aus, indem Sie zunehmend größere Teile des Codes markieren, immer vom Anfang bis direkt *vor* ein Pipe-Symbol `%>%`, und führen Sie diesen Code aus. So sehen Sie, wie die Tabellen mit Zwischenergebnissen aussehen, die durch das Pipe-Symbol geschoben werden. </div>
+### Abtasten
 
-### Aufgabe zur NHANES-Tabelle: Plot
+<div class="imp">Abtasten einer Tidyverse-Pipeline: Wenn Sie verstehen wollen, wie der vorstehende Code funktioniert, führen Sie ihn Schritt für Schritt aus, indem Sie zunehmend größere Teile des Codes markieren, immer vom Anfang bis direkt *vor* ein Pipe-Symbol `%>%`, und führen Sie diesen Code aus. So sehen Sie, wie die Tabellen mit Zwischenergebnissen aussehen, die durch das Pipe-Symbol geschoben werden. </div>
+
+### Aufgabe zur NHANES-Tabelle: mittlere Körpergröße
+
+Was ist die mittlere Körpergröße der erwachsenen Männer und Frauen im NHANES-Datensatz?
+
+Lösung:
 
 ```{r}
 read.csv( "data_on_git/nhanes.csv" ) -> nhanes
 
-nhanes %>%
-ggplot() +
-  geom_point( aes( x=age, y=height, col=gender ), size=.3 )
-```
-
-### Aufgabe zur NHANES-Tabelle: mittlere Körpergröße
-
-```{r}
 nhanes %>%
 filter( age >= 18 )  %>%
 group_by( gender ) %>%
 summarise( avg_height = mean( height, na.rm=TRUE ) )
 ```
 
-Hier mussten wir `na.rm=TRUE` anfügen, um dafür zu sorgen, dass fehlende Werte übersprungen werden. Näheres dazu siehe unten.
+Hier mussten wir `na.rm=TRUE` anfügen, um dafür zu sorgen, dass fehlende Werte übersprungen werden. Die erklären wir nun:
 
-## Pfade zu Dateien
-
-[...]
-
-### Aufgabe
-
-1. Speichern Sie die Tabelle mit den Mordraten pro Region (s.o.) im CSV-Format. Verwenden Sie dazu `write_csv`, wie folgt
-
-```r
-tabelle %>% write_csv( "tabelle.csv" )
-```
-
-Laden Sie die Datei `tabelle.csv` in Microsoft Excel oder in einem anderen Tabellenkalkulationsprogramm.
-
-
-2. Erstellen Sie in Excel eine Tabelle mit einigen Spalten und Zeilen. Achten Sie darauf, dass die Spaltenüberschriften in der ersten Zeile stehen. Erstellen Sie mindestens eine Spalte mit numerischen Werten und eine mit Strings. Speichern Sie die Tabelle im CSV-Format. Laden Sie die Tabelle dann in R mit `read_csv`. (Wenn das nicht funktioniert, versuchen Sie `read_csv2`).
 
 ## Fehlende Daten
 
@@ -174,6 +216,7 @@ Beispiel: Wir fragen für jede Gemeinde(n) im Landkreis: "Hat die Gemeinde über
 zett_tabelle %>%
 mutate( Antwort = Einwohner>10000 & Arbeitslose<1000 )  
 ```
+
 ## Mehrere Gruppenvariablen
 
 Was ist die mittlere Körpergröße der erwachsenen NHANES-Probanden, gruppiert nach Geschlecht und Ethnie?
@@ -236,6 +279,8 @@ v > 5
 sum( v>5 )
 sum( v>5, na.rm=TRUE )
 ```
+
+<!--
 
 ## Hausaufgaben
 
@@ -323,3 +368,5 @@ Wenn Sie Schwierigkeiten mit den Aufgaben haben, stellen Sie eine Frage auf dem 
 Stellen Sie Code, Plots und Antworten für die Aufgaben 1 bis 3 zusammen (z.B. in einer Word-Datei) und laden Sie ein PDF auf Moodle hoch. (Wenn Sie Word verwenden, benutzen Sie zu Darstellung von Code bitte eine `Monospace`-Font wie z.B. `Courier`.)
 
 Das Kopieren von Code und Ergebnissen von RStudio zu Word ist mühsam und fehleranfällig. Wir werden bald lernen, wie man PDFs bequem direkt in RStudio erzeugt, mit "Quarto Documents" oder "R Notebooks". Wenn Sie wollen, können Sie RStudio's Quarto-Funktionalität aber schon jetzt ausprobieren.
+
+-->
