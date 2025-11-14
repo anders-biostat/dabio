@@ -1,12 +1,10 @@
 ---
-title: "Hausaufgabe 4: Lösung"
+title: "Hausaufgabe 4: Musterlösung"
+author: ""
 format: 
   html:
-    embed-resources: true
+    embed-resources: TRUE
 ---
-
-*Diese Seite zeigt vorerst nur den Code, wie wir ihn uns in der Übung am 11.11.
-erarbeitet haben. Kommentare und Erläuterungen fehlen noch.*
 
 ## Aufgabe 1
 
@@ -14,15 +12,18 @@ erarbeitet haben. Kommentare und Erläuterungen fehlen noch.*
 
 Paket und Daten laden, dann BMI-Spalte hinzufügen
 
-```{r message=FALSE}
-library( tidyverse )
+```{r}
+library(tidyverse)
 
 read_csv("data_on_git/nhanes.csv") %>%
 mutate( bmi = weight / (height/100)^2 ) -> nhanes
 
 nhanes
 ```
+
 ### Aufgabe 1b
+
+Zunächst entfernen wir alle Probanden, die unter 18 Jahren alt sind. Dann fügen wir eine neue Spalte `is_overweight` hinzu, die mithilfe eines Bool'schen Ausdrucks `bmi>25` angibt, ob eine Person übergewichtig ist (`TRUE`) oder nicht (`FALSE`). Danach werden die Daten nach `gender` und `is_overweight` gruppiert, und mit `summarize(n())` wird gezählt, wie viele Personen in jeder Gruppe sind. 
 
 ```{r}
 nhanes %>%
@@ -32,58 +33,130 @@ group_by( gender, is_overweight ) %>%
 summarise( n() )
 ```
 
+Beim Gruppieren der Daten entstehen sechs Gruppen anstatt der erwarteten vier. Das liegt daran, dass bei einigen Probanden der BMI nicht berechnet werden konnte, weil Angaben zu `height` oder `weight` fehlen. In diesen Fällen ist `bmi` also `NA` (und entsprechend auch `is_overweight = NA`).
+
+Für die Berechnung des Anteils an Übergewichtigen sind die fehlenden Daten irrelevant, deshalb lassen wir sie zunächst weg und berechnen den Anteil per Hand:
+
 ```{r}
 # female
 2011/(2011+800)
-
+```
+```{r}
 # male
 1941/(1941+682)
 ```
+
+Die manuelle Berechnung ist jedoch nicht optimal: sie macht den Code insgesamt schwieriger nachzuvollziehen, und bei einer Änderung des Datensatzes oder der Datenanalyse müsste auch dieser Code-Chunk angepasst werden. 
+
+Nun versuchen wir, diese Berechnung zu automatisieren. In R werden logische Werte automatisch als Zahlen behandelt: `TRUE = 1` und `FALSE = 0`. Dadurch kann der Mittelwert `(mean())` dieser Spalte berechnet werden, um den Anteil Übergewichtiger zu bestimmen.
+
+`na.rm = TRUE` sollte hinzugefügt werden, da, wie wir bereits gesehen haben, manche BMI-Daten fehlen. 
 
 ```{r}
 nhanes %>%
 filter( age >= 18 ) %>%
 mutate( is_overweight = bmi>25 ) %>%
-group_by( gender ) %>% 
-summarise( percent_overweight = 100 * mean(is_overweight, na.rm=TRUE) )
+group_by( gender ) %>%
+summarise( percent_overweight = 100 * mean(is_overweight, na.rm = TRUE) )
 ```
 
 ### Aufgabe 1c
+
+Nun wollen wir graphicsh darstellen, ob sich der Anteil Übergewichtiger über verschiedene Lebensjahrzehnte ändert. 
+
+Zur Bestimmung des Lebensjahrzehnts ist die `floor()`-Funktion nützlich: sie rundet eine Zahl immer ab (auf die nächstniedrigere ganze Zahl). 
+
+(Im Unterschied dazu rundet die Funtion `round()` eine Zahl auf die nächstliegende ganze Zahl, abhängig von der Dezimalstelle. Die Funktion `ceiling()` rundet eine Zahl immer auf.)
+
+Die Daten werden nach Geschlecht und Lebensjahrzehnt gruppiert, und der Anteil Übergewichtiger wird berechnet (`percent_overweight`).
 
 ```{r}
 nhanes %>% 
 mutate( is_overweight = bmi>25 ) %>%
 mutate( decade = floor(age/10) ) %>%
-filter( age >= 15 ) %>%
+filter( age >= 18 ) %>%
 group_by( gender, decade ) %>% 
-summarise( percent_overweight = 100 * mean(is_overweight, na.rm=TRUE) ) %>%
+summarise( percent_overweight = 100 * mean(is_overweight, na.rm=TRUE) ) -> nhanes_by_decades
+
+nhanes_by_decades
+```
+
+```{r}
+nhanes_by_decades %>%
 ggplot() +
   geom_point(aes( x=decade, y=percent_overweight, col=gender) ) +
   geom_line(aes( x=decade, y=percent_overweight, col=gender) )
 ```
+
+In der obigen Analyse haben wir Personen unter 18 Jahren ausgeschlossen, da der BMI üblicherweise nur für Erwachsene definiert ist. In einer früheren Vorlesung haben wir jedoch gesehen, dass Menschen ab etwa 15 Jahren weitgehend ausgewachsen sind. Versuchen Sie selbst, diesen Filter anzupassen, und beobachten Sie, welche Unterschiede in der Analyse auftreten.
+
+Generell steigt der Anteil übergewichtiger Personen um das 30. Lebensjahr stark an, wobei Männer im mittleren Erwachsenenalter generell höhere Werte aufweisen, gefolgt von einem leichten Rückgang in den höheren Altersgruppen.
+
+### Aufgabe 1d
+
+In dieser Aufgabe teilen wir die Probanden in Gewichtskategorien ein und quantifizieren diese Gruppen
+
+Dafür ist eine `cut`-Funktion praktisch. Sie ordnet jeden numerischen Wert einem Wertebereich (bin) zu. Mit einem `breaks = c( 0, 10, 20, Inf )`-Argument legen wir die Grenzen der einzelnen bins.
+
+
 ```{r}
-v <- c( 2, 3, 10, 7, 14, 4, 25 )
-cut( v, c( 0, 10, 20, Inf ), c( "small", "medium", "large" ) )
+v <- c( 2, 3, 12, 7, 14, 4, 25 )
+cut( v, breaks = c( 0, 10, 20, Inf ) )
 ```
+
+Beachten Sie, wie sich die Werte verhalten, die genau auf einer Intervallgrenze liegen. In R wird durch runde () bzw. eckige Klammern [] angegeben, ob ein Grenzwert in einem Intervall liegt.
+
+Man kann außerdem die `labels` für jeden Bereich angeben (optional):
+
+```{r}
+cut( v, breaks = c( 0, 10, 20, Inf ), labels = c( "small", "medium", "large" ) )
+```
+
+- Wenn ein Wert außerhalb des definierten Bereiche liegt, wird ihm die Kategorie `NA`  zugewiesen.
+- Das zweite Argument (`breaks`) gibt sowohl die unteren als auch die oberen Grenzen der Bereiche an. Also wenn der Funktion n Werte übergeben werden, entstehen daraus n-1 Bereiche. Die Länge des dritten (`labels`) Arguments muss daher um ein Element kürzer sein.
+- Inf als Obergrenze steht für *infinity*, also fasst alle Werte bis zur (positiven) Unendlichkeit um. Mit einem Minuszeichen (`-Inf`) kann entsprechend die negative Unendlichkeit angegeben werden.
+
+Nun finden wir die Anzahl der Probanden in jeder der Gewichtskategorien. Zunächst fügen wir eine neue Spalte `weight_cat` hinzu, die Probanden nach `bmi` in die Kategorien aufteilt. Danach wird es nach `gender` und `weight_cat` gruppiert, und mittels `summarise(n())` die Zahl bestimmt.
+
 
 ```{r}
 nhanes %>%
 filter( age >= 18 ) %>%
 mutate( weight_cat = cut( bmi, c(0,18,25,30,Inf), c( "underweight", "normal", "overweight", "obese" ) ) ) %>%
 group_by( gender, weight_cat ) %>%
-summarise( nbr = n() ) %>%
-filter( !is.na(weight_cat) ) %>%
-group_by( gender ) %>%
+summarise( nbr = n() ) -> nhanes_categorized
+
+nhanes_categorized
+```
+
+### Aufgabe 1e
+
+In dieser Aufgabe bestimmen wir die Anteile der Probanden in jeder der definierten Gewichtskategorie. In diesem Fall können wir nicht wie zuvor mit logischen Ausdrücken rechnen. 
+
+Um dies umzugehen, bestimmen wir erst die Zahl der Probanden in jeder Gruppe (`nbr` aus der `nhanes_categorized` Tabelle). Danach gruppierren wir erneut, diesmal nur nach `gender`. 
+`sum(nbr)` gibt dann die Gesamtzahl der Probanden eines Geschlechts über alle Gewichtskategorien hinweg an. Durch diese Zahl wird `nbr` geteilt, um den Anteil der jeweiligen Kategorie zu bestimmen:
+
+```{r}
+nhanes_categorized %>%
+filter( !is.na(weight_cat) ) %>%  # remove NAs
+ungroup() %>%  
 mutate( percent = nbr / sum(nbr) * 100 ) -> catnbr
 
 catnbr
 ```
+
+Wenn man an dieser Stelle `ungroup()` verwendet und anschließend mit `summarise()` die Anteile berechnet, werden alle Probanden (Männer und Frauen) gemeinsam betrachtet. Die berechneten Anteile beziehen sich dann auf die gesamte Stichprobe.
+
+Die Prozentanteile sollen sich für Frauen und Männer jeweils zu 100 % aufaddieren. Diese Anteile lassen sich anschließend gut grafisch darstellen:
+
 ```{r}
 catnbr %>%
-mutate( weight_cat = fct_rev(weight_cat) ) %>%
+mutate( weight_cat = fct_rev(weight_cat) ) %>% # reverse the order of factor levels
 ggplot() +
   geom_col(aes( x = gender, y = percent, fill = weight_cat))
 ```
+
+Wir können auch einen Schritt weitergehen und die Stichprobe sowohl nach Dekaden als auch nach Gewichtskategorien einteilen, um die Dynamik der Anteile der Gewichtskategorien zu verfolgen:
 
 ```{r}
 nhanes %>%
@@ -95,13 +168,11 @@ summarise( nbr = n() ) %>%
 filter( !is.na(weight_cat) ) %>%
 group_by( gender, decade ) %>%
 mutate( percent = nbr / sum(nbr) * 100 ) -> catnbr2
-
-catnbr2
 ```
 
 ```{r}
 catnbr2 %>%
-#mutate( weight_cat = fct_rev(weight_cat) ) %>%
+mutate( weight_cat = fct_rev(weight_cat) ) %>%
 ggplot() +
   geom_col(aes( x = decade, y = percent, fill = weight_cat)) +
   facet_grid( rows="gender" )
