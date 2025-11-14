@@ -44,13 +44,14 @@ Wintersemester 2025/26
   - Umgang mit fehlende Daten (`NA`s)
   - zählen mit `sum`
   - logische Operatoren: "nicht", "und", und "oder"
-  - [Hausaufgabe](Hausaufgabe_groupby.qmd) zum 11.11.
+  - [Hausaufgabe](Hausaufgabe_groupby.qmd) zum 11.11., [Lösung](hausaufgabe_groupby_loesung.html)
 
-<!--
 - Joining und Pivoting
   - [Table-Joins](left_join.html)  
   - [Pivoting](pivoting.html)
   - [Hausaufgabe](hausaufgabe_join_pivot.html)
+
+<!--
 - Histogramme und Verteilungen
   - [Histogramme](histograms.html)
   - [Verteilungen](verteilungen.html)

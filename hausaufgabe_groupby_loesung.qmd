@@ -1,0 +1,109 @@
+---
+title: "Hausaufgabe 4: Lösung"
+format: 
+  html:
+    embed-resources: true
+---
+
+*Diese Seite zeigt vorerst nur den Code, wie wir ihn uns in der Übung am 11.11.
+erarbeitet haben. Kommentare und Erläuterungen fehlen noch.*
+
+## Aufgabe 1
+
+### Aufgabe 1a
+
+Paket und Daten laden, dann BMI-Spalte hinzufügen
+
+```{r message=FALSE}
+library( tidyverse )
+
+read_csv("data_on_git/nhanes.csv") %>%
+mutate( bmi = weight / (height/100)^2 ) -> nhanes
+
+nhanes
+```
+### Aufgabe 1b
+
+```{r}
+nhanes %>%
+filter( age >= 18 ) %>%
+mutate( is_overweight = bmi>25 ) %>%
+group_by( gender, is_overweight ) %>% 
+summarise( n() )
+```
+
+```{r}
+# female
+2011/(2011+800)
+
+# male
+1941/(1941+682)
+```
+
+```{r}
+nhanes %>%
+filter( age >= 18 ) %>%
+mutate( is_overweight = bmi>25 ) %>%
+group_by( gender ) %>% 
+summarise( percent_overweight = 100 * mean(is_overweight, na.rm=TRUE) )
+```
+
+### Aufgabe 1c
+
+```{r}
+nhanes %>% 
+mutate( is_overweight = bmi>25 ) %>%
+mutate( decade = floor(age/10) ) %>%
+filter( age >= 15 ) %>%
+group_by( gender, decade ) %>% 
+summarise( percent_overweight = 100 * mean(is_overweight, na.rm=TRUE) ) %>%
+ggplot() +
+  geom_point(aes( x=decade, y=percent_overweight, col=gender) ) +
+  geom_line(aes( x=decade, y=percent_overweight, col=gender) )
+```
+```{r}
+v <- c( 2, 3, 10, 7, 14, 4, 25 )
+cut( v, c( 0, 10, 20, Inf ), c( "small", "medium", "large" ) )
+```
+
+```{r}
+nhanes %>%
+filter( age >= 18 ) %>%
+mutate( weight_cat = cut( bmi, c(0,18,25,30,Inf), c( "underweight", "normal", "overweight", "obese" ) ) ) %>%
+group_by( gender, weight_cat ) %>%
+summarise( nbr = n() ) %>%
+filter( !is.na(weight_cat) ) %>%
+group_by( gender ) %>%
+mutate( percent = nbr / sum(nbr) * 100 ) -> catnbr
+
+catnbr
+```
+```{r}
+catnbr %>%
+mutate( weight_cat = fct_rev(weight_cat) ) %>%
+ggplot() +
+  geom_col(aes( x = gender, y = percent, fill = weight_cat))
+```
+
+```{r}
+nhanes %>%
+filter( age >= 18 ) %>%
+mutate( weight_cat = cut( bmi, c(0,18,25,30,Inf), c( "underweight", "normal", "overweight", "obese" ) ) ) %>%
+mutate( decade = floor(age/10) ) %>%
+group_by( gender, decade, weight_cat ) %>%
+summarise( nbr = n() ) %>%
+filter( !is.na(weight_cat) ) %>%
+group_by( gender, decade ) %>%
+mutate( percent = nbr / sum(nbr) * 100 ) -> catnbr2
+
+catnbr2
+```
+
+```{r}
+catnbr2 %>%
+#mutate( weight_cat = fct_rev(weight_cat) ) %>%
+ggplot() +
+  geom_col(aes( x = decade, y = percent, fill = weight_cat)) +
+  facet_grid( rows="gender" )
+```
+

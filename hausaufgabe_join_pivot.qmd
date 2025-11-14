@@ -4,8 +4,14 @@ title: "Hausaufgabe: Table-Joining und Pivoting"
 
 ## Aufgabe 1
 
-Berechnen Sie nochmals, wie schon in der vorigen Hausaufgabe, die durchschnittliche Körpergröße
-der erwachsenen Probanden aus der NHANES-Studie, aufgeschlüsselt nach Ethnie und Geschlecht.
+Laden Sie die Tabellen DEMO_J und BMX_J von der NHANES-Webseite herunter (Durchgang 2017/18).
+
+(Hinweis: Manche Web-Browser laden die Datei nicht herunter, wenn man den Link anklickt, sondern versuchen, sie im Browserfenster darzustellen, was nur zu wirren Zeichen führt. In diesem Fall klicken Sie mit der *rechten* Maustaste auf den Link. Dann erscheint das Kontextmenü, in dem die Funktion zum Abspeichern beschriftet ist mit "Link speichern unter", "Save link as", "Ziel speichern unter", "Verknüpfte Datei laden" oder ähnlichem. Bei MacBooks ohne rechte Maustaste müssen Sie beim Klicken die Strg-Taste gedrückt halten, um das Kontextmenü zu erhalten.)
+
+Fügen Sie die beiden Tabellen DEMO_J und BMX_J zusammen und entfernen Sie alle Spalten, die Sie für diese Aufgabe nicht brauchen. Ersetzen Sie numerisch kodierte Faktoren durch Text (also z.B. "male" statt 1 bei Gender). Die Tabellen mit den Bedeutungen der Codes finden Sie auf der Webseite in den Doc-Dateien neben den xpt-Dateien.
+
+Berechnen Sie nun, wie schon in der vorigen Hausaufgabe, die durchschnittliche Körpergröße
+der erwachsenen Probanden aus der NHANES-Studie, nun aufgeschlüsselt nach Ethnie und Geschlecht.
 
 Pivotieren Sie die Tabelle dann so, dass die Mittelwerte für die beiden Geschlechter nebeneinander statt untereinander stehen.
 
@@ -14,6 +20,8 @@ Pivotieren Sie die Tabelle dann so, dass die Mittelwerte für die beiden Geschle
 ```{r echo=FALSE}
 suppressPackageStartupMessages( library( tidyverse ) )
 ```
+
+In dieser Aufgabe verwenden wir ausgedachte Daten, die aber in einer Form sind, wie sie sie Ihnen im Labor sicher noch begegnen werden.
 
 In einem Experiment soll der Einfluss verschiedener Wirkstoffe auf das Wachstum von Hefezellen gemessen werden. Dazu wird eine Suspension von Hefezellen in Wasser angesetzt. Die Suspension wird auf eine [48-Well-Platte](https://de.wikipedia.org/wiki/Mikrotiterplatte) verteilt; jedes Well erhält die gleiche Menge an Hefe. Anschließend werden die Wirkstoffe in die Wells gegeben. Jeweils 6 Wells, nämlich die, die in derselben "Spalte" der Platte liegen, erhalten denselben Wirkstoff. Die folgende Tabelle gibt an, welcher Wirkstoff in welche der 8 Spalten gegeben wurde:
 
@@ -113,6 +121,12 @@ In diesem Plot habe ich einige Feinheiten geändert, so dass ihr Plot anders aus
 
 Einen solchen Plot benutzt man gerne, um sicher zu stellen, dass es keine Pippetierfehler oder Randeffekte gab.
 
+<!--
 ## Aufgabe 3: Stichproben-Mittelwert
 
 [Hier](sample_mean_intro.qmd) finden Sie eine weitere Aufgabe, die nicht zum Thema gehört, und daher auf einer separaten Seite liegt. Probieren Sie das aber bitte trotzdem, als Vorbereitung zum nächsten Thema.
+-->
+
+## Abgabe
+
+Erstellen Sie bitte ein Quarto-Dokument mit Ihrem Code und Ihren Lösungen und laden Sie dieses als HTML-Datei auf Moodle hoch. Denken Sie daran, sicherzustellen, dass die Abbildungen in die HTML-Datei integriert werden, wie [hier](standalone.html) erklärt.
