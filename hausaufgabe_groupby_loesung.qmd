@@ -1,9 +1,9 @@
 ---
 title: "Hausaufgabe 4: Musterlösung"
 author: ""
-format: 
-  html:
-    embed-resources: TRUE
+execute: 
+  warning: false
+  message: false
 ---
 
 ## Aufgabe 1
