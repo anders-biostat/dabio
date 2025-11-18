@@ -1,0 +1,194 @@
+---
+title: "Hausaufgabe 5: Musterlösung"
+author: "mariia"
+format: 
+  html: 
+    embed-resources: true
+editor: visual
+---
+
+## Aufgabe 1
+
+```{r}
+library(tidyverse)
+```
+
+Zunächst laden wir die Datensätze von der NHANES-Website. Um eine .xpt-Datei einzulesen, verwenden wir die `read_xpt`-Funktion aus dem `haven`-Paket:
+
+```{r}
+haven::read_xpt("BMX_J.xpt") -> body_measures
+head(body_measures)
+```
+
+```{r}
+haven::read_xpt("DEMO_J.xpt") -> demographics
+head(demographics)
+```
+
+Die Tabellen enthalten die Umfrageinformationen, sind jedoch kodiert. Die Entschlüsselung findet man ebenfalls auf der NHANES-Website, nämlich in den zugehörigen Textdateien.
+
+-   SEQN - Respondent sequence number
+
+-   Demographics:
+
+    -   RIAGENDR - Gender
+
+    -   RIDAGEYR - Age in years at screening
+
+    -   RIDRETH3 - Race/Hispanic origin w/ NH Asian
+
+-   Body measures:
+
+    -   BMXWT - Weight (kg)
+
+    -   BMXHT - Standing Height (cm)
+
+SEQN enthält die eindeutige Identifikationsnummer jeder teilnehmenden Person. Dadurch können wir mehrere Tabellen mit unterschiedlichen Informationstypen miteinander verknüpfen. Für unsere Analyse behalten wir nur die oben genannten Variablen.
+
+Nun können wir die beiden Tabellen zusammenführen, SEQN dient hierbei als Verknüpfungsvariable:
+
+```{r}
+demographics %>%
+  left_join(body_measures, by = "SEQN", relationship = "one-to-one") %>%
+  select(
+    subject_id = SEQN, 
+    gender_code = RIAGENDR, 
+    age = RIDAGEYR,
+    ethnicity_code = RIDRETH3,
+    weight = BMXWT, 
+    height = BMXHT 
+    ) -> nhanes_coded
+head(nhanes_coded)
+```
+
+Einige Informationen innerhalb der Spalten sind ebenfalls durch Zahlencodes ersetzt. Die zugehörigen Entschlüsselungen nehmen wir von der NHANES-Website. Um die Zahlencodes im Datensatz durch verständliche Kategorien zu ersetzen, erstellen wir zunächst kleine Hilfstabellen mit der Zuordnung von Code zu Bedeutung. Diese Tabellen können wir anschließend per `left_join()` mit unserem Hauptdatensatz verbinden.
+
+```{r}
+gender_codes <- tibble(
+  code = c(1, 2),
+  gender = c("male", "female")
+)
+gender_codes
+```
+
+```{r}
+ethnicity_codes <- tribble(
+  ~code, ~ethnicity,
+  1, "Mexican", 
+  2, "other Hispanic", 
+  3, "NH White", 
+  4, "NH Black", 
+  6, "NH Asian",
+  7, "other/multi"
+)
+ethnicity_codes
+```
+
+```{r}
+nhanes_coded %>%
+  left_join(gender_codes, by = c("gender_code" = "code"), relationship = "many-to-one") %>%
+  left_join(ethnicity_codes, by = c("ethnicity_code" = "code"), relationship = "many-to-one") %>%
+  select(-gender_code, -ethnicity_code) -> nhanes
+head(nhanes)
+```
+
+Nun möchten wir die durchschnittliche Körpergröße erwachsener Proband:innen bestimmen, getrennt nach Geschlecht und Ethnie:
+
+```{r}
+nhanes %>%
+  filter(age >= 18) %>%
+  group_by(gender, ethnicity) %>%
+  summarize(mean_height = mean(height, na.rm = TRUE)) %>%
+  pivot_wider(id_cols = "ethnicity", names_from = "gender", values_from = "mean_height")
+```
+
+Mit `pivot_wider()` bringen wir die zusammengefassten Daten in ein breiteres Format, sodass für jede Ethnie die durchschnittliche Körpergröße von Männern und Frauen nebeneinandersteht. Das macht den Vergleich zwischen den Gruppen deutlich übersichtlicher und erleichtert die Interpretation.
+
+## Aufgabe 2
+
+Die folgende Tabelle gibt an, welcher Wirkstoff in welche der 8 Spalten gegeben wurde:
+
+```{r}
+wirkstoffe <- tibble(
+  spalte = 1:8,
+  wirkstoff = c( "Wasser", "DMSO", "Giftin", "HappyGrow", "KillEmAll", 
+                 "BoringStuff", "Boostol", "Wasser" )
+)
+wirkstoffe
+```
+
+Der Plattenscanner erzeugt eine Excel-Datei als Messergebnis, die wir direkt mit der `read_excel()`-Funktion aus dem `readxl`-Paket in R einlesen können. Die ersten fünf Zeilen enthalten lediglich Meta-Informationen zur Messdurchführung und keine eigentlichen Messdaten. Deshalb überspringen wir sie:
+
+```{r}
+readxl::read_excel("example_plate_scan.xlsx", skip = 5) %>%
+  rename("row" = ...1) -> plate_raw 
+plate_raw
+```
+
+Damit wir die Daten leichter weiterverarbeiten und analysieren können, bringen wir die Tabelle zunächst in ein langes ("tidy“) Format. Dafür verwenden wir die Funktion `pivot_longer()`: 
+ - Mit `cols = -row` bestimmen wir, dass alle Spalten außer `row` in die lange Form überführt werden sollen 
+ - Die bisherigen Spaltennamen (Spaltennummern der Platte) werden in einer neuen Variable gespeichert: `names_to = "column"` 
+ - Die numerischen Messwerte aus diesen Spalten werden in eine neue Spalte geschrieben, die wir "od450" nennen: `values_to = "od450"`
+
+Die Spaltennamen wurden außerdem als Text (*character*) eingelesen. Wir wandeln sie mittels `as.integer()` in ganze Zahlen (*integer*) um, damit wir weiter mit ihnen arbeiten können.
+
+Außerdem verbinden wir die Plattendaten mit der `wirkstoffe`-Tabelle, die Informationen zu den verwendeten Substanzen enthält.
+
+```{r}
+plate_raw %>%
+  pivot_longer(cols = -row, names_to = "column", values_to = "od450") %>%
+  mutate(column = as.integer(column)) %>%
+  left_join(wirkstoffe, by = c("column" = "spalte"), relationship = "many-to-one") -> plate
+plate
+```
+
+Nun erzeugen wir ein Streudiagramm, das die gemessene optische Dichte für jeden Wirkstoff darstellt. Mit `geom_beeswarm` aus dem `ggbeeswarm`-Paket erstellen wir einen Beeswarm-Plot. Im Gegensatz zu einem normalen Scatterplot werden die Punkte dabei leicht horizontal versetzt ("*gejittert*"), sodass sie nicht übereinander liegen. Dadurch lässt sich die Verteilung der Messwerte pro Wirkstoff deutlich besser erkennen:
+
+```{r}
+plate %>%
+  ggplot() +
+  ggbeeswarm::geom_beeswarm( aes( x = wirkstoff, y = od450 ) ) +
+  scale_y_log10()
+```
+
+Die logarithmische Skalierung der y-Achse lässt die Werte besser vergleichen und kleine Unterschiede klarer sehen.
+
+Wir berechnen zuerst für jeden Wirkstoff den Mittelwert der OD450-Werte. Anschließend normieren wir diese Mittelwerte, indem wir sie durch den Mittelwert des Wassers teilen: `mean_od450[wirkstoff == "Wasser"]`.
+
+Diese Schreibweise bedeutet: "*Nimm den Wert aus der Spalte `mean_od450` in genau der Zeile, in der `wirkstoff` gleich `"Wasser"` ist*".
+
+```{r}
+plate %>%
+  group_by( wirkstoff ) %>%
+  summarize( mean_od450 = mean(od450) ) %>%
+  mutate( mean_od450_norm = mean_od450 / mean_od450[wirkstoff == "Wasser"] ) 
+```
+
+Um die Messwerte im Kontext des Plattenlayouts zu überprüfen, erstellen wir nun eine grafische Darstellung der OD-Werte im Platten-Layout. Solche Visualisierung kann man  verwenden, um potenzielle Pipettierfehler zu erkennen. 
+
+```{r}
+plate %>%
+  ggplot() +
+  geom_point( 
+    aes( x = column, y = row, col = od450 ), 
+    size = 10
+    ) 
+```
+
+Wenn ihr bis zu diesem Plot geschafft habt – es ist schon gut! :)
+
+Man kann den Plot jedoch noch weiter verfeinern, um die Messergebnisse übersichtlicher darzustellen:
+ - Man kann die y-Achse umkehren, damit der Plot dem tatsächlichen Layout der Platte besser entspricht.
+ - Die Farbunterschiede sind ebenfalls schwer zu erkennen. Wie wir im obigen Plot gesehen haben, kann eine logarithmische Skalierung die Unterschiede deutlich sichtbarer machen. Hier wenden wir etwas Ähnliches an, nämlich eine logarithmisсhe Transformation der OD-Werte.
+
+```{r}
+plate %>%
+  ggplot() +
+  geom_point( 
+    aes( x = column, y = row, col = od450 ), 
+    size = 10
+    ) +
+    scale_y_discrete(limits = rev(unique(sort(plate$row)))) +
+    scale_colour_gradient(name ="OD", trans="log10",low="beige", high="brown")
+```
+
