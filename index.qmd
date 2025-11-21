@@ -49,7 +49,7 @@ Wintersemester 2025/26
 - Joining und Pivoting
   - [Table-Joins](left_join.html)  
   - [Pivoting](pivoting.html)
-  - [Hausaufgabe](hausaufgabe_join_pivot.html)
+  - [Hausaufgabe](hausaufgabe_join_pivot.html), [Lösung](hausaufgabe_pivot_loesung.qmd)
 - Histogramme und Verteilungen
   - [Histogramme](histograms.html)
   - [Zufallsgrößen, Verteilungen, Zentraler Grenzwertsatz](zufall.html)

@@ -1,27 +1,23 @@
 ---
 title: "Hausaufgabe 5: Musterlösung"
-author: "mariia"
-format: 
-  html: 
-    embed-resources: true
-editor: visual
+author: "Mariia"
 ---
 
 ## Aufgabe 1
 
-```{r}
+```{r message=FALSE}
 library(tidyverse)
 ```
 
 Zunächst laden wir die Datensätze von der NHANES-Website. Um eine .xpt-Datei einzulesen, verwenden wir die `read_xpt`-Funktion aus dem `haven`-Paket:
 
 ```{r}
-haven::read_xpt("BMX_J.xpt") -> body_measures
+haven::read_xpt("data/BMX_J.XPT") -> body_measures
 head(body_measures)
 ```
 
 ```{r}
-haven::read_xpt("DEMO_J.xpt") -> demographics
+haven::read_xpt("data/DEMO_J.XPT") -> demographics
 head(demographics)
 ```
 
@@ -120,15 +116,12 @@ wirkstoffe
 Der Plattenscanner erzeugt eine Excel-Datei als Messergebnis, die wir direkt mit der `read_excel()`-Funktion aus dem `readxl`-Paket in R einlesen können. Die ersten fünf Zeilen enthalten lediglich Meta-Informationen zur Messdurchführung und keine eigentlichen Messdaten. Deshalb überspringen wir sie:
 
 ```{r}
-readxl::read_excel("example_plate_scan.xlsx", skip = 5) %>%
+readxl::read_excel("data_on_git/example_plate_scan.xlsx", skip = 5) %>%
   rename("row" = ...1) -> plate_raw 
 plate_raw
 ```
 
-Damit wir die Daten leichter weiterverarbeiten und analysieren können, bringen wir die Tabelle zunächst in ein langes ("tidy“) Format. Dafür verwenden wir die Funktion `pivot_longer()`: 
- - Mit `cols = -row` bestimmen wir, dass alle Spalten außer `row` in die lange Form überführt werden sollen 
- - Die bisherigen Spaltennamen (Spaltennummern der Platte) werden in einer neuen Variable gespeichert: `names_to = "column"` 
- - Die numerischen Messwerte aus diesen Spalten werden in eine neue Spalte geschrieben, die wir "od450" nennen: `values_to = "od450"`
+Damit wir die Daten leichter weiterverarbeiten und analysieren können, bringen wir die Tabelle zunächst in ein langes ("tidy“) Format. Dafür verwenden wir die Funktion `pivot_longer()`: - Mit `cols = -row` bestimmen wir, dass alle Spalten außer `row` in die lange Form überführt werden sollen - Die bisherigen Spaltennamen (Spaltennummern der Platte) werden in einer neuen Variable gespeichert: `names_to = "column"` - Die numerischen Messwerte aus diesen Spalten werden in eine neue Spalte geschrieben, die wir "od450" nennen: `values_to = "od450"`
 
 Die Spaltennamen wurden außerdem als Text (*character*) eingelesen. Wir wandeln sie mittels `as.integer()` in ganze Zahlen (*integer*) um, damit wir weiter mit ihnen arbeiten können.
 
@@ -164,7 +157,7 @@ plate %>%
   mutate( mean_od450_norm = mean_od450 / mean_od450[wirkstoff == "Wasser"] ) 
 ```
 
-Um die Messwerte im Kontext des Plattenlayouts zu überprüfen, erstellen wir nun eine grafische Darstellung der OD-Werte im Platten-Layout. Solche Visualisierung kann man  verwenden, um potenzielle Pipettierfehler zu erkennen. 
+Um die Messwerte im Kontext des Plattenlayouts zu überprüfen, erstellen wir nun eine grafische Darstellung der OD-Werte im Platten-Layout. Solche Visualisierung kann man verwenden, um potenzielle Pipettierfehler zu erkennen.
 
 ```{r}
 plate %>%
@@ -177,9 +170,7 @@ plate %>%
 
 Wenn ihr bis zu diesem Plot geschafft habt – es ist schon gut! :)
 
-Man kann den Plot jedoch noch weiter verfeinern, um die Messergebnisse übersichtlicher darzustellen:
- - Man kann die y-Achse umkehren, damit der Plot dem tatsächlichen Layout der Platte besser entspricht.
- - Die Farbunterschiede sind ebenfalls schwer zu erkennen. Wie wir im obigen Plot gesehen haben, kann eine logarithmische Skalierung die Unterschiede deutlich sichtbarer machen. Hier wenden wir etwas Ähnliches an, nämlich eine logarithmisсhe Transformation der OD-Werte.
+Man kann den Plot jedoch noch weiter verfeinern, um die Messergebnisse übersichtlicher darzustellen: - Man kann die y-Achse umkehren, damit der Plot dem tatsächlichen Layout der Platte besser entspricht. - Die Farbunterschiede sind ebenfalls schwer zu erkennen. Wie wir im obigen Plot gesehen haben, kann eine logarithmische Skalierung die Unterschiede deutlich sichtbarer machen. Hier wenden wir etwas Ähnliches an, nämlich eine logarithmisсhe Transformation der OD-Werte.
 
 ```{r}
 plate %>%
@@ -191,4 +182,3 @@ plate %>%
     scale_y_discrete(limits = rev(unique(sort(plate$row)))) +
     scale_colour_gradient(name ="OD", trans="log10",low="beige", high="brown")
 ```
-
