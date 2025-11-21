@@ -21,10 +21,9 @@ Beide Dateien liegen im XPT-Format vor, dem Export-Format von SAS (einem kommeri
 dass ähnliche Funktionalität wie R bereits stellt). Tidyverse hat eine Sammlung von Import-Filtern, um Daten
 von Fremd-Programmen zu laden, das Paket "haven". Darin finden wir die Funktion `read_xpt`:
 
-```{r}
-suppressPackageStartupMessages( {
-  library( tidyverse )
-  library( haven ) } )
+```{r message=FALSE}
+library( tidyverse )
+library( haven ) 
 
 read_xpt( "data/DEMO_J.XPT" ) -> demo_j
 

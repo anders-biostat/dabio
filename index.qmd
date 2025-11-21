@@ -50,11 +50,12 @@ Wintersemester 2025/26
   - [Table-Joins](left_join.html)  
   - [Pivoting](pivoting.html)
   - [Hausaufgabe](hausaufgabe_join_pivot.html)
-
-<!--
 - Histogramme und Verteilungen
   - [Histogramme](histograms.html)
-  - [Verteilungen](verteilungen.html)
+  - [Zufallsgrößen, Verteilungen, Zentraler Grenzwertsatz](zufall.html)
+  - [Hausaufgabe](homework_rnorm.qmd) zum 25.11.
+
+<!--
   - [Hausaufgabe, fällig zum 26.11.](hausaufgabe_verteilungen.html)
 - [Inferenz zu Mittelwerten](confint_ttest.html)
   - Standardfehler des Mittelwerts

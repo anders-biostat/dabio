@@ -4,9 +4,11 @@ title: "Verteilungen"
 
 ### Terminologie
 
-#### Zufallsexperiment / Zufallsereignis
+#### Zufallsexperiment und Zufallsereignis
 
-Eine Handlung oder ein Vorkommnis, deren/dessen Ergebnis vom Zufall bestimmt ist.
+Zufallsexperiment (random experiment): Eine Handlung oder ein Vorkommnis, deren/dessen Ergebnis vom Zufall bestimmt ist.
+
+Zufallsereignis: Das Ergebnis des Zufallsexperiments
 
 Beispiele:
 

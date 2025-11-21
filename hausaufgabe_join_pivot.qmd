@@ -4,7 +4,7 @@ title: "Hausaufgabe: Table-Joining und Pivoting"
 
 ## Aufgabe 1
 
-Laden Sie die Tabellen DEMO_J und BMX_J von der NHANES-Webseite herunter (Durchgang 2017/18).
+Laden Sie die Tabellen DEMO_J und BMX_J von der NHANES-Webseite herunter ([Durchgang 2017/18](https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?BeginYear=2017), unter "Demographics data" und "Examination data").
 
 (Hinweis: Manche Web-Browser laden die Datei nicht herunter, wenn man den Link anklickt, sondern versuchen, sie im Browserfenster darzustellen, was nur zu wirren Zeichen führt. In diesem Fall klicken Sie mit der *rechten* Maustaste auf den Link. Dann erscheint das Kontextmenü, in dem die Funktion zum Abspeichern beschriftet ist mit "Link speichern unter", "Save link as", "Ziel speichern unter", "Verknüpfte Datei laden" oder ähnlichem. Bei MacBooks ohne rechte Maustaste müssen Sie beim Klicken die Strg-Taste gedrückt halten, um das Kontextmenü zu erhalten.)
 
