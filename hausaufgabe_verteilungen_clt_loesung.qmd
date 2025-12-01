@@ -1,0 +1,92 @@
+---
+title: "Hausaufgabe 6: Musterlösung"
+author: "mariia"
+format: 
+  html:
+    embed-resources: true
+editor: visual
+---
+
+## Aufgabe 1: Mittelwert-Schätzung
+
+```{r}
+#| warning: false
+suppressPackageStartupMessages(library(tidyverse))
+```
+
+Angenommen, dass die mittlere Körpergröße bei Männer in Deutschland etwa 180 cm ist, mit einer Standardabweichung von 7 cm, können wir eine Verteilung simulieren, und deren Mittelwert rausfinden:
+
+```{r}
+mean( rnorm ( 100, 180, 7 ) )
+```
+
+Wenn man diesen Code mehrfach ausführt, sieht man, dass die Mittelwerte der Stichproben jeweils sehr nah am Mittelwert der Grundgesamtheit liegen. Typischerweise weichen sie um etwa 1–2 cm vom "wahren" Mittelwert (180 cm) ab.
+
+## Aufgabe 2: Schätzer-Verteilung
+
+Nun wollen wir den obigen Code 1000-fach ausführen, und die Verteilung erzeigter Mittelwerte mittels eines Histogramms darstellen. Diese Verteilung nennt man (im Grenzwert unendlich vieler Mittelwerte) die “Stichproben-Verteilung der Mittelwert-Schätzungen” (sampling distribution of mean estimates).
+
+Vergleichen Sie das Histogramm der Mittelwerte mit dem Histogramm der Einzelwerte: wie unterscheiden sich die beiden Histogramme in Bezug auf Lage, Breite und Form?
+
+```{r}
+set.seed( 1234 )
+
+replicate( 1000, {
+  mean( rnorm ( 100, 180, 7 ) )
+  } ) %>%
+  hist()
+```
+
+Zum Vergleich erzeugen wir noch ein Histogramm der Verteilung der Einzelwerte:
+
+```{r}
+rnorm( 1000, 180, 7 ) %>%
+  hist()
+```
+
+Beide Histogramme zeigen eine glockenförmige Verteilung, und sie liegen beide um den Mittelwert der Grundgesamtheit (180 cm).
+
+Allerdings unterscheiden sie sich deutlich in ihrer Breite: das Histogramm der Einzelwerte ist viel breiter und zeigt eine große Streuung. Das Histogramm der Stichprobenmittelwerte ist dagegen schmaler: die meisten Werte liegen sehr nah an den Mittelwert der Grundgesamtheit (das sieht man auch in der Aufgabe 1).
+
+Nun erzeugen wir ein Histogramm von Mittelwerten über je 10.000 Einzelwerte:
+
+```{r}
+replicate( 1000, {
+  mean( rnorm ( 10000, 180, 7 ) )
+  } ) %>%
+  hist()
+```
+
+Mit einer höheren Zahl der Einzelwerte wird das Histogram noch schmaler.
+
+Aus unseren Beobachtungen können wir also den zentralen Grenzwertsatz formulieren: Die Stichprobenmittelwerte aus einer Zufallsstichprobe von Größe *n* sind (für ausreichend großes *n*) normalverteilt, unabhängig von der Verteilung der Einzelwerte.
+
+Außerdem beschreibt der zentrale Grenzwertsatz, wie breit die Verteilung der Mittelwerte ist:
+
+$$
+\mathrm{SEM} = \frac{\sigma}{\sqrt{n}}
+$$
+
+Also, je größer die Stichprobe, desto enger liegen die Mittelwerte um den wahren Mittelwert der Grundgesamtheit (desto kleiner ist der Standardfehler des Mittelwerts).
+
+## Aufgabe 3: Vergleich von Normalverteilungen
+
+In dieser Aufgabe werden zufällig ein Mann und eine Frau aus der deutschen Bevölkerung ausgewählt, und die Wahrscheinlichkeit berechnet, dass die Frau größer ist als der Mann. Dafür verwenden wir wieder Simulationen.
+
+Wir nehmen an, dass die Verteilungen für Männer und Frauen in Deutschland wie folgt aussehen:
+
+-   Männer: `rnorm( x, mean = 180, sd = 7 )`
+
+-   Frauen: `rnorm( x, mean = 166, sd = 6 )`
+
+```{r}
+mean ( 
+  replicate( 10000, {
+    one_mans_height <- rnorm ( 1, 180, 7 )
+    one_womans_height <- rnorm ( 1, 166, 6 )
+    one_womans_height > one_mans_height
+  } ) 
+) * 100 # probability in percent
+```
+
+Die Wahrscheinlichkeit liegt also bei circa 6%.
