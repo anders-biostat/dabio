@@ -1,0 +1,171 @@
+---
+title: "Hausaufgabe 7: Musterlösung"
+author: "mariia"
+format: 
+  html:
+    embed-resources: TRUE
+editor: visual
+---
+
+```{r}
+suppressPackageStartupMessages(library(tidyverse))
+set.seed(123456)
+```
+
+## Aufgabe 1
+
+### 1a
+
+Das Gewicht der über die Jahren geernteten Kürbisse ist normalverteilt mit einem Mittelwert von 3.5 kg und einer Standardabweichung von 0.5 kg. Nun plotten wir diese Verteilung (als Histogramm sowie als Dichtefunktion):
+
+```{r}
+hist( rnorm( 1000, 3.5, .5 ), breaks = 20, freq = FALSE ) 
+lines( 
+  x = seq( 1, 6, by = .1 ), 
+  y = dnorm( seq( 1, 6, by = .1 ), mean = 3.5, sd = .5 ), 
+  col = "red" )
+```
+
+### 1b
+
+Nach der Behandlund eines Kürbissamens mit Wunderelixier betrug das Gewicht des Kürbisses 5.4 kg. Wie groß wäre die Wahrscheinlichkeit, einen solchen Kürbis (oder einen noch größeren) ohne Elixir zu erhalten?
+
+Um dies herauszufinden, verwendet man die `pnorm`-Funktion. Sie gibt an, welcher Anteil der Werte einer normalverteilten Zufallsgröße unter einer Zahl `q` liegt, d.h. was die Wahrscheinlichkeit ist, einen Wert kleiner als `q` zu erhalten. Somit ist die Wahrscheinlichkeit, dass der Kürbis **mindestens** 5.4 kg wiegt:
+
+```{r}
+1 - pnorm( q = 5.4, mean = 3.5, sd = .5) 
+```
+
+Die Wahrscheinlichkeit ist also sehr klein, nähert sich nahezu null. Daraus schließt man, dass das Elixier tatsächlich eine wundersame Wirkung hat.
+
+### 1c
+
+Nun überprüfen wir, ob man den Effekt des Elixiers belegen könnte, wenn das Gewicht des Kürbisses 4.4 kg betragen würde:
+
+```{r}
+1 - pnorm( q = 4.4, mean = 3.5, sd = .5) 
+```
+
+Somit liegt die Wahrschenlichkeit, einen solchen Kürbis (oder einen noch größeren) zu erhalten, bei 3.6%.
+
+Was wäre dann das niedrigste Gewicht, ab dem man noch den Effekt des Elixiers nachweisen könnte?
+
+Dafür bestimmen wir die Quantilsgrenze, die im 95%-Konfidenzintervall liegt. Hier dürfen wir das 95. Quantil auswählen, da wir den Effekt nur einseitig betrachten:
+
+```{r}
+qnorm( p = .95, mean = 3.5, sd = .5) 
+```
+
+## Aufgabe 2
+
+### 2a
+
+In dieser Aufgabe überprüfen wir nun, ob es einen signifikanten Unterschied zwischen zwei Gruppen (`ctrl` und `treated`) gibt. Hier sind gegebenenfalls der Mittelwert und die Standardabweichung der Grundgesamtheit nicht bekannt, und müssen aus der Stichprobe geschätzt werden. Deshalbführt man einen t-Test durch.
+
+Wenn man den Test mehrmals durchführt, wie oft ist der p-Wert kleiner als 0.05?
+
+```{r}
+replicate(1000, {
+tibble(
+  x = c( rnorm( 10, 10, 1 ), rnorm( 10, 13, 1 ) ),
+  g = rep( c( "ctrl", "treated" ), each = 10 ) ) %>%
+summarise( broom::tidy( t.test( x ~ g, . ) ) ) %>%
+  pull( p.value )
+} ) %>%
+  as.numeric() -> p.values
+
+mean( p.values < .05 )
+```
+
+Also in 100% der Fälle erhält man p-Werte \< 0.05. Das bedeutet jedoch nicht, dass man "mit 95 %-Konfidenz den Unterschied zwischen zwei Gruppen beweisen" kann, sondern dass der Test aufgrund des großen wahren Effekts nahezu immer signifikant wird. Die Mittelwerte der Stichprobenverteilungen liegen weit auseinander, und die Streuung ist relativ gering. Das kann man auch graphisch zeigen:
+
+```{r}
+tibble(
+  x = c( rnorm( 10, 10, 1 ), rnorm( 10, 13, 1 ) ),
+  g = rep( c( "ctrl", "treated" ), each = 10 ) ) -> ctrl_vs_treated
+
+ctrl_vs_treated %>%
+  group_by( g ) %>%
+  summarise( broom::tidy( t.test(x) ) ) %>%
+  select(g, conf.low, conf.high ) -> ctrl_vs_treated_ci
+
+ctrl_vs_treated %>%
+  ggplot() +
+  ggbeeswarm::geom_beeswarm( aes (x = g, y = x) ) +
+  geom_errorbar( 
+    data = ctrl_vs_treated_ci, 
+    aes ( x = g, ymin = conf.low, ymax = conf.high ),
+    width = .1, col = "red"
+    )
+```
+
+### 2b
+
+Wenn die wahre Differenz zweier Mittelwerte nun 1 kg betrüge:
+
+```{r}
+replicate(1000, {
+tibble(
+  x = c( rnorm( 10, 10, 1 ), rnorm( 10, 11, 1 ) ),
+  g = rep( c( "ctrl", "treated" ), each = 10 ) ) %>%
+summarise( broom::tidy( t.test( x ~ g, . ) ) ) %>%
+  pull( p.value )
+} ) %>%
+  as.numeric() -> p.values
+
+mean( p.values < .05 )
+```
+
+Die Wahrscheinlichkeit, den Effekt korrekt zu nachzuweisen beträgt nun etwa 50% (obwohl der Effekt tatsächlich existiert).
+
+Hier spricht man von der statistischen Power. In diesem Fall ist sie zu niedrig, um den wahren Effekt zuverlässig nachzuweisen. Man kann sie auch mit der `power.t.test`-Funktion berechnen:
+
+```{r}
+power.t.test( n = 10, delta = 1, sd = 1, sig.level = .05)
+```
+
+### 2c
+
+Wie oft erhält man `p < 0.05`, wenn es in Wahrheit keinen Unterschied gibt?
+
+```{r}
+replicate(1000, {
+tibble(
+  x = c( rnorm( 10, 10, 1 ), rnorm( 10, 10, 1 ) ),
+  g = rep( c( "ctrl", "treated" ), each = 10 ) ) %>%
+summarise( broom::tidy( t.test( x ~ g, . ) ) ) %>%
+  pull( p.value )
+} ) %>%
+  as.numeric() -> p.values
+
+mean( p.values < .05 )
+```
+
+Die Wahrscheinlichkeit, dass man ein positives Ergebnis (p\<0.05) erhält, obwohl der wahre Effekt 0 ist, beträgt etwa 0.05. Das ist genau, was man nach Definition des p-Werts erwartet.
+
+## Aufgabe 3
+
+In dieser Aufgabe möchten wir einen Plot erzeugen, der zeigt, wie sich die mittleren Körpergrößen der NHANES-Probanden je nach Alter ändern, zusammen mit ihren 95%-Konfidenzintervallen. Zuerst bestimmen wir die Grenzen der Konfidenzintervalle, dafür können wir auch die `t.test`-Funktion (zusammen mit einem `broom`-"Adapter") verwenden:
+
+```{r}
+read.csv( "nhanes.csv" ) %>%
+  filter( !is.na(height) ) %>%
+  group_by( gender, age ) %>%
+  summarise( 
+    mean_height = mean( height),
+    broom::tidy( t.test( height ) )
+    ) %>%
+  select( gender, age, mean_height, conf.low, conf.high ) -> mean_heights_per_age
+
+mean_heights_per_age
+```
+
+Dann erzeugen wir den Plot:
+
+```{r}
+mean_heights_per_age %>%
+  ggplot( aes ( x = age, y = mean_height ) ) +
+  geom_point( size = .5 ) +
+  geom_line( aes( col = gender ) ) +
+  geom_ribbon( aes( ymin =  conf.low, ymax = conf.high, fill = gender), alpha = .3 )
+```
