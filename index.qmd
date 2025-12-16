@@ -53,17 +53,26 @@ Wintersemester 2025/26
 - Histogramme und Verteilungen
   - [Histogramme](histograms.html)
   - [Zufallsgrößen, Verteilungen, Zentraler Grenzwertsatz](zufall.html)
-  - [Hausaufgabe](homework_rnorm.qmd) zum 25.11.
-
-<!--
-  - [Hausaufgabe, fällig zum 26.11.](hausaufgabe_verteilungen.html)
+  - [Hausaufgabe](homework_rnorm.qmd) zum 25.11. -- [Lösung](hausaufgabe_verteilungen_clt_loesung.qmd)
+  - [Normalverteilung in R](norm_distr_in_R.html)
 - [Inferenz zu Mittelwerten](confint_ttest.html)
-  - Standardfehler des Mittelwerts
-  - Konfidenzintervalle für Mittelwerte
-  - t-Tests
-  - gepaarte t-Tests
-  - Permutations-Tests
-  - [Hausaufgaben](hausaufgabe_ttest.html), fällig zum 3.12.
+    - Standardfehler des Mittelwerts
+    - Konfidenzintervalle für Mittelwerte
+    - t-Tests
+    - gepaarte t-Tests
+    - Permutations-Tests
+    - [Videoaufzeichnung](https://youtu.be/9CYuiibQjCY) der Vorlesung
+    - [Hausaufgabe](homework_norm_ttest_ci.html) zum 2.12. -- [Lösung](hausaufgabe_ttest_ci_loesung.html)
+- Hausaufgaben (zum 9.12.): Bearbeiten Sie mindestens eine der beiden folgenden Aufgaben:
+    - [weitere Aufgaben zum t-Test](hausaufgabe_ttest.html)
+    - [Hausaufgabe "Killing-Assay"](killing.html) -- [Lösung (vom Vorjahr)](../dabio24/Loesung_Hausaufgabe_killing.html)
+- High-throughput sequencing
+  - [Übersicht](seq_intro.html)
+  - [Präprozessierung von RNA-Seq-Daten](alignment.html)
+  - [Erster Blick auf die Maus-Daten](mouse_first_look.html)
+  - [Übungsaufgabe zu den Mausdaten](../dabio24/HA_rnaseq_1.html)
+
+<!--    
 - [Inferenz zu Anteilen](binom.html)
   - Binomialverteilung
   - Konfidenzintervalle für binomiale Anteile

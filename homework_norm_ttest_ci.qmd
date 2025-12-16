@@ -1,0 +1,111 @@
+---
+title: "Hausaufgabe"
+---
+
+### Aufgabe 1
+
+Als ambitionierte Hobbygärtner haben sie sich auf den Anbau von Kürbissen spezialisiert.
+Sie ziehen die Kürbispflanzen aus immer derselben Sorte Samen, und jede Pflanze 
+produziert normalerweise eine Frucht. Aus langjähriger Erfahrung wissen Sie,
+dass die Kübisse dieser Sorte ein normalverteiltes Gewicht haben, das im Mittel
+3.5 kg beträgt, mit einer Standardabweichung von 0.5 kg.
+
+#### Teilaufgabe 1a
+
+Stellen Sie die Normalverteilung mit den genannten Parametern graphisch dar, entweder
+als Dichtefunktion oder als Histogramm.
+
+#### Teilaufgabe 1b
+
+Eines Tages erwerben Sie auf einem Esoterikmarkt eine geheimnisvolle Phiole mit
+einem angeblichen Wunderelixier. Der Verkäufer behauptet, dass ein Samen, der mit diesem
+Elixier übergossen wurde, magisch verbessert werde, und Ihre Kübisse so viel größer
+würden. Leider reicht das Elixier nur zue Behandlung eines einzelnen Samens.
+
+Tasächlich wächst aus dem behandelten Samen ein stattlicher Kürbis mit einem
+Gewicht von 5.4 kg heran.
+
+Glauben Sie nun die nun an die wundersame Wirkung des Elixiers?
+
+Berechnen Sie dazu die Wahrscheinlichkeit, einen Kürbis mit einem gewicht von 5.4 kg 
+(oder noch mehr) aus normalen Samen zu erhalten.
+
+#### Teilaufgabe 1c
+
+Wie wäre Ihre Meinung zur Wunderkraft des Elixiers, wenn der Kürbis 4.4 kg gewesen wäre?
+Wo würden Sie die Grenze ziehen, ab der Sie bereit wären, zu glauben, dass die
+Phiole doch nicht blos Wasser enthalten hat?
+
+#### Teilaufgabe 1d
+
+Wie wichtig ist es für die eben gemachten Überlegungen, dass die Verteilung der
+Kürbisgewichte wirklich normal ist?
+
+### Aufgabe 2
+
+Das folgende Code-Beispiel zeigt Ihnen, wie man innerhalb einer Tidyverse-Pipeline 
+einen t-Test durchführt:
+
+```{r}
+library( tidyverse )
+
+tibble(
+  x = c( rnorm( 10, 10, 1 ), rnorm( 10, 13, 1 ) ),
+  g = rep( c( "ctrl", "treated" ), each=10 ) ) %>%
+summarise(broom::tidy( t.test( x ~ g, . ) ))
+```
+Dieser Code erzeugt zunächst eine Tabelle mit Mess-Werten aus zwei Gruppen: einer 
+behandelten Gruppe ("treated") und einer Vergleichsgruppe ("control"). (Vielleicht
+sind die Werte wieder Gewichte von Kürbissen, und die Behandlung ist das Wunderelixier.)
+
+Die Werte stehen in einer Spalte (`x`), die Zuordnung jedes Wertes zu einer der beiden
+Gruppen steht in der anderen Spalte (`g`).
+
+`t.test( x ~ g, tbl )` vergleicht die Mittelwerte der beiden Gruppen mit Student's 
+t-Test. Das `broom::tidy` bringt die Ausgabe von `t.test` in die Form einer Tabellenzeile,
+so dass man mit Tidyverse weiter arbeiten kann.
+
+### Teilaufgabe 2a
+
+Wenn Sie der Pipeline noch ein `%>% pull(p.value)` anhängen, dann erhalten Sie den
+p-Wert einzeln.
+
+Benutzen Sie `replicate`, um den Code sehr oft auszuführen. Wie oft ist der p-Wert
+kleiner als 0.05?
+
+### Teilaufgabe 2b
+
+Wie oft erhalten Sie einen p-Wert unter 0.05, wenn die Differenz der wahren Mittelwerte
+nur 1 kg beträgt? Ändern Sie dazu den Mittelwert der behandelten Gruppe von 13 kg auf 11
+kg und lassen Sie nochmals `replicate` laufen?
+
+### Teilaufgabe 2c
+
+Und wie oft erhalten Sie `p < 0.05`, wenn es in Wahrheit keinen Unterschied gibt? Überlegen
+Sie erst, was Sie erwarten, und führen Sie dann die Simulation aus.
+
+### Aufgabe 3
+
+Der folgende Code berechnet Mittelwert mit zugehörigem 95%-Konfidenzintervall für die 
+beiden Gruppen:
+
+```{r}
+tibble(
+  x = c( rnorm( 10, 10, 1 ), rnorm( 10, 13, 1 ) ),
+  g = rep( c( "ctrl", "treated" ), each=10 ) ) %>%
+group_by( g ) %>%
+summarise(broom::tidy( t.test( x ) )) %>%
+select( g, mean=estimate, conf.low, conf.high )
+```
+Beachten Sie, dass wir hier `t.test` *nicht* verwenden, um einen t-Test durch zu führen, sondern
+um ein 95%-Konfidenzintervall zu einem Mittelwert zu erhalten. Die Funktion `t.test` liefert
+dieses, wenn man ihr nur einen einzelnen Wetrte-Vektor gibt, ohne Aufteilung auf zwei Gruppen.
+
+Erinnern Sie sich nun daran, dass wir für die NHANES-Daten die mittlere Größe der Probanden
+beider Geschlechter für jedes Lebensjahr bestimmt haben und diese Werte mit zwei Linien
+dargestellt haben. Erstellen Sie diesen Plot nochmals.
+
+Ändern Sie nun Ihren Code so ab, dass Sie zu allen Mittelwerten auch Konfidenzintervalle erhalten.
+Stellen Sie deren Grenzen dann auch durch Linien dar, die Sie dem PLot hinzufügen. (Wenn Sie
+wollen, können Sie auch mit `geom_ribbon` ein sog. Konfidenzband plotten.)
+

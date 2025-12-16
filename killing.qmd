@@ -136,12 +136,13 @@ Die Platte wurde 18 Stunden inkubiert. Alle 2 Stunden wurde von jedem Well jewei
 
 Das automatische Mikroskop hat die folgende Datei mit den Zell-Zahlen erzeugt: [GFP_object_count_perImage20221020withIL2.txt](data_on_git/GFP_object_count_perImage20221020withIL2.txt).
 
-**Aufgabe**: Inspizieren die Datei mit einem Text-Viewer und/oder mit Excel.
+**Aufgabe**: Inspizieren Sie die Datei mit einem Text-Viewer und/oder mit Excel.
 
 Wir laden die Tabelle wie folgt:
 
 ```{r}
-read_delim( "data_on_git/GFP_object_count_perImage20221020withIL2.txt", delim="\t", skip=6, local=locale(decimal_mark=",") ) -> table_raw
+read_delim( "data_on_git/GFP_object_count_perImage20221020withIL2.txt", 
+    delim="\t", skip=6, local=locale(decimal_mark=",") ) -> table_raw
 
 table_raw
 ```
@@ -200,6 +201,7 @@ mutate( well = str_c( plate_row, plate_column ) ) %>%
 ggplot +
   geom_line( aes( x=hours_incub, y=count, group=well, lty=aphidicolin, col=conc_anti_cd3 ) )
 ```
+
 **Aufgabe:** Erstellen Sie diesen Plot.
 
 Hinweise dazu: Filtern Sie die Tabelle zunächst so, dass Sie nur die Plattenspalten mit Monokultur (Spalte `content` der Tabelle `plate_cols` ist `"target cells only"`) haben, sowie natürlich nur die Zeilen, die nicht am Rand liegen und somit benutzt wurden (Spalte `used` der Tabelle `plate_rows` ist `TRUE`). 
@@ -282,6 +284,13 @@ ggplot +
 ```
 
 **Aufgabe**: Erstellen Sie diesen Plot.
+
+Hinweis: Die Aufteilung der Daten auf 4x2 "Facets" ("Trellis-Plot" oder "facets plot") erreichen
+Sie durch hinzufügen von `facet_grid( n0_t_cells ~ subject )` zu Ihrem
+ggplot-Befehl. Vor der Tilde steht hier die Tabellenspalte, die die Facetten-Zeile
+bestimmt (also, ob der Plot in der oberen Reihe (12000 Zellen) oder in der
+unteren Reihe (24000 Zellen) steht), und nachd er Tilde die Tabellenspalte
+für die Facetten-Spalte.
 
 **Aufgabe** Interpretieren Sie den Plot.
 

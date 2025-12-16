@@ -2,6 +2,7 @@ project:
   type: website
   render: 
     - "*.qmd"
+    - "*.md"
     - "!not_yet/"
   
 website:

@@ -1,0 +1,74 @@
+---
+title: "Hausaufgabe zum 25.11."
+---
+
+*Diese Hausaufgabe dient dazu, um Ihnen
+ein Gefühl dafür zu vermitteln, wie simulierte statistische Analysen in der
+Praxis aussehen. Diese Erfahrung wird für die nächsten Vorlesungen sehr wichtig sein.*
+
+### Moodle-Forum
+
+Ich habe auf Moodle ein [Forum](https://moodle.uni-heidelberg.de/mod/forum/view.php?id=1444667) angelegt, in 
+dem Sie Fragen zu den Hausuafgaben stellen können. Wenn Sie also nicht weiter wissen (oder nicht wissen,
+wie Sie überhaupt anfangen sollen), geben Sie nicht gleich auf, sondern fragen Sie dort.
+
+Die Tutorinnen oder ich werden Ihnend ann baldmöglichst antworten.
+
+### Körpergrößen in Deutschland
+
+In Deutschland sind erwachsene Männer im Mittel 180 cm groß; die Stndardabweichung 
+der Verteilung der Körpergrößen ist 7 cm. Bei Frauen ist der Mittelwert 166 cm und
+die Standardabweichung 6cm. Bei beiden Geschlechtern ist die Körpergröße in guter
+Näherung normalverteilt.
+
+### Aufgabe 1: Mittelwert-Schätzung
+
+Ein Forscher wählt 100 Männer zufällig aus ganz Deutschland aus, ermittelt deren Körpergröße
+und bestimmt den Mittelwert. 
+
+Simulieren Sie eine solche Erhebung.
+
+Verwenden Sie hier zu die Funktion `rnorm( n, mean, sd )`: diese liefert `n` Zufallswerte, die aus einer
+Normalverteilung mit Mittelwert `mean` und Standardabweichung `sd` gezogen wurden. Mit
+`rnorm( 100, 180, 7 )` erhalten Sie also einen Vektor von Werten, wie Sie der Forscher ermittelt haben könnte.
+Berechnen Sie mit `mean` den Mittelwert des Vektors.
+
+Wiederholen Sie dies einige Male, um ein Gefühl dafür zu bekommen, wie stark der Mittelwert von
+Durchgang zu Durchgang schwankt.
+
+### Aufgabe 2: Schätzer-Verteilung
+
+Der Code aus der vorigen Aufgabe liefert Ihnen *einen* Wert, nämlich den Mittelwert aus den Körpergrößen
+von 100 zufällig ausgewählten Männern.
+
+Mit `replicate( k, { ... } )` können Sie diesen Code `k` mal ausführen, indem Sie den Code statt der drei Punkte
+in die geschweiften Klammern setzen. Erzeugen Sie sich so 1000 Mittelwerte, und stellen Sie diese als 
+Histogramm dar. 
+
+Die Verteilung, die dieses Histogramm darstellt, nennt man (im Grenzwert unendlich vieler Mittelwerte) die "Stichproben-Verteilung der Mittelwert-Schätzungen" (sampling distribution of mean estimates).
+
+Vergleichen Sie das Histogramm der Mittelwerte mit dem Histogramm der Einzelwerte: wie unterscheiden sich die beiden Histogramme in Bezug auf Lage, Breite und Form?
+
+Erzeugen Sie zuletzt noch ein Histogramm von Mittelwerten über je 10.000 Einzelwerte.
+
+### Aufgabe 3: Vergleich von Normalverteilungen
+
+Sie wählen zufällig einen Mann und eine Frau aus der deutschen Bevölkerung aus. Wie groß
+ist die Wahrscheinlichkeit, dass die Frau größer ist als der Mann?
+
+Um diese Frage zu beantworten, gehen Sie wie folgt vor:
+
+Mit `rnorm( 1, 180, 7 ) -> one_mans_height` simulieren Sie, dass Sie einen Mann zufällig auswählen und seiner Körpergröße messen.
+Ebenso können Sie simulieren, dass Sie eine Frau zufällig auswählen und ihre Körpergröse messen.
+
+Mit dem Boolschen Ausdruck `one_womens_height > one_mens_height` fragen Sie, ob diese eine zufällig ausgewählte Frau größer ist als der zufällig ausgewählte Mann. Sie erhalten einen Wahrheitswert (`TRUE` oder `FALSE`).
+
+Führen Sie diesen Code mehrmals aus, um zu sehen, wie oft Sie `TRUE` zu erhalten.
+
+Verwenden Sie `replicate`, um den Code 10.000 mal auszuführen. Sie erhalten einen Vektor mit 10.000 Wahrheitswerten. Wenden Sie `mean` auf diesen vektor an, um den Anteil der `TRUE`s unter den Werten zu erhalten.
+
+Damit können Sie nun die eingangs gestellte Frage beantworten.
+
+### Abgabe
+
+auf Moodle, [hier](https://moodle.uni-heidelberg.de/mod/assign/view.php?id=1444672)

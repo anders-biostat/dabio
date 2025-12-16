@@ -1,0 +1,194 @@
+---
+title: "Simulationen"
+---
+
+
+Um statsitische Methoden zu verstehen, kann man von zwei Richtungen
+kommen: Klassischerweise beschreibt man, welche Annahmen man über die Daten macht und
+versucht dann durch theoretisch-mathematische Herleitungen zu zeigen, dass
+die Analyse das gewünschte Ergebnis liefert. Alternativ kann man Daten so
+*simulieren*, dass man weiß, welches Ergebnis die Analyse liefern muss, weil man
+dieses Ergebnis bei der Erstellung der analysierten Daten vorweggenommen hat. Diese
+Herangehensweise ist mathematisch weniger stringent, aber oft leichter verständlich
+und ermöglicht insbesondere, sich von der Richtigkeit einer komplizerten Analyse-
+Prozedur zu überzeugen, indem man den Computer viele Beispiele durchrechnen lässt.
+
+```{r message=FALSE,warning=FALSE}
+library(tidyverse)
+```
+
+
+### Pseudozufall
+
+Computer sind deterministisch: bei gleicher Eingabe liefern sie immer dasselbe Ergebnis.
+Wenn man aber Zufallsexperimente simulieren will, braucht man Zufall. Hier werden of sog. 
+Pseudo-Zufallszahlen-Generatoren (pseudo random number generators, PRNGs) verwendet.
+Diese verwenden eine absichtlich möglichst komplizerte Funktion, die aus einer Zahl eine
+andere Zahl erzeugt.
+
+Hier ein einfaches Beispiel: Die Funktion nimmt eine vierstellige Zahl, quadriert sie, 
+streicht die letzten beiden Stellen und liefert dann die nächsten vier Stellen:
+
+Wir beginnen mit 1234. Quadrieren: $1234^2=1\underline{5227}56$. Ergebnis: 5227.
+Wie machen weiter mit 5227. Quadrieren: $5227^2=27\underline{3215}29. Ergebnis: 3215.
+Wie machen weiter mit 3215. Quadrieren: $3215^2=3215^2=10\underline{3362}25.
+usw.
+
+So bekommt man eine Folge von Zahlen, die sehr zufällig aussieht: 1234, 5227, 3215, 3362, ...
+
+R verwendet eine deutlich kompliziertere Funktion, die als [Mersenne-Twister](https://de.wikipedia.org/wiki/Mersenne-Twister) bezeichnet wird.
+
+Die Zahl, mit der begonnen werden soll, setzt man mit `set.seed`:
+
+```{r}
+set.seed( 1234 )
+```
+
+Nun können wir uns 10 pseudo-zufällige Zahlen ausgeben lassen
+
+```{r}
+runif( 10, min=0, max=9999 )
+```
+
+Wenn wir den Seed zurücksetzen, bekommen wir dieselbe Folge nochmals
+
+```{r}
+set.seed( 1234 )
+runif( 10, min=0, max=9999 )
+```
+
+Jedes Mal, wenn Sie R neu starten, wird der Seed automatisch auf eine Zahl gesetzt, die jedes Mal anders ist,
+da sie aus der momentanen Uhrzeit abgeleitet ist. Dadurch wirkt die Ausgabe des RNG echt zufällig.
+
+### Würfel
+
+Wenn wir die Zahlen abrunden, können wir einen Würfel simulieren:
+
+```{r}
+floor( runif( 1, min=1, max=7 ) )
+```
+
+(Warum `max=7`? 6.9999 wird zu 6 abgerundet, und exakt 7.000 werden wir nie erhalten.)
+
+Die folgende Funktion macht dasselbe
+
+```{r}
+sample.int( 6, 1, replace=TRUE )
+```
+
+Wir werfen unseren Würfel 60,000 mal und schauen ob er fair ist:
+
+```{r}
+tibble( Augenzahl = sample.int( 6, 60000, replace=TRUE ) ) %>%
+group_by( Augenzahl ) %>%
+summarise( n() )
+```
+
+Dies kann man kürzer schreiben, wenn man Base-R statt Tidyverse benutzt:
+
+```{r}
+sample.int( 6, 60000, replace=TRUE ) %>% table()
+```
+
+
+Wir können auch zwei Würfel gemeinsam werfen und ihre Augen aufaddieren:
+
+```{r}
+sum( sample.int( 6, 2, replace=TRUE ) )
+```
+
+Wir machen dies nun 100 mal:
+
+```{r}
+replicate( 100, { sum( sample.int( 6, 2, replace=TRUE ) ) } )
+```
+
+Hier haben wir `replicate( k, { ... } )` verwendet, dass den Code zwischen den geschweiften
+Klammern `k` mal ausführt und die Ergebnisse in einem Vektor der Länge `k` sammelt.
+
+Wir wiederholen den Wurf mit 2 Würfeln nun sehr oft (36,000 mal) und benuitzen wieder `table`
+um die Augensummen zu tabulieren (d.h., zu zählen wie oft jedes Ergebnis vorkommt).
+
+```{r}
+replicate( 36000, { sum( sample.int( 6, 2, replace=TRUE ) ) } ) %>% table()
+```
+
+Überlegen Sie, wie wahrscheinlich jedes Ergebnis ist und vergleichen sie. Wenn Sie
+jemals "Siedler von Catan" gespielt haben, dann kennen sie diese Werte als die Größen
+der Zahlen, die auf den runden Plättchen aufgedruckt sind.
+
+Die Base-R-Funktion `plot` ist ein einfacher Weg, die Tabulierung graphisch darzustellen. (Übungsaufgabe:
+Erstellen Sie einen äquivalenten Plot mit Tidyverse.)
+
+```{r}
+replicate( 100000, { sum( sample.int( 6, 2, replace=TRUE ) ) } ) %>% table() %>% plot()
+```
+
+Nun können wir leicht sehen, wie häufig die Augensummen bei 3 Würfeln sind:
+
+```{r}
+replicate( 100000, { sum( sample.int( 6, 3, replace=TRUE ) ) } ) %>% table() %>% plot()
+```
+
+Nun die Augensumme von 4 Würfeln:
+
+```{r}
+replicate( 100000, { sum( sample.int( 6, 4, replace=TRUE ) ) } ) %>% table() %>% plot()
+```
+Wir beginnen, die Form einer Verteilung zu erkennen, die Ihnen bestimmt schon oft begegnet ist. 
+
+Hier nun 10 Würfel:
+
+```{r}
+replicate( 100000, { sum( sample.int( 6, 10, replace=TRUE ) ) } ) %>% table() %>% plot()
+```
+Um eine Dichte zu erhalten, sollten wir die y-Werte durch die Anzahl der Wiederholungen teilen:
+
+```{r}
+replicate( 100000, { sum( sample.int( 6, 10, replace=TRUE ) ) } ) %>% table() -> a
+plot( a/100000 )
+
+xg <- seq( 10, 60, by=.01 )
+lines( xg, dnorm(xg, mean=35, sd=sqrt(175/6)), col="lightblue" )
+```
+
+Die hellblaue Kurve ist die *Dichte der Normalverteilung* (density of the normal distribution) mit
+Mittelwert 35 und Standardabweichung $\sqrt{175/6}$. Diese beiden Werte wurden so gewählt, dass sie mit dem Erwartungswert (d.h. erwartetem Mittelwert)
+und der (erwarteten) Standardabweichung der Summe von 10 Würfeln übereinstimmen. (Der Mittelwert 35 ist einfach: Erwartungswert eines
+Würfels ist 3,5 und wir haben 10 Würfel. Die Rechnung für die Standardabweichung ist etwas länger; wir überspringen das.)
+
+Dass die Lage und Breite übereinstimmt, ist also einfach, weil wir es so gewählt haben. Dass auch die *Form* übereinstimmt, ist
+Folge des folgenden wichtigen Satzes:
+
+### Zentraler Grenzwertsatz
+
+**Wenn man eine hinreichend große Anzahl an Zufallswerten, die alle voneinander unabhängig sind, aufsummiert, dann folgt die Summe in guter Näherung eine Normalverteilung.**
+
+Dabei bedeutet
+
+- "unabhängig", dass die Wahrscheinlichkeiten für die einzelnen Zufallswerte nicht von den anderen Zufallswerten abhängt. *Hier*: Die Augenzahl eines Würfels hängt nicht von den Augenzahlen der anderen 9 Würfel ab.
+
+- "Zufallswert" kann (fast) alles sein, was (zumindest teilweise) zufällig ist und einen Wert hat. Insbesondere kann man auch Zufallswerte verschiedener Art aufaddieren (z.B., die Summe aus 3 normalen 6-seitigen Würfeln, 4 Würfeln mit 20 Seiten und 8 Münzen, auf die man auf jede Seite irgendeine Zahl geschrieben hat).
+
+- "hinreichend große Anzahl": je mehr Zufallswerte man aufsummiert, desto genauer gleicht die Form der Normalverteilung. Aber schon 10 oder sogar nur 4 Zahlen (Würfel) reichen aus, dass man kaum einen Unterschied sieht.
+
+- "Normalverteilung" ist eine Verteilung, deren Form die ist, die auch der Graph $y=e^{-x^2}$ hat.
+
+Für eine Erklärung, *warum* die Summe immer auf die Form $e^{-x^2}$ konvergiert, sei auf eine geeignete Mathe-Vorlesung verwiesen.
+
+Wenn ein Mittelwert $\mu$ und eine Standardabweichung $\sigma$ vorgegeben ist, dann müssen wir den Graph von $e^{-x^2}$ noch geeignet strecken oder stauchen und verschieben, und erhalten dann die Formel für die Dichte der Normalverteilung:
+
+$$ f_{\mathcal{N}(\mu,\sigma)} = \frac{1}{\sqrt{2\pi}\sigma} e^{-\frac{(x-\mu)^2}{2\sigma^2}}$$
+
+Oben haben wir für die hellblaue Linie die Funktion `dnorm` verwendet, die diese Formel berechnet.
+
+Die Verteilung mit $\mu=0$ und $\sigma=1$ nennt man die *Standard-Normalverteilung* (standard normal distribution).
+
+### Ist Körpergröße normalverteilt?
+
+Wir bestimmen nochmals Mittelwert und Standardabweichung der Körpergröße der erwachsenen Männer in der NHANES-Studie:
+
+```{r}
+
+```
+

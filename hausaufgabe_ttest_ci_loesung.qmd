@@ -148,7 +148,7 @@ Die Wahrscheinlichkeit, dass man ein positives Ergebnis (p\<0.05) erhält, obwoh
 In dieser Aufgabe möchten wir einen Plot erzeugen, der zeigt, wie sich die mittleren Körpergrößen der NHANES-Probanden je nach Alter ändern, zusammen mit ihren 95%-Konfidenzintervallen. Zuerst bestimmen wir die Grenzen der Konfidenzintervalle, dafür können wir auch die `t.test`-Funktion (zusammen mit einem `broom`-"Adapter") verwenden:
 
 ```{r}
-read.csv( "nhanes.csv" ) %>%
+read.csv( "data_on_git/nhanes.csv" ) %>%
   filter( !is.na(height) ) %>%
   group_by( gender, age ) %>%
   summarise( 

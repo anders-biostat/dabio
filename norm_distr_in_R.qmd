@@ -1,0 +1,182 @@
+---
+title: "Normalverteilung in R"
+---
+
+### Normalverteilung mit R
+
+#### rnorm
+
+In R können wir normalverteilte Zufallswerte mit `rnorm` erzeugen:
+
+```{r}
+rnorm( 20 )
+```
+
+Wenn man viele Zufallszahlen erzeugt, erkennt man im Histogramm die Glockenform:
+
+```{r}
+hist( rnorm( 10000 ), breaks=30 )
+```
+Das erste Argument von `rnorm` ist die Anzahl der zu erzeugenden Zufallswerte. Dann folgen
+Mittelwert und Standardabweichung. Wenn diese nicht angegeben werden, wird aus einer
+Standard-Normalverteilung (d.h.: Mittelwert 0, Standardabweichung 1) gezogen.
+
+Wie wahrscheinlich ist es, dass eine standard-normalverteilte Zufallsvariable kleiner als -1 ist?
+
+Wir können in einer Stichprobe zählen:
+
+```{r}
+table( rnorm(1000) < -1 )
+```
+
+#### pnorm
+
+Wir können R aber auch rechnen lassen, mit `pnorm`:
+
+```{r}
+pnorm(-1)
+```
+
+`pnorm( x )` gibt die Wahrscheinlichkeit an, dass eine standard-normalverteilte
+Zufallsgröße kleiner als `x` ist. Wieder kann man für andere Normalverteilungen als
+der Standardnormalverteilung Mittelwert und Standardabweichung als zweites und drittes
+Argument übergeben.
+
+Wie groß ist die Wahrscheinlichkeit, dass eine standard-normalverteilte Zufallsgröße
+zwischen -1 und 1 liegt?
+
+```{r}
+pnorm(1) - pnorm(-1)
+```
+
+#### `dnorm`
+
+Die Wahrscheinlichkeitsdichte der Normalverteilung erhält man mit `dnorm`.
+`dnorm(x)` berechnet also $f_\mathcal{N}(x)=\frac{1}{\sqrt{2\pi}}e^{-x^2/2}$:
+
+```{r}
+dnorm(1.5)
+
+exp( -1.5^2 / 2 ) / sqrt(2*pi)
+```
+
+Wenn wir `dnorm` für eine Sequenz von x-Werte aufrufen, können wir die Glockenkurve zeichnen:
+
+```{r message=FALSE,warning=FALSE}
+library( tidyverse )
+
+tibble( x = seq( -4, 4, by=0.01 ) ) %>%
+mutate( y = dnorm(x) ) %>%
+ggplot() + geom_line( aes( x=x, y=y ) )
+```
+
+#### `pnorm` versus `dnorm`
+
+`dnorm` berechnet die Wahrscheinlichkeitsdichte:
+
+`dnorm(x)` = $\frac{1}{\sqrt{2\pi}}e^{-x^2/2}$
+
+`pnorm` berechnet das Integral der Wahrscheinlichkeitsdichte:
+
+`pnorm(x)` = $\int_\limits{-\infty}^x\frac{1}{\sqrt{2\pi}}e^{-x'^2/2}\mathrm{d}x'$
+
+Das ist der Teil die *Fläche* unter der Glockenkurve, der links von $x$ liegt.
+
+Diese Funktion nennt man die kumulative Verteilungsfunktion (*cumulative distribution
+function*, CDF).
+
+#### `qnorm`
+
+Oft braucht man die inverse Funktion zur CDF. Diese nennt man die Quantilfunktion.
+
+```{r}
+pnorm(1.5)
+```
+
+```{r}
+qnorm(0.9332)
+```
+
+#### r, d, p, q
+
+Alle vier Funktionen nehmen Mittelwert und Standardabweichung als zweites und drittes
+Argument, und setzten diese auf 0 und 1, wenn nichts angegeben ist.
+
+Solche Funktionen-Quadrupel gibt es für einige oft verwendete Wahrscheinlichkeitsfunktionen:
+z.B. `rbinom`, `dbinom`, `pbinom`, `qbinom` für die Binomialverteilung.
+
+### Standardisierung
+
+#### Beispiel
+
+Beispiel: Für eine bestimmten medizinischen Laborparameter is bekannt, dass der Wert
+über die (gesunde) Bevölkerung normalverteilt ist mit Mittelwert 10 und Standardabweichung 2.
+
+Bei einem Patient wird 14 gemessen. Ist das ungewöhnlich hoch?
+
+Dazu fragen wir: Wie häufig kommt es vor, dass ein Wert, der aus einer Normalverteilung
+mit Mittelwert 10 und Standardabweichung 2 gezogen wird, 14 oder größer ist?
+
+```{r}
+1 - pnorm( 14, 10, 2 )   # Wahrscheinlichkeit, dass höher
+
+pnorm( 14, 10, 2 )   # Wahrscheinlichkeit, dass niedriger
+```
+
+Der Wert ist also höher als er bei 97.7% der Bevölkerung ist. Ob das nun für die 
+diagnostische Fragestellung, für die der Wert ermittelt wurde, von Bedeutung ist,
+müsste nun diskutiert werden.
+
+Nehmen wir an, der Wert sei 18:
+
+```{r}
+1 - pnorm( 18, 10, 2 )
+```
+
+Dies ist nun ziemlich ungewöhnlich und verdient sicherlich genauere Aufmerksamkeit.
+
+#### Standardisierung
+
+Um über solche Fragen nachzudenken, ist es oft hilfreich, die Werte in Einheiten 
+der Standardabweichung auszudrücken.
+
+In unserem Beispiel ist der gemessene Wert 14 bei einer Normalverteilung mit Mittelwert
+$\mu=10$ und Standardabweichung $\sigma=2$.
+
+Wir sagen nun: Der Wert liegt 2 Standardabweichungen über dem Mittelwert. 
+
+Dies nennt man einen "z-Wert": $z=(x-\mu)/\sigma$ -- hier $z=(14-10)/2=2$
+
+#### 68-95-97.5-Regel
+
+Es lohnt sich, auswändig zu wissen, wie wahrscheinlich es ist, dass ein 
+normalverteilter Wert weniger als 1, 2 oder 3 Standardabweichungen vom Mittelwert
+abweicht.
+
+Wir berechnen dies:
+
+```{r}
+pnorm(1) - pnorm(-1)
+```
+
+Also: $\text{Prob}(|z|<1)\approx 68\%$
+
+```{r}
+pnorm(2) - pnorm(-2)
+```
+
+Also: $\text{Prob}(|z|<2)\approx 95\%$
+
+```{r}
+pnorm(3) - pnorm(-3)
+```
+
+Also: $\text{Prob}(|z|<3)\approx 99.7\%$
+
+Merke:
+
+Die Wahrscheinlichkeit, dass eine normalverteilter Zufallsgröße höchsten um
+das $\left\{\begin{matrix}1\\2\\3\end{matrix}\right\}$-fache der Standardabweichung
+vom Erwartungswert abweicht, ist ungefähr $\left\{\begin{matrix}68\%\\95\%\\99.7\%\end{matrix}\right\}$.
+
+Aufgabe: Die Körpergröße erwachsener Männer in Deutschland ist normalverteilt mit Mittelwert 166 cm und Standardabweichung 6 cm. Berechnen Sie im Kopf: Welcher Anteil der Frauen ist kleiner als 160 cm?
