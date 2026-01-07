@@ -1,5 +1,5 @@
 ---
-title: "Hausaufgabe RNA-Seq"
+title: "Übung RNA-Seq (mit Lösung)"
 ---
 
 In dieser Hausaufgabe arbeiten wir mit den RNA-Seq-Daten zur Maus aus dem in der Vorlesungen besprochenen [Paper](https://doi.org/10.1038/s41586-019-1338-5) von Cardoso-Moreia et al. (2019).
@@ -9,7 +9,7 @@ In dieser Hausaufgabe arbeiten wir mit den RNA-Seq-Daten zur Maus aus dem in der
 ```{r message=FALSE}
 library( tidyverse ) 
 
-read_tsv( "data_on_git/evodevo_mouse_counts.tsv" ) -> mouse_counts
+read_tsv( "Downloads/evodevo_mouse_counts.tsv.gz" ) -> mouse_counts
 
 # Linke obere Ecke der Matrix:
 mouse_counts[1:5, 1:5]
@@ -23,13 +23,10 @@ mouse_counts[, c( 1:56, 100:154, 206:262 ) ] -> mouse_counts
 
 Der folgende Code erzeugt aus den Probennamen (Spaltennamen der Count-Matrix) eine Tabelle mit allen 
 Proben, indem er die Spaltennamen bei den Punkten aufteilt und auf drei neue Spalten verteilt. 
-(Da manche Zeitpunkte auf ".5" enden, und an diesen Punkten nicht getrennt werden soll,
-müssen wir den Trenner als kryptische sog. "Regex" angeben. `sep="\\.(?!5\\.)"` bedeutet: Trenne an Punkten,
-denen kein "5." folgt.)
 
 ```{r}
 tibble( sample = colnames(mouse_counts)[-1] ) %>%
-separate( sample, c( "organ", "timepoint", "replicate" ), sep="\\.(?!5\\.)", remove=FALSE ) %>%
+separate( sample, c( "organ", "timepoint", "replicate" ), sep="_", remove=FALSE ) %>%
 mutate( timepoint = fct_inorder(timepoint) ) -> sample_table
 
 sample_table
@@ -41,31 +38,52 @@ Das Format für die Zeitpunkte der Probennahme ist wie folgt zu verstehen: `e13.
 
 Wandeln Sie die Count-Matrix in eine lange Tabelle um, mit einer Zeile pro Wert und Spalten "sample", "gene_id" und "count" für die Proben-Bezeichnung (Spaltenname in der Count-Matrix), Gen-ID und Read-Count.
 
+#### Lösung
+
+```{r}
+mouse_counts %>%
+pivot_longer(-gene_id, names_to="sample", values_to="count") 
+```
+
 ### Schritt 2: Normalisieren
 
 Berechnen Sie für jede Probe die Gesamtzahl der Reads, indem Sie nach Probe ("sample") gruppieren und dann summieren.
 Teilen Sie die Readzahl für jedes Gen durch die Gesamzahl und multiplizieren Sie mit 1 Million. Nennen Sie die
 Spalte mit diesen Werten "cpm", für "counts per million".
 
-```{r echo=FALSE}
+Tipp: Sie brauchen kein `summerize`. Verwenden Sie `group_by` und danach ein `mutate` mit `count / sum(count)`.
+
+#### Lösung
+
+```{r}
 mouse_counts %>%
 pivot_longer( -gene_id, names_to = "sample", values_to = "count" ) %>%
 group_by( sample ) %>% 
 mutate( cpm = count / sum(count) * 1e6 ) -> long_tbl
-```
 
-Tipp: Sie brauchen kein `summerize`. Verwenden Sie `group_by` und danach ein `mutate` mit `count / sum(count)`.
+head(long_tbl)
+```
 
 ### Schritt 3: Table-Joins
 
 Ergänzen Sie dann die Spalten für Organ, Zeitpunkt und Replikat, indem Sie die Probentabelle per Table-Join anfügen.
 
-[Hier](data_on_git/Ensembl_102_GRCm38.p6_Gene_names_2.tsv) finden Sie eine Tabelle, die die Gen-IDs den Gen-Symbolen (Gen-Namen) zuordnet. Fügen Sie auch diese Tabelle hinzu.
+[Hier](Downloads/Ensembl_102_GRCm38.p6_Gene_names.tsv) finden Sie eine Tabelle, die die Gen-IDs den Gen-Symbolen (Gen-Namen) zuordnet. Fügen Sie auch diese Tabelle hinzu.
 
-```{r echo=FALSE,message=FALSE}
+*Anmerkung:* Sie können diese Tabelle auch selbst von Ensembl herunter laden. Wählen Sie auf
+[Ensembl](ensembl.org) die Funktion "BioMart", dort die "Database" "Ensembl Genes", das "Dataset"
+"Mouse Genes" und dann unter "Attributes" die benötigten Tabellenspalten: "Gene stable ID" und
+"Gene name" (beide unter "Gene"). Klicken Sie dann auf "Result" und dort auf "Go", um die Datei
+herunter zu laden.
+
+#### Lösung
+
+```{r message=FALSE}
 long_tbl %>%
 left_join( sample_table ) %>%
-left_join( read_tsv( "data_on_git/Ensembl_102_GRCm38.p6_Gene_names_2.tsv" ), by="gene_id" ) -> long_tbl
+left_join( read_tsv( "Downloads/Ensembl_102_GRCm38.p6_Gene_names.tsv" ), by=c("gene_id"="Gene stable ID") ) -> long_tbl
+
+head(long_tbl)
 ```
 
 ### Schritt 4: Plotten
@@ -84,11 +102,13 @@ Versuchen Sie folgende Gene:
 
 Schlagen Sie jeweils nach, was über die Gene bekannt ist.
 
+#### Lösung:
+
 ```{r warning=FALSE, fig.height=10,fig.width=7}
 gene <- "Alb"
 
 long_tbl %>%
-filter( gene_name == gene ) %>%
+filter( `Gene name` == gene ) %>%
 ggplot() +
   geom_point( aes( x=timepoint, y=cpm ), size=.3 ) +
   facet_wrap( ~ organ ) +

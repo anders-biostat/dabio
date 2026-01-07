@@ -70,7 +70,7 @@ Wintersemester 2025/26
   - [Übersicht](seq_intro.html)
   - [Präprozessierung von RNA-Seq-Daten](alignment.html)
   - [Erster Blick auf die Maus-Daten](mouse_first_look.html)
-  - [Übungsaufgabe zu den Mausdaten](../dabio24/HA_rnaseq_1.html)
+  - [Übungsaufgabe zu den Mausdaten](HA_rnaseq_1.html) (mit Lösung)
 
 <!--    
 - [Inferenz zu Anteilen](binom.html)
