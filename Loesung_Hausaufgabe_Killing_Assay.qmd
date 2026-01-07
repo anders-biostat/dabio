@@ -1,0 +1,178 @@
+---
+title: "Lösung zur Übung: Ein “Killing-Assay” zur Untersuchung von Immunschwäche"
+---
+
+Wir beginnen mit dem Code, der in der Aufgabenstellung gegeben wurde:
+
+```{r}
+suppressPackageStartupMessages( library(tidyverse) )
+
+plate_cols <- tibble(
+  plate_column = 1:12,
+  used = c( FALSE, rep(TRUE, 10), FALSE ),
+  content = c( "empty", rep( "co-culture", 8 ), rep( "target cells only", 2 ), "empty" ),
+  subject = c( NA, rep( c( "C1", "P1", "C2", "C3" ), 2 ), rep( NA, 3 ) ),
+  aphidicolin = c( NA, rep( TRUE, 9), FALSE, NA ),
+  n0_target_cells = c( 0, rep( 12000, 10), 0 ),
+  n0_t_cells = c( 0, rep( 12000, 4), rep( 24000, 4), rep( 0, 3 ) ),
+)  
+```
+
+Dieser erzeugt folgende Tabelle mit der Spalten-Belegung der Mikrotiter-Platte:
+
+```{r}
+plate_cols
+```
+Zur Bedeutung der Spalten, siehe Aufgabenstellung.
+
+Für Beschreibung des Zeilenlayouts estellen wir die in der Aufgabenstellung abgedruckte Tabelle durch den folgenden Code. (Anstatt wir hier `LETTERS` und `rep` zu verwenden, kann man die Werte aus der abgedruckten
+Tabbele natürlich auch einfach abtippen und mit `c` zusammenfügen.)
+
+```{r}
+plate_rows = tibble(
+  plate_row = LETTERS[1:8],
+  used = c( FALSE, rep( TRUE, 6), FALSE ),
+  conc_anti_cd3 = c( NA, rep( c( 0, 1, 5 ), each=2 ), NA )
+)
+
+plate_rows
+```
+
+Nun laden wir die Tabelle mit den Messwerten. Wir verwwenden den in der Aufgabenstellung angegebenen Code:
+
+```{r}
+read_delim( "data_on_git/GFP_object_count_perImage20221020withIL2.txt", delim="\t", skip=6, local=locale(decimal_mark=",") ) -> table_raw
+
+table_raw
+```
+Die Aufgabenstellung schlägt nun als nächsten Schritt vor, diese Tabelle in Langform zu pivotieren. Wir verwenden also `pivot_longer`:
+
+```{r}
+table_raw %>% 
+select( -1 ) %>%
+pivot_longer( -1, values_to="count") %>%
+rename( "hours_incub" = "Elapsed" ) -> tbl_intermediate
+
+tbl_intermediate
+```
+Nun übernehmen wir den Code aus der Aufgabenstellung, um die Spalte `name` zu zerlegen:
+
+```{r}
+tbl_intermediate %>% 
+mutate( matches = as_tibble( str_match( name, "(.)(..?), Image (.)" ) ) ) %>% 
+unnest( matches ) %>% 
+select( hours_incub, plate_row = V2, plate_column = V3, image_no = V4, count ) %>%
+mutate( image_no = as.integer(image_no) )  %>%
+mutate( plate_column = as.integer(plate_column) ) -> tbl_long
+
+tbl_long
+```
+
+Die nächste Aufgabe war, die jeweils vier Zell-Anzahl-Werte von verschiedenen Mikroskop-Bildern desselben Wells zu einem Wert aufzuaddieren:
+
+```{r}
+tbl_long %>%
+group_by( hours_incub, plate_row, plate_column ) %>%
+summarise( count = sum(count) ) -> tbl_long_per_well
+
+tbl_long_per_well
+```
+Der in der Aufgabe gezeigt Plot zu den Monokulturen kann durch den folgenden Code erzeugt werden:
+
+```{r}
+tbl_long_per_well %>%
+left_join( plate_rows ) %>%
+left_join( plate_cols ) %>%
+filter( content == "target cells only" ) %>%
+filter( used ) %>%
+mutate( conc_anti_cd3 = factor( conc_anti_cd3 ) ) %>%
+mutate( well = str_c( plate_row, plate_column ) ) %>% 
+ggplot +
+  geom_line( aes( x=hours_incub, y=count, group=well, lty=aphidicolin, col=conc_anti_cd3 ) )
+```
+
+Zwei Punkte in diesem Code erfordern eventuell Erläuterung: Zum einen haben wir die Spalte `conc_anti_cd3` in einen Faktor umgewandelt. Das bewirkt, dass die Spalte als kategorische statt kontinuierliche Variable aufgefasst wird. Dann werden die drei Konzentrationswerte durch drei verschiedene Farben, statt durch drei (nur schwer unterscheidbare) Blautöne, dargestellt. 
+
+Zum anderen brauchen wir eine Spalte, in der die alle Werte zum selben Well den gleichen Wert haben. Dazu fügen wir mit `str_c` Platten-Spalte und Platten-Zeile zur Well-Bezeichnung zusammen. Dies verwenden wir dann in `aes` für `group`, so dass jede Linie genau die Werte aus einem Well verbindet.
+
+Die nächste Aufgabe war, eine Tabelle mit den Zellzahlen zum Zeitpunkt 0 zu erzeugen. Dazu filtern wir anhand der Spalte `hours_incub` und wählen die benötigten Spalten. Vorher müssen wir noch die Gruppierung vom vorigen Code-Chunk wieder aufheben.
+
+```{r}
+tbl_long_per_well %>%
+ungroup() %>%
+filter( hours_incub == 0 ) %>%
+select( plate_row, plate_column, count_at_0 = count ) -> tbl_counts_at_zero
+
+tbl_counts_at_zero
+```
+Um nun die Werte in der langen Tabelle durch die Werte zum Zeitpunkt 0 zu teilen, fügen wir die eben erzeugt Tabelle an und führen dann die Division durch:
+
+```{r}
+tbl_long_per_well %>%
+left_join( tbl_counts_at_zero ) %>%
+mutate( count_ratio = count / count_at_0 ) -> tbl_long_norm
+
+tbl_long_norm
+```
+
+Nun können wir den Plot von eben nochmals erzeugen, nun aber normalisiert auf die "Baseline":
+
+```{r}
+tbl_long_norm %>%
+left_join( plate_rows ) %>%
+left_join( plate_cols ) %>%
+filter( content == "target cells only" ) %>%
+filter( used ) %>%
+mutate( conc_anti_cd3 = factor( conc_anti_cd3 ) ) %>%
+mutate( well = str_c( plate_row, plate_column ) ) %>% 
+ggplot +
+  geom_line( aes( x=hours_incub, y=count_ratio, group=well, lty=aphidicolin, col=conc_anti_cd3 ) )
+```
+
+Wir fügen noch ein `+ scale_y_log10` hinzu, um die y-Achse logarithmisch zu skalieren:
+
+```{r}
+tbl_long_norm %>%
+left_join( plate_rows ) %>%
+left_join( plate_cols ) %>%
+filter( content == "target cells only" ) %>%
+filter( used ) %>%
+mutate( conc_anti_cd3 = factor( conc_anti_cd3 ) ) %>%
+mutate( well = str_c( plate_row, plate_column ) ) %>% 
+ggplot +
+  geom_line( aes( x=hours_incub, y=count_ratio, group=well, lty=aphidicolin, col=conc_anti_cd3 ) ) +
+  scale_y_log10()
+```
+
+Interpretation des Plots:
+
+- Wir sehen exponentielles Wachstum. (Gerade Linien im halb-logarithmischen Plot.)
+- Das Aphidicolin hemmt das Wachstum, unterbindet es aber nicht völlig. (Gestrichelte Linien haben geringere Steigung.)
+- Die Konzentration von Anti-CD3 hat keinen merklichen Einfluß auf das Wachstum. (Die Linien mit verschiedenen Farben sind durchmischt.) Die Anti-CD3-Beschichtung beeinflusst die Targetzellen also nicht in einer Weise, die die Interpretation des Kokultur-Assays verfälschen könnte.
+
+Nun können wir schließlich den Plot für die Kokulturen erzeugen:
+
+```{r}
+tbl_long_norm %>%
+left_join( plate_rows ) %>%
+left_join( plate_cols ) %>%
+filter( content == "co-culture" ) %>%
+filter( used ) %>%
+mutate( conc_anti_cd3 = factor( conc_anti_cd3 ) ) %>%
+mutate( well = str_c( plate_row, plate_column ) ) %>%
+ggplot +
+  geom_line( aes( x=hours_incub, y=count_ratio, group=well, col=conc_anti_cd3 ) ) +
+  facet_grid( n0_t_cells ~ subject ) +
+  scale_y_log10()
+```
+
+Interpretation:
+
+- Targetzellen ohne Anti-CD3-Belegung werden von den T-Zellen nicht angegriffen. (Die roten Linien fallen nicht sondern steigen, in etwa genauso stark wie in der Monokultur.)
+- Die Stärke der Anti-CD3-Belegung scheint keinen großen Unterschied zu machen. (Die blauen und grünen Linien sind vermischt, und, wenn überhaupt ein Unterscheid da ist, dann in umgekehrter Richtung: Die Tragetzellen mit der schwächeren Belegung (grün) werden stärker dezimiert als die mit der stärkeren Belegung (blau).)
+- Wenn man mehr T-Zellen einbringt, werden auch mehr Targetzellen vernichtet. (Der Abfall der grünen und blauen Linien ist stäker in der unteren Facets-Reihe.)
+- Die T-Zellen des Probanden C3 sind viel aggressiver als die der anderen drei Probanden. (Bei "C3" fallen die grünen und blauen Linien mit deutlich stärker.)
+- Die T-Zellen von Patient (P) und von den Vergleichsprobanden C1 und C2 sind hingegen in etwa gleich aggressiv.
+
+Der durch dieses Assay gemessene Effekt kann die Symptome des Patienten also leider nicht erklären.
+
