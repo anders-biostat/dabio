@@ -174,4 +174,5 @@ Interpretation:
 - Die T-Zellen des Probanden C3 sind viel aggressiver als die der anderen drei Probanden. (Bei "C3" fallen die grünen und blauen Linien mit deutlich stärker.)
 - Die T-Zellen von Patient (P) und von den Vergleichsprobanden C1 und C2 sind hingegen in etwa gleich aggressiv.
 
+Der durch dieses Assay gemessene Effekt kann die Symptome des Patienten also leider nicht erklären.
 
