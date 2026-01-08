@@ -1,5 +1,5 @@
 ---
-title: "Ein erster Blick auf die Evo-Devo-Maus-Daten"
+title: "Explorative Analyse der Evo-Devo-Maus-Daten"
 ---
 
 Hier verwenden wir Daten aus folgendem Paper:
@@ -8,10 +8,10 @@ M. Cardoso-Moreia et al.: *Gene expression across mammalian organ development*. 
 
 Spezifisch arbeiten wir mit der Expressions-Matrix, die aus den Maus-Proben gebildet wurde. Zusammen mit den Rohdaten haben die Autoren diese Matrix als Datei `Mouse.CPM.txt` verfügbar gemacht. Allerdings wurden in dieser Datei die rohen Read-Zahlen bereits in CPM-Werte umgewandelt. Da wir am Anfang beginnen wollen, habe ich diese Normalisierung rückgängig gemacht (siehe [hier](mouse_unnormalize.html) für Details); die Matrix, die ich so erhalten habe, ist hier [hier](Downloads/evodevo_mouse_counts.tsv.gz) verfügbar).
 
-Wir laden diese Matrix
+Wir laden zunächst die Matrix
 
-```{r}
-suppressPackageStartupMessages( library(tidyverse) )
+```{r message=FALSE}
+library(tidyverse) 
 
 read_tsv( "Downloads/evodevo_mouse_counts.tsv.gz" ) -> mouse_counts
 ```
@@ -21,6 +21,10 @@ Hier sind die ersten Spalten und Zeilen der Matrix:
 ```{r}
 mouse_counts[ 1:5, 1:5 ]
 ```
+
+Wir werden eine explorative Analyse ("exploratory data analysis", EDA) durchführen, also eine Analyse, bei der wir uns
+anfangs keine spezifische Fragestellung vorgeben, sondern einfach uns in möglichst viele Richtungen "umschauen".
+
 
 ### Probentabelle
 
@@ -39,7 +43,7 @@ tibble( sample = colnames(mouse_counts)[-1] ) %>%
 separate( sample, c( "tissue", "timepoint", "replicate" ), sep="_", remove=FALSE ) %>%
 mutate( timepoint = fct_inorder( timepoint ) ) -> sample_table  
 
-head( sample_table )
+sample_table
 ```
 
 Hier haben wir `timepoint` zu einem Faktor gemacht, um sicherzustellen, dass die Reihenfolge der Zeitpunkte später beim Plotten nicht verändert wird. Wir haben nun folgende Zeitpunkte:
@@ -56,7 +60,7 @@ Wir haben folgende Gewebearten:
 sample_table %>% pull( tissue ) %>% unique()
 ```
 
-(Die Funktion `unique` hier kürzt einen vektor so, dass jeder Wert nur noch einmal vorkommt.)
+(Die Funktion `unique` hier kürzt einen Vektor so, dass jeder Wert nur noch einmal vorkommt.)
 
 Der folgende Code zählt, wieviel Proben wir für jede Kombination aus Gewebe und Zeitpunkt haben:
 
@@ -89,7 +93,7 @@ Mit Google lässt sich schnell ermittlen, dass die Ensembl-ID `ENSMUSG0000002936
 
 Was sind die anderen Gene? Wir laden die Datei mit der Zuordnung von Ensembl-Gen-IDs zu Gen-Symbolen , die wir bereits das [letzte Mal](alignment.html#gen-ids) erstellt haben. Wir benennen aber die Spalten um, um sie etwas kürzer zu machen:
 
-```{r}
+```{r message=FALSE}
 read_tsv( "Downloads/Ensembl_102_GRCm38.p6_Gene_names.tsv" ) %>%
 rename( gene_id = "Gene stable ID", gene_name = "Gene name", gene_descr = "Gene description" )-> gene_names
 
@@ -103,10 +107,10 @@ mouse_counts %>%
 select( gene_id, Liver_P0_1 ) %>%
 arrange( desc( Liver_P0_1 ) ) %>%
 left_join( gene_names ) %>%
-head( 10 )
+head( 50 )
 ```
 
-Auch die anderen hochexprimierten Gene passen zur Aufgaben der Leber.
+Auch die anderen hoch exprimierten Gene passen zur Aufgaben der Leber.
 
 Werfen wir zum Vergleich noch einen Blick auf die Gene, die in der Niere am höchsten exprimiert sind. Wir verwenden wieder das erste Replikat von Zeitpunkt P0:
 
@@ -115,10 +119,10 @@ mouse_counts %>%
 select( gene_id, Kidney_P0_1 ) %>%
 arrange( desc( Kidney_P0_1 ) ) %>%
 left_join( gene_names ) %>%
-head( 10 )
+head( 50 )
 ```
 
-Dieses Mal finden wir hauptsächlich basale Transkriptionsfaktoren und ähnliches. Das klingt nicht allzu spezifisch für die Niere. Vielleicht kommen wir später darauf zurück.
+Dieses Mal finden wir hauptsächlich basale Transkriptionsfaktoren und ähnliches. Das klingt nicht allzu spezifisch für die Niere. Wir kommen später hierauf darauf zurück.
 
 ### Normalisierung
 
@@ -138,7 +142,7 @@ mouse_counts %>% column_to_rownames( "gene_id" ) %>% as.matrix() -> count_matrix
 count_matrix[ 1:5, 1:5 ]
 ```
 
-Das hat scheinbar nichts geändert, aber nun stehen uns spezielle Matrix-Funktionen zur Verfügung, z.B. `colSum`, um die Spaltensummen ("column sums") zu berechnen
+Das hat scheinbar nichts geändert -- aber nun stehen uns spezielle Matrix-Funktionen zur Verfügung, z.B. `colSum`, um die Spaltensummen ("column sums") zu berechnen
 
 ```{r}
 colSums( count_matrix ) %>% head()
@@ -184,7 +188,7 @@ t( t(count_matrix) / colSums(count_matrix) ) * 1e6 -> cpm_matrix
 cpm_matrix[1:5,1:5]
 ```
 
-Hier haben wir jede Zeile der Maztrix durch ihre Spaltensumme (aus `colSums`) geteilt. Da aber R "matrix / vector" interpretiert als Aufforderung, jede *Zeile* (und nicht: Spalte) der Matrix durch ein Element des vektors zu teilen, müssen wir die Matrix vorher mit `t` transponieren (d.h. Zeilen und Spalten vertauschen) und nachd er Division wieder zurück transponieren.
+Hier haben wir jede Zeile der Matrix durch ihre Spaltensumme (aus `colSums`) geteilt. Da aber R eine Division "matrix / vector" interpretiert als Aufforderung, jede *Zeile* (und nicht: Spalte) der Matrix durch ein Element des Vektors zu teilen, müssen wir die Matrix vorher mit `t` transponieren (d.h. Zeilen und Spalten vertauschen) und nach der Division wieder zurück transponieren.
 
 Ob man auf diese Weise arbeitet, oder mit Tidyverse, ist Geschmackssache.
 
@@ -202,7 +206,7 @@ head(10)
 
 Wir speichern die IDs dieser 10 Gene zunächst in einem Vektor:
 
-```{r}
+```{r message=FALSE}
 expr_long %>%
 filter( sample == "Liver_P0_1" ) %>%
 arrange( desc(count) ) %>%
@@ -234,7 +238,7 @@ ggplot( ) +
   scale_y_log10()
 ```
 
-Vielleicht wäre es übersichtlicher, wenn wir Linien statt Punkten verwenden würden. Es macht aber keinen Sinn, alle Punkte, die dieselbe Replikat-Ummer haben, mit einer Linie zu verbinden, denn das sind ja dennoch verschiedene Proben. Wir versuchen, über die Replikate zu mitteln:
+Vielleicht wäre es übersichtlicher, wenn wir Linien statt Punkten verwenden würden. Es macht aber keinen Sinn, alle Punkte, die dieselbe Replikat-Nummer haben, mit einer Linie zu verbinden, denn das sind ja dennoch verschiedene Proben. Wir sollten zunächst über die Replikate zu mitteln:
 
 ```{r}
 liver_top %>%
@@ -245,7 +249,7 @@ ggplot( ) +
   scale_y_log10()
 ```
 
-Wir erkennen, dass die meisten der 10 Gene Anfangs schwach exprimiert sind, ab E12.5 schon recht stark und dann langsam weiter zunehmen. Nach der Geburt bleiben sie in etwa konstant. Ein Gen ("Afp") fällt wieder stark ab. "Afp" steht für "alpha-1-Fetoprotein", und der Name zeigt schon, dass es sich um ein Protein handelt, dass wohl nur in Föten vorkommt.
+Wir erkennen, dass die meisten der 10 Gene anfangs schwach exprimiert sind, ab E12.5 schon recht stark und dann langsam noch weiter zunehmen. Nach der Geburt bleiben sie in etwa konstant. Ein Gen ("Afp") fällt wieder stark ab. "Afp" steht für "alpha-1-Fetoprotein", und der Name zeigt schon, dass es sich um ein Protein handelt, dass nur in Föten vorkommt.
 
 ### Log-Expression
 
@@ -267,7 +271,7 @@ hist( log10( cpm_matrix[,"Liver_P0_1"] ), 100 )
 
 Wir sehen, dass die meisten Gene zwischen $10^{0.5} \approx 3$ und $10^2 = 100$ cpm haben, einige wenige aber über $10^4 = 10000$.
 
-Klar ist auch, dass die log10(CPM)-Werte, die von -1 bis 5 gehen, besser geeignet scheinen, um damit zu arbeiten, als die CPM-Werte, die zwar theoretisch von 0 bis über 100.000 gehen, meist aber unter 100 bleiben. Deshalb werden wir im folgenden meist mit logarithmierten Werten arbeiten.
+Klar ist auch, dass die log10(CPM)-Werte, die von -1 bis 5 gehen, besser geeignet scheinen, um damit zu arbeiten, als die CPM-Werte, die zwar theoretisch von 0 bis über 100.000 gehen, meist aber unter 100 bleiben. Deshalb werden wir im folgenden meist mit logarithmischen Werten arbeiten.
 
 Der Logarithmus von 0 ist minus unendlich, und daher gehen uns alle Nullen in der CPM-Matrix verloren. Um sie zu behalten, zählen wir zu jedem CPM-Wert den Wert 0.03 hinzu. Damit wird 0 zu $\log_{10}(0.03) = -1.5$, und die anderen Werte schieben ein ganz kleines bisschen nach rechts:
 
@@ -277,13 +281,13 @@ hist( log10( cpm_matrix[,"Liver_P0_1"] + 0.03 ), 100 )
 
 Wie man sieht, haben wir sehr viele Nullen.
 
-Wenn wir nun auf unseren Linien-Plot oben zurück gehen, stellt sich eien Frage. Dort haben wir zwar mit der logarithmierten y-Achse die Expression bereits logarithmisch dargestellt, aber: Sollten wir erst den Logarithmus ziehen und dann über die Replikate mitteln, oder anders herum? Letzteres ist tatsächlich besser, weil sonst ein einzelnes stark exprimiertes Replikat zu viel Einfluss auf den Mittelwert hätte.
+Oben, vor dem Linienplot, haben wir über die Replikate gemittelt. Dazu stellt sich eine Frage: Sollten wir erst den Logarithmus ziehen und dann über die Replikate mitteln, oder anders herum? Letzteres ist tatsächlich besser, weil sonst ein einzelnes stark exprimiertes Replikat zu viel Einfluss auf den Mittelwert hätte.
 
-Also, hier der Linienplot nochmal, nun mit Mittelung nach dem Logarithmus.
+Daher, hier der Linienplot nochmals, diesmal mit Mittelung *nach* dem Logarithmus.
 
-Wir erstellen erst eine Tabelle mit allen Genen, in der wir den Logarithmus der CPM-Werte nehmen und dann über die Replikate mitteln:
+Wir erstellen erst eine Tabelle mit allen Genen, in der wir den Logarithmus der CPM-Werte nehmen, und dann mitteln wir über die Replikate:
 
-```{r}
+```{r message=FALSE}
 expr_long %>%
 left_join( sample_table ) %>%
 mutate( lcpm = log10( cpm + 0.03 ) ) %>%
@@ -293,8 +297,10 @@ left_join( gene_names )-> lcpm_means
 
 head( lcpm_means )
 ```
+Dieser Code brauch recht lange (fast eine halbe Minute), da über sehr viele Gruppen
+summarisiert wird.
 
-Nun der Linienplot
+Nun der Linienplot, wie zuvor:
 
 ```{r}
 lcpm_means %>%
@@ -303,11 +309,14 @@ ggplot( ) +
   geom_line( aes( x=timepoint, y=mean_lcpm, group=gene_name, col=gene_name ) ) 
 ```
 
+Einen großen Unterschied hat es diesmal nicht gemacht, ob man erst den Logarithmus nimmt und dann
+mittelt oder umgekehrt. Häufig ist das aber anders.
+
 ### Stark variierende Gene
 
-Unsere Auswahl der 10 Gene war nicht wirklich geeignet, um Gene zu finden, die sich in der Entwicklung stark ändern. Versuchen wir etwas besseres: WIr berechnen für jedes Gen den kleinsten und den größten Wert, den es über alle Zeitpunkte annimmt:
+Unsere Auswahl von 10 stark exprimierten Genen war nicht wirklich geeignet, um Gene zu finden, die sich in der Entwicklung stark ändern. Versuchen wir etwas besseres: Wir berechnen für jedes Gen den kleinsten und den größten Wert, den es über alle Zeitpunkte annimmt. So können wir dann die Gene mit der größten Spanne genauer ansehen
 
-```{r}
+```{r message=FALSE}
 lcpm_means %>%
 filter( tissue == "Liver" ) %>%
 group_by( gene_id, gene_name ) %>%
@@ -318,11 +327,9 @@ arrange( desc( max_lcpm - min_lcpm ) ) %>%
 head()
 ```
 
-Beachten Sie: Wir haben im vorigen Schritt über die Replikate gemittelt. Nun haben wir alle diese Mittelwerte nach Genen gruppiert, d.h., die Werte vom selben Gen, aber von verschiedenen Zeitpunkten zusammen genommen, und hier die Minima und Maxima ermittelt. Dann haben wir nach der Differenz zwischen Maximum und Minimum (also der Spanne der Werte) absteigend sortiert.
+Wir schreiben uns die 50 Gene mit der größten Spanne (größter minus kleinster Wert) heraus:
 
-Wir schreiben uns die 50 Gene mit der größten Spanne heraus:
-
-```{r}
+```{r message=FALSE}
 lcpm_means %>%
 filter( tissue == "Liver" ) %>%
 group_by( gene_id, gene_name ) %>%
@@ -337,7 +344,7 @@ pull( gene_id ) -> top_50_by_span
 head( top_50_by_span )
 ```
 
-Der Linienplot für diese Gene sieht nun etwas unübersichtlich aus:
+Der Linienplot für diese Gene sieht nun alledings etwas unübersichtlich aus:
 
 ```{r}
 lcpm_means %>%
@@ -350,7 +357,7 @@ Wie können wir dies besser darstellen?
 
 ### Heatmaps
 
-Hier ist eine andere Darstellung derselben Daten, nämlich mit `geom_tile` statt `geom_line`. Wir tauschen y-Achse gegen Farbe: die gene unterscheiden wir nun, indem wir sie untereinander anordnen, und die Expressionsstärke stellen wir durch die Farbe dar.
+Hier ist eine andere Darstellung derselben Daten, nämlich mit `geom_tile` statt `geom_line`. Wir tauschen y-Achse gegen Farbe: die Gene unterscheiden wir nun, indem wir sie untereinander anordnen, und die Expressionsstärke stellen wir durch die Farbe dar.
 
 ```{r}
 lcpm_means %>%
@@ -362,13 +369,13 @@ ggplot( ) +
 
 Etwas unübersichtlich ist es immer noch. Es hilt, die Gene anders zu sortieren.
 
-Es gibt spezielel Funktionen um in solchen Heatmaps die Zeilen doer Spalten so zu sortieren, dass man besser sehen kann, was sich ähnelt. Wir werden das Paket `pheatmap` (pretty heatmaps) benutzen:
+Es gibt spezielle Funktionen um in solchen Heatmaps die Zeilen oder Spalten so zu sortieren, dass man besser sehen kann, was sich ähnelt. Wir werden hierfür das Paket `pheatmap` (pretty heatmaps) benutzen:
 
 ```{r}
 library( pheatmap )
 ```
 
-Während wir ggplot mit geom_tile eben die daten in einer langen Liste übergeben haben, möchte pheatmap sie als Matrix. Die Zeitpunkte sollten also nicht untereinander, sondern nebeneinander stehen. Wir benutzen `pivot_wider` hierzu, und wandeln dann noch alles zu einer Matrix um, die die Gen-Namen als Zeilen-Namen hat:
+Während wir eben `ggplot` mit `geom_tile` die Daten in einer langen Tabelle übergeben haben, möchte `pheatmap` sie als Matrix. Die Zeitpunkte sollten also nicht untereinander, sondern nebeneinander stehen. Wir benutzen `pivot_wider` hierzu, und wandeln dann noch alles zu einer Matrix um, die die Gen-Namen als Zeilen-Namen hat:
 
 ```{r}
 lcpm_means %>%
@@ -380,7 +387,7 @@ as.matrix() -> liver_top50_varying_matrix
 liver_top50_varying_matrix[ 1:5, 1:7 ]
 ```
 
-Nun rufen wir die Funktion `pheatmap` aus dem paket `pheatmap` auf:
+Nun rufen wir die Funktion `pheatmap` aus dem Paket `pheatmap` auf:
 
 ```{r}
 pheatmap( 
@@ -393,23 +400,23 @@ pheatmap(
 
 Die Funktion `pheatmap` hat Dutzende Argumente, um das Aussehen der Heatmap anzupassen. Wir haben hier nur einige verwendet.
 
-Das erste Argument ist die Matrix mit den Daten. Mit `cluster_cols=FALSE` und `cluster_rows=TRUE` stellen wir klar, dass die Reihenfolge der Spalten unverändert aus der Matrix übernommen werden sollen, während die Spalten durch sog. Clustering umgeordnet werden sollen. Zuletzt wählen wir mit `color = viridis::magma(100)` die Farbskala aus: Wir möchten die "Magma"-Palette aus dem "viridis"-Paket in 100 Abstufungungen verwenden. Mehr zu den Viridis-Paletten fidnen Sie [hier](https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html).
+Das erste Argument ist die Matrix mit den Daten. Mit `cluster_cols=FALSE` und `cluster_rows=TRUE` stellen wir klar, dass die Reihenfolge der Spalten unverändert aus der Matrix übernommen werden sollen, während die Spalten durch sogenanntes Clustering umgeordnet werden sollen. Zuletzt wählen wir mit `color = viridis::magma(100)` die Farbskala aus: Wir möchten die "Magma"-Palette aus dem "viridis"-Paket in 100 Abstufungungen verwenden. Mehr zu den Viridis-Paletten finden Sie [hier](https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html).
 
 Beim Clustering wird zunächst bestimmt, wie "ähnlich" die Zeilen zueinander sind: Zwei Zeilen gelten als "nah beieinander", wenn sie einen hohen Korrelationskoeffizienten haben. (Zum Korrelationskoeffizienten später mehr.) Dass zur Beurteilung der Ähnlichkeit der Korrelationskoeffizient verwendet werden soll, wird durch `clustering_distance_rows = "correlation"` festgelegt.
 
-Hier wird sog. hierarchisches (oder: agglomeratives) Clustering verwendet, um Gruppen ähnlicher Zielen nebeneinander zu setzen. Näheres heirzu findet sich [hier](https://de.wikipedia.org/wiki/Hierarchische_Clusteranalyse) auf Wikipedia.
+Hier wird sog. hierarchisches (oder: agglomeratives) Clustering verwendet, um Gruppen ähnlicher Zielen nebeneinander zu setzen. Näheres hierzu findet sich [hier](https://de.wikipedia.org/wiki/Hierarchische_Clusteranalyse) auf Wikipedia.
 
 #### Beurteilung
 
-Mit der verbesserten Heatmap können wir jetzt einiges ablesen: Die Gene, die nur im Fötus verwendet werden, haben alle mit fötalem Hämoglobin zu tun. (Erinnern Sie sich, die Blutbildung im erwachsenen Säugetier zwar nur im Knochenmark erfolgt, im Embryo aber auch in Leber und Milz, und im Fötus ein anderes Hämoglobin als im ausgewachsens Tier verwendet wird. Siehe auch [hier](https://en.wikipedia.org/wiki/Fetal_hemoglobin).)
+Mit der verbesserten Heatmap können wir jetzt einiges ablesen: Die Gene, die nur im Fötus verwendet werden, haben alle mit fötalem Hämoglobin zu tun. (Erinnern Sie sich, dass die Blutbildung im erwachsenen Säugetier zwar nur im Knochenmark erfolgt, im Fötus aber auch in Leber und Milz, und dass im Fötus ein anderes Hämoglobin als im ausgewachsen Tier verwendet wird. Siehe auch [hier](https://en.wikipedia.org/wiki/Fetal_hemoglobin).)
 
-Wir können auch Gruppen von Genen erkennen, die erst im reiferen Fötus aktiv werden, und einige, die sogar erst im ausgewachsenen Tier aktiv werden. Sie werdn sicher erkennen, dass wir viel über die Leber lernen können, wenn wir solche Plots im Detail studieren.
+Wir können auch Gruppen von Genen erkennen, die erst im reiferen Fötus aktiv werden, und einige, die sogar erst im ausgewachsenen Tier exprimiert werden. Sie werden sicher erkennen, dass wir viel über die Enwticklung der Leber lernen können, wenn wir solche Plots im Detail studieren.
 
 ### Reproduzierbarkeit
 
-Erstaunlich ist das Gen Sult2a1, das scheinbar nur zu einem Zeitpunkt, nämlich 14 Tage nach Geburt (P14) hoch exprimiert ist, und dann wieder abnimmt. Stimmt das, oder ist hier vielleicht ein einzelnes der 4 Replikate ein Ausreißer und hat den Mittwelwert für diesen Zeitpunkt hoch gezogen?
+Erstaunlich ist das Gen Sult2a1, das scheinbar nur zu einem Zeitpunkt, nämlich 14 Tage nach Geburt (P14) hoch exprimiert ist, und dann wieder abnimmt. Stimmt das, oder ist hier vielleicht ein einzelnes der 4 Replikate ein Ausreißer und hat den Mittelwert für diesen Zeitpunkt hoch gezogen?
 
-Wir prüfen das, indem wir auf die ursprünglichen, noch nicht über Replikate gemittelten Daten zurück gehen und das Gen plotten:
+Wir prüfen das, indem wir auf die ursprünglichen, noch nicht über Replikate gemittelten, Daten zurück gehen und das Gen plotten:
 
 ```{r}
 expr_long %>%
@@ -422,9 +429,11 @@ ggplot +
   scale_y_log10()
 ```
 
-Wir erkennen: Das das Gen langsam ansteigt, und zum Zeitpunkt P14 maximal ist, da sind sich alle Replikate einig, auch zu dem Abfall kurz vor Geburt. Der Effekt im höheren Alter ist aber zwischen Replikaten sehr variabel.
+Wir erkennen: Dass das Gen langsam ansteigt, und zum Zeitpunkt P14 maximal ist, da sind sich alle Replikate einig, auch zu dem Abfall kurz vor Geburt. Der Effekt im höheren Alter ist aber zwischen Replikaten sehr variabel.
 
-Wir möchten aber auch nicht zu viele Plots ansehen müssen. Daher gibt es statistsiche Techniken, um automatisiert zu beurteilen, für welche Gene Effekte als signifikant gesehen werden dürfen, da alle Repplikate ein konsitentes Bild zeigen, und wo die Daten unklarer sind. Dies wird als "differential expression calling" oder als Ermittlung von "differentially expressed genes" (DGE) bezeichnet. Bei einem einfachen Vergleich zwischen zwei Gruppen handelt es sich dabei um Weiterentwicklungen aus dem t-Test heraus. Für kompliziertere Situationen, wie die Zeitreihe hier, ist dies aber etwas komplizierter. Eventuell werden wir in einer späteren Vorlesung auf Details eingehen können.
+Wir möchten aber auch nicht zu viele Plots ansehen müssen. Daher gibt es Methoden, die automatisiert beurteilen, für welche Gene alle Replikate ein konsistentes Bild zeigen, und wo die Daten unklarer sind. 
+
+Dies wird als "differential expression calling" oder als Ermittlung von "differentially expressed genes" (DGE) bezeichnet. Bei einem  Vergleich zwischen zwei Gruppen (z.B. hier Replikate zu zwei Zeitpunkten) handelt es sich dabei um Weiterentwicklungen aus dem t-Test heraus. Für kompliziertere Situationen, wie die Zeitreihe hier, kann die Statistik aber recht kompliziert werden.
 
 ### Proben-Korrelation
 
@@ -456,7 +465,7 @@ plot(
 abline( 0, 1, col="orange")
 ```
 
-Wir erkennen stärkere Abweichung.
+Wir erkennen eine stärkere Abweichung.
 
 Wir können dies auch durch den Korrelationskoeffizienten quantifizieren, der im zweiten Fall niedriger ist.
 
@@ -470,34 +479,41 @@ cor(
   log10( cpm_matrix + .03 )[ , "Liver_e15.5_1" ] )
 ```
 
-Man kann der Funktion `cor` auch statt zweier Spalten die ganze Matrix übergeben, und erhält dann eine sog. Korrelationsmatrix mit der Korrelation aller Spalten zu allen Spalten. Diese matrxi können wir dann mit `pheatmap` plotten:
+Man kann der Funktion `cor` auch statt zweier Spalten die ganze Matrix übergeben, und erhält dann eine sog. Korrelationsmatrix mit der Korrelation aller Spalten zu allen Spalten. 
 
 ```{r}
-pheatmap(
-  cor( log10( cpm_matrix + .03 ) ),
-  cluster_rows=FALSE, cluster_cols=FALSE, 
-  annotation_col = sample_table %>% select( - replicate ) %>% column_to_rownames( "sample" ),
-  labels_row = "", labels_col = "" )
+cor( log10( cpm_matrix + .03 ) )[ 1:5, 1:5]
 ```
 
-Hier dasselbe, nur für die Leber-Proben:
+Diese Matrix können wir dann mit `pheatmap` plotten. Zunächst einmal nur für die Leber-Proben:
 
-```{r}
+```{r fig.height=9,fig.width=9.3}
 pheatmap(
   cor( log10( cpm_matrix[ , sample_table$tissue=="Liver" ] + .03 ) ),
-  cluster_rows=FALSE, cluster_cols=FALSE, 
-  annotation_col = sample_table %>% select( - replicate ) %>% column_to_rownames( "sample" ) )
+  cluster_rows=FALSE, cluster_cols=FALSE, fontsize=8,
+  annotation_col = sample_table %>% select( sample, timepoint ) %>% column_to_rownames( "sample" ) )
 ```
+Hier haben wir über der Heatmap eine farbige Kennzeichung der Zeitpunkte angebracht
+mittels des (etwas kryptischen) `pheatmap`-Argments `annotation_col`.
 
 Hieraus können wir nun ablesen, zu welchen Zeitpunkten sich das Leber-Transkriptom besonder stark ändert.
 
 Aber wir erkennen auch Probleme mit der Probenqualität. Einige Proben unterscheiden sich von ihren replikaten deutlich stärker als anders, z.B. die allererste Probe.
 
+Wir können auch alle Proben von allen Geweben mit allen vergleichen:
+
+```{r}
+pheatmap(
+  cor( log10( cpm_matrix + .03 ) ),
+  cluster_rows=FALSE, cluster_cols=FALSE, 
+  annotation_col = sample_table %>% select( -replicate ) %>% column_to_rownames( "sample" ),
+  labels_row = "", labels_col = "", fontsize=8 )
+```
 ### Gewebespezifische Gene
 
-Weiter oben haben wir gefragt, welche Gene in der Niere besodners stark exprimiert sind, konnten aber mit den gefunden Genen nicht viel anfangen. Daher stellen wir die Frage nun etwas anders:
+Weiter oben haben wir gefragt, welche Gene in der Niere besonders stark exprimiert sind, konnten aber mit den gefundenen Genen nicht viel anfangen. Daher stellen wir die Frage nun etwas anders:
 
-Welche Gene sind besonders spezifisch für die Niere? Wir werden diese Frage für ausgewachsene Mäuse beantworten, indem wir uns auf die Proben von Zeitpunkt P28 beschränken.
+Welche Gene sind besonders *spezifisch* für die Niere? Wir werden diese Frage für ausgewachsene Mäuse beantworten, indem wir uns auf die Proben von Zeitpunkt P28 beschränken.
 
 Zunächst nehmen wir die vier P28-Proben von der Niere und bestimmen für jedes Gen den jeweils kleinsten der vier CPM-Werte:
 
@@ -525,24 +541,34 @@ max_non_kidney_P28
 
 Wenn wir diese beiden Tabellen nun nebeneinander setzen, können wir die Gene bestimmen, die in der Niere viel höher sind als in all den anderen Proben:
 
-```{r}
+```{r message=FALSE}
 inner_join( min_kidney_P28, max_non_kidney_P28 ) %>%
-arrange( desc( min_cpm_in_kidney / ( max_cpm_outside_kidney + 0.03 ) ) ) %>%
-left_join( gene_names )
+mutate( kidney_to_other_ratio = ( min_cpm_in_kidney + 0.03 ) / ( max_cpm_outside_kidney + 0.03 ) ) %>%
+arrange( desc(kidney_to_other_ratio) ) %>%  
+left_join( gene_names ) -> kidney_to_others_comparison
 ```
+
+Nun finden wir Gene, die *nur* in der Niere exprimiert werden, also wohl spezifisch für die 
+Aufgaben der Niere gebraucht werden.
+
+Wir können die Tabelel von eben auch plotten:
 
 ```{r}
-inner_join(
-  
-  lcpm_means %>%
-  filter( timepoint == "P28", tissue == "Kidney" ) %>%
-  rename( kidney_lcpm = mean_lcpm ),
-
-  lcpm_means %>%
-  filter( timepoint == "P28", tissue != "Kidney" ) %>%
-  group_by( gene_name ) %>%
-  summarise( non_kidney_max_lcpm = max( mean_lcpm ) ) ) %>%
-
-mutate( kidney_lead = kidney_lcpm - non_kidney_max_lcpm ) %>%
-arrange( desc( kidney_lead ) )
+kidney_to_others_comparison %>%
+ggplot() +
+  geom_point( aes( x=max_cpm_outside_kidney, y=min_cpm_in_kidney, label=gene_name ), size=.4, alpha=.3 ) +
+  geom_abline( slope=1, intercept=0, col="blue", alpha=.3 ) +
+  scale_x_log10() + scale_y_log10() + coord_equal() +
+  ylab("Expression in der Niere [cpm]") + xlab("höchste Expression in Nicht-Nieren-Proben [cpm]")
 ```
+Hier haben wir eine neue `aes`-Angabe verwendet, `label`, mit der `geom_point` nichts anfangen
+kann und sich daher mit einer Warnung beschwert.
+
+Zweck ist, dass wir den Plot an "ggplotly" übergeben können, das ihn dann so anzeigt,
+dass der in `label` übergebene Gennamen angezeigt wird, wenn wir den Mauszeiger über einen
+Punkt halten:
+
+```{r eval=FALSE}
+plotly::ggplotly()
+```
+
