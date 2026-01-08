@@ -69,7 +69,7 @@ Wintersemester 2025/26
 - High-throughput sequencing
   - [Übersicht](seq_intro.html)
   - [Präprozessierung von RNA-Seq-Daten](alignment.html)
-  - [Erster Blick auf die Maus-Daten](mouse_first_look.html)
+  - [Explorative Analyse der Evo-Devo-Maus-Daten](mouse_first_look.html)
   - [Übungsaufgabe zu den Mausdaten](HA_rnaseq_1.html) (mit Lösung)
 
 <!--    
@@ -95,7 +95,6 @@ Wintersemester 2025/26
   - [Erster Blick auf die mausdaten](https://papagei.bioquant.uni-heidelberg.de/simon/dabio23/mouse_first_look.html) (übernommen vom Vorjahr)
   - [Differentielle Gen-Expression](https://papagei.bioquant.uni-heidelberg.de/simon/dabio23/deseq.html)  (übernommen vom Vorjahr)
 - [Link zur Vorlesungs-Evaluation](https://uni-heidelberg.evasys.de/evasys/online.php?pswd=FY2S5)
-- [Hausaufgabe: "Killing-Assay"](killing.html) (Abgabe bis 27.1.25)
 - [Poisson-Verteilung 2](poisson2.html)  
 
 ## Musterlösungen zu den Hausaufgaben
@@ -108,6 +107,18 @@ Wintersemester 2025/26
 - zur Hausaufgabe [vom 12.12.](Loesung_Hausaufgabe_2024-12-17.html)
 
 -->
+
+## Klausur
+
+Die **Klausur** zur Vorlesung findet statt am **Montag, 9. Februar 2026** um **8 Uhr** im großen Hörsaal im COS (Raum 006 in INF 230). Der Umfang der Klausur wird so gestaltet werden, dass eine Bearbeitung in 1½ bis 2 Stunden gut möglich sein sollte; sie werden aber 3 Stunden Bearbeitungszeit erhalten.
+
+Sie dürfen ein beidseitig beschriebenes oder bedrucktes A4-Blatt mit Notizen als Hilfsmittel mitbringen.
+
+Zur Zulassung zur Klausur ist erforderlich, dass Sie zu zumindest einigen Hausaufgaben (min. etwa die Hälfte) eine Lösung oder zumindest einen Versuch dazu auf Moodle abgegeben haben. (Wer bereits im WS 2024/25 Hausaufgaben abgegeben hatte und somit letztes Jahr zur Klausur zugelassen war, gilt noch immer als zugelassen.)
+
+Ein An- oder Abmeldung ist nicht erforderlich: Sie gelten automatische als angemeldet, wenn Sie zur Klausur antreten. Wenn Sie nicht zur Klausur kommen, gelten Sie nicht als angemeldet, d.h. dies gilt nicht als Fehlversuch.
+
+Eine Nachklausur wird voraussichtlich kurz vor Ende der vorlesungsfreien Zeit angeboten werden.
 
 ## Weitere Links
 
