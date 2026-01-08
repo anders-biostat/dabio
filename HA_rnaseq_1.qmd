@@ -4,7 +4,7 @@ title: "Übung RNA-Seq (mit Lösung)"
 
 In dieser Hausaufgabe arbeiten wir mit den RNA-Seq-Daten zur Maus aus dem in der Vorlesungen besprochenen [Paper](https://doi.org/10.1038/s41586-019-1338-5) von Cardoso-Moreia et al. (2019).
 
-[Hier](data_on_git/evodevo_mouse_counts.tsv) finden Sie eine Datei mit der Count-Matrix, die Sie mit `read_tsv` laden können.
+[Hier](Downloads/evodevo_mouse_counts.tsv.gz) finden Sie eine Datei mit der Count-Matrix, die Sie mit `read_tsv` laden können.
 
 ```{r message=FALSE}
 library( tidyverse ) 
