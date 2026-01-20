@@ -71,6 +71,7 @@ Wintersemester 2025/26
   - [Präprozessierung von RNA-Seq-Daten](alignment.html)
   - [Explorative Analyse der Evo-Devo-Maus-Daten](mouse_first_look.html)
   - [Übungsaufgabe zu den Mausdaten](HA_rnaseq_1.html) (mit Lösung)
+  - [Hausaufgabe](hausaufgabe_maus_dge.html)
 
 <!--    
 - [Inferenz zu Anteilen](binom.html)

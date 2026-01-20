@@ -1,0 +1,113 @@
+---
+title: "Hausaufgabe: Evo-Devo-Maus-Daten"
+---
+
+*Bitte bearbeiten Sie die Aufgaben in einem Quarto-Notebook und laden Sie das Notebook
+**als HTML-Datei** auf Moodle-hoch. Beachten Sie dabei [diese Anleitung](standalone.html)!*
+
+Das hier sind recht viele Aufgaben für eine Woche. 
+Wenn Sie also erstmal nur einen Teil abgeben, ist das kein Problem.
+Wir werden die Aufgaben zum Teil am 13.1. besprechen, den Rest in der Woche danach.
+
+### Daten
+
+Laden Sie die Mausdaten und normalisieren Sie sie, indem Sie sie, wie in der Vorlesung 
+gezeigt, in cpm-Werte umwandeln.
+
+### Aufgabe 1: Vergleich zweier Proben
+
+Für welche Gene unterscheidet sich die Expressionsstärke in der Leber zwischen jungen und alten Mäusen?
+
+**(a)** Erstellen Sie dazu zunächst ein Streudiagramm, dass die Expression in den Proben `Liver_P3_1`
+und `Liver_P63_1` vergleicht, d.h., Ihr Diagramm sollte jedes Gen durch einen Punkt darstellen,
+mit Expressionsstärke (in CPM) in einer Probe als x-Koordinate und in der anderen Probe als y-Koordinate.
+Die Achsen sollten logarithmisch sein. 
+
+Um sicher zu stellen, dass Sie keine Gene verlieren, für die der Read-Count 0 
+beträgt (Warum ist das ein Problem?), zählen Sie zu allen Werten 0.1 hinzu. Wie ändert sich der Plot?
+
+**(b)** Berechnen Sie das Verhältnis der Expressionsstärken in `Liver_P63_1` und `Liver_P3_1`, d.h., teilen
+sie die CPM-Werte in den beiden Proben durch einander. Addieren Sie vorher wieder 0.1 zu allen
+Werten, damit Sie nicht durch 0 teilen. Berechnen Sie ebenso den Mittelwert zwischen den Expressionsstärken
+in den beiden Proben. Plotten Sie dann die Verhältnisse (y-Achse) gegen die Mittelwerte (x-Achse). 
+
+Warum sollten die Achsen auch hier wieder logarithmisch sein?
+
+Anstatt ggplot aufzutragen, die Achsen logarithmisch zu skalieren, nehmen Sie die Logarithmen selbst, 
+indem Sie z.B. `lcpm = log10( cpm + 0.1)` rechnen.
+
+**(c)** Wie ändert sich der Plot, wenn Sie nun die Mittelwerte so berechnen, dass Sie erst die Logarithmen
+nehmen und dann erst zwischen den beiden Werten mitteln?
+
+Betrachten Sie auch die Verhältnisse nochmals. Vergleichen Sie folgende Ausdrücke:
+
+- `log10( (cpmA + 0.1) / (cpmB + 0.1) )` und
+- `log10(cpmA + 0.1) - log10(cpmB + 0.1)`
+
+Im ersten Ausdruck teilen wir die cpm-Werte der beiden Proben durcheinander und nehmen dann den Logarithmus
+der Bruchs. Um zweiten Ausdruck ziehen wir die logarithmierten cpm-Werte voneinander ab. In beiden Fällen
+addieren stets als erstes wir einen kleinen Wert (`+ 0.1`), um Nullen zu vermeiden.
+
+Welcher eignet sich besser, um die logarithmierten Expressionsverhältnisse (y-Achse unseres Plots)
+darzustellen?
+
+**(d)** Finden Sie die Namen der 10 Gene, bei denen das Expressionsverhältnis von P63 zu P1 am größten
+oder am kleinsten ist.
+
+**(e)** Vergleichen Sie die Plots aus (a) und (b). Können Sie erkennen, dass der Plot aus (b) derselbe wie 
+in (a) ist, aber um 45° gedreht?
+
+### Aufgabe 2: Vergleich zweier Gruppen
+
+**(a)** Berechnen Sie die Mittelwerte der Expressionsstärken der 4 Proben von P3-Lebern und der 4 Proben von
+P63-Lebern. Denken Sie daran, erst die Logarithmen zu nehmen und dann erst den Mittelwert. 
+
+Erstellen Sie eine Tabelle, die für jedes Gen angibt: die Ensembl-ID und den Namen (HGNC-Symbol) des Gens, 
+mittlere log-Expression in P3-Leber und in P4-Leber, Gesamt-Mittelwert (P3 und P63 zusammen), und 
+logarithmiertes Verhältnis der P3- und P63-Expression.
+
+Benutzen Sie die Tabelle, um einen Plot zu erstellen, der so ähnlich wie der Plot aus Aufgabe 1b aussieht. 
+
+**(b)** Suchen Sie wieder die jeweils 10 Gene mit dem größten und kleinsten logarithmischen Expressionsverhältnis heraus.
+Dies sind die Gene, die im Plot aus (a) ganz oben und ganz unten erscheinen.
+
+Finden Sie auch 10 Gene, die im Plot von (a) in etwa am oberen Rand der dichteren Punktwolke in der Mitte des Plots liegen.
+
+**(c)** Erstellen Sie für einige der Gene aus (b) jeweils einen Beeswarm-Plot, der die Expressionswerte der einzelnen Proben für das Gen darstellt.
+
+**(d)** Vergleichen Sie für einige der Gene aus (b) die je 4 Werte aus den beiden Gruppen (P3 und P63) mit einem t-Test.
+
+### Aufgabe 3: t-Tests zur Gen-Expression
+
+*(nur für Ambitionierte)*
+
+Führen Sie für jedes Gen in der großen Matrix einen t-Test zwischen `Liver_P3` und `Liver_P63` durch.
+Markieren Sie dann in dem Plot von Aufgabe 2a die Gene in rot, für die der p-Wert unter 0.01 liegt.
+
+Anleitung:
+
+\- Installieren Sie das Paket `genefilter` mit
+```r
+install.packages( "BiocManager" )
+BiocManager::install( "genefilter" )
+```
+
+\- Erstellen Sie eine breite Tabelle mit 9 Spalten: die Gen-IDs und die log-cpm-Werte der 8 Proben.
+
+\- Wenden Sie auf diese Tabelle dann an:
+```r
+tbl %>% column_to_rowname( gene_id) %>% as.matrix() -> m
+```
+Sie erhalten eine Matrix. 
+
+\- Übergeben Sie die Matrix der Funktion `rowttests` aus dem Paket `genefilter`:
+```r
+rowttest( m, f )
+```
+Hier ist `f` ein Faktor, der angibt, welche Spalten zu welcher Gruppe gehören:
+```
+f <- factor( rep( c( "P3", "P63" ) ), each=4 )
+```
+
+\- Sie erhalten von `rowttests` eine Tabelle, die für jede Zeile der Matrix das
+   Ergebnis des durchgeführten t-Tests enthält.
