@@ -71,7 +71,22 @@ Wintersemester 2025/26
   - [Präprozessierung von RNA-Seq-Daten](alignment.html)
   - [Explorative Analyse der Evo-Devo-Maus-Daten](mouse_first_look.html)
   - [Übungsaufgabe zu den Mausdaten](HA_rnaseq_1.html) (mit Lösung)
-  - [Hausaufgabe](hausaufgabe_maus_dge.html)
+  - [Hausaufgabe](hausaufgabe_maus_dge.html) -- [Lösung](HA_rnaseq_Muster.html)
+- weiteres zur Inferenz
+  - Poisson-Verteilung und Zähl-Rauschen (Material aus dem Vorjahr): [Teil 1](poisson.html) und [Teil 2](poisson2.html)
+  - [Konfidenzintervalle und Tests für Anteile](props_ci_tests.html)
+  - [Vergleichende Übersicht Mittelwerte und Anteile](means_vs_props.html)
+
+
+<!--
+Plan:
+  - Hausaufgabe OSCC
+  - Anteile: Tests
+  - Overrepresentation analysis (OSCC vs MSigDb)
+  - BH, FDR, p-Werte
+  - scRNA-Seq
+  - maybe lm
+-->
 
 <!--    
 - [Inferenz zu Anteilen](binom.html)
@@ -119,7 +134,7 @@ Zur Zulassung zur Klausur ist erforderlich, dass Sie zu zumindest einigen Hausau
 
 Ein An- oder Abmeldung ist nicht erforderlich: Sie gelten automatische als angemeldet, wenn Sie zur Klausur antreten. Wenn Sie nicht zur Klausur kommen, gelten Sie nicht als angemeldet, d.h. dies gilt nicht als Fehlversuch.
 
-Eine Nachklausur wird voraussichtlich kurz vor Ende der vorlesungsfreien Zeit angeboten werden.
+Eine Nachklausur wird kurz vor Ende der vorlesungsfreien Zeit (voraussichtlich 9. April) angeboten werden.
 
 ## Weitere Links
 

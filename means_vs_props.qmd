@@ -1,0 +1,194 @@
+---
+title: "Vergleichende Übersicht Mittelwerte und Anteile"
+editor: visual
+---
+
+Das übliche Setting in unsere Beispielen zu statisischen Tests ist, dass wir Stichproben untersuchen, die aus mehreren "statischen Einheiten" oder "Instanzen" bestehen, die zufällig aus einer Grundgesamtheit gezogen wurden. Eine "statische Einheit" ist z.B. ein Proband, ein Versuchstier, eine Blutprobe, manchmal auch eine Zelle.
+
+Fast alle unsere Beispiele fallen in eine der folgenden zwei Kategorien:
+
+Entweder: (A) Für jede statische Einheit wird ein kontinuierlicher Wert ermittelt (z.B. Körpergröße des Probanden). Wir fragen nach dem **Mittelwert** dieser Werte.
+
+Oder: (B) Für jede statistische wird eine Ja/Nein-Frage beantwortet (z.B. Tier ist von Parasiten befallen oder nicht). Wir fragen nach dem **Anteil** der Einheiten mit Ergebnis "Ja" unter allen Anteilen.
+
+Wir stellen unsere Methoden zusammen
+
+### Konfidenzintervall für Schätzwert
+
+für (A): Wir möchten wissen, wie genau der Mittelwert der Stichprobe am Mittelwert der Grundgesamtheit liegt.
+
+für (B): Wir möchten wissen, wie genau der Anteil der Ja-Instanzen in der Stichprobe am Anteil in der Grundgesamtheit liegt.
+
+In beiden Fällen möchten wir ein Konfidenzintervall für den aus der Stichprobe ermittelten Schätzwert.
+
+#### KI für Mittelwert
+
+Beispieldaten für Stichprobe, aus Grundgesamtheit mit Mittelwert 10:
+
+```{r}
+x <- rnorm( 25, mean=10, sd=3 )
+x
+```
+
+Stichproben-Mittelwert:
+
+```{r}
+mean(x)
+```
+
+Konfidenzintervall hierzu:
+
+```{r}
+t.test(x)
+```
+Beachte: Wir verwenden die t.test-Funktion *nur*, weil sie auch ein KI berechnet. Der p-Wert ist hier bedeutungslos.
+
+**Näherung für große Stichproben**: Wenn die Anzahl der Werte nicht zu klein ist, können wir auch mit der SEM-Formel arbeiten, wie folgt:
+
+Standardfehler des Mittelwerts (standard error of the mean, SEM): $\text{SEM}=\text{SD}/\sqrt{n}$.
+
+Hier:
+
+```{r}
+sem <- sd(x) / sqrt(length(x))
+sem
+```
+
+Ein 95%-KI erhalten wir (gemäß 68-95-99.7-Regel) als $\text{Schätzwert}\pm2\cdot\text{SEM}$:
+
+```{r}
+c( mean(x) - 2*sem,
+   mean(x) + 2*sem )
+```
+
+Es liegt nahe am exakten KI, dass `t.test` berechnet hat.
+
+
+#### KI für Anteil
+
+Beispiel für Stichprobe: In der Grundgesamtheit sind 5% der Einheiten positiv. Unsere
+Stichprobe umfasst 120 Einheiten, davon sind 8 positiv.
+
+Anteil in der Stichprobe, als Punktschätzer für den Anteil in der Grundgesamtheit:
+
+```{r}
+binom::binom.wilson( 8, 120 )
+```
+
+Alternativ können wir auch die `binom.test`-Funktion verwenden (und wieder den p-Wert ignorieren):
+
+```{r}
+binom.test( 8, 120 )
+```
+
+Das das KI etwas anders ist, liegt daran, dass `binom.test` nicht die Methode von Wilson verwendet, sondern die von Pearson-Clopper (auch "exact" genannt), die etwas konservativer ist.
+
+**Näherung für kleine Anteile**: Wenn der Anteil der positiven Einheiten in der Stichprobe klein ist (aber es dennoch mehr als 10 oder so positive Einheiten gibt) dann kann man die Poisson-Formel verwenden:
+
+Wir schreiben $n$ für die Anzahl der Einheiten in der Stichprobe und $k$ für die Anzahl der positiven Einheiten.
+
+- Schätzwert für den Anteil: $k/n$
+- Standardfehler für den geschätzten Anteil: $\sqrt{k}/n$
+
+Wir subtrahieren oder addieren wieder 2 Standardfehler, um ein 95%-KI zu erhalten:
+
+```{r}
+c( 8/120 - 2 * sqrt(8)/120,
+   8/120 + 2 * sqrt(8)/120 )
+```
+
+Die KIs stimmen nur grob überein, da der geschätze Anteil (6.7%) hier doch etwas zu groß ist für die Poisson-Näherung.
+
+### Vergleich einer Stichprobe zu einer theoretischen Erwartung
+
+#### für Mittelwerte
+
+Wir möchten wissen, ob der Mittelwert der Stichprobe signifikant von einem vorgegebenen Wert abweicht.
+
+*Beispiel:* Für einen Stoff soll festgestellt werden, ob er als Dünger für Weizen wirkt. Dazu wird auf 10 Feldern Weizen ausgesäht und die Felder dann in je 2 Hälften aufgeteilt ("split-plot design"), von denen auf einer Hälfte der Dünger ausgebracht wird, auf der anderen nicht. Die Ernte-Erträge der beiden Hälften werden bestimmt und voneinander abgezogen, so dass wir eine Differenz pro Feld erhalten. Ist die Differenz im Mittel 0?
+
+Erzeuge Beispieldaten:
+
+```{r}
+# Ertrag auf ungedüngtem Feld:
+x0 <- rnorm( 10, mean=1000, sd=80 )
+
+# Effekt des Düngers (keienr, daher im Mittel 0) addieren, 
+# um den Ertrag im gedüngten Feld zu erhalten
+x1 <- x0 + rnorm( 10, mean=0, sd=30 )
+```
+
+Bestimme Differenz, führe Test durch:
+
+```{r}
+t.test( x1 - x0 )
+```
+
+Anmerkung: Dieser sog. "Einstichproben-t-Test" ist, auf Differenzen angewendet,
+dasselbe wie ein gepaarter t-Test:
+
+```{r}
+t.test( x1, x0, paired=TRUE )
+```
+
+#### für Anteile
+
+Wir untersuchen  Vogelnestern und zählen 43 weibliche und 62 männliche Nestlinge. Liegt eine Abweichung von der erwarten 50:50-Verteilung vor?
+
+```{r}
+binom.test( 43, 43+62, 0.5 )
+```
+
+### Vergleich zweier Stichproben
+
+#### für Mittelwerte
+
+Beispiel: Wir testen wieder Weizen-Dünger, diesmal ohne Split-Plot-Design. Die Erträge der
+10 Felder ohne Dünger sind
+
+```{r}
+x0 <- rnorm( 10, 1000, 80 )
+```
+
+und die der 15 Felder mit Dünger
+
+```{r}
+x1 <- rnorm( 10, 1100, 80 )
+```
+
+Wir vergleichen die Mittelwerte der beiden Stichproben mit einem t-Test:
+
+```{r}
+t.test( x0, x1 )
+```
+
+#### für Anteile
+
+*Beispiel:* Die linksrheinische Schörkelschnecke weist an ihrer Schale einen eigenwilligen Schnörkelhaken auf, der aber bei einigen Schnecken nicht ausgebildet ist. Wir vermuten, dass dieser Haken eine Infektion mit der Schnörkelschnecken-Laus erschwert. Um diese Hypothese zu prüfen, sammeln wir Schnecken mit und ohne Schnörkelhaken und untersuchen sie auf Schnörkelschneckenlaus-Befall. 
+
+Wir erhalten folgende Vier-Felder-Tafel:
+
+```{r}
+rbind( mit_Haken = c( befallen = 46, frei = 345 ), ohne_Haken = c( 18, 49) ) -> ctbl
+
+ctbl
+```
+
+Wir betrachten die Schnecken mit Haken als die eine Stichprobe und die ohne Haken als die andere Stichprobe.
+Die Anteile sind:
+
+```{r}
+ctbl["mit_Haken","befallen"] / sum( ctbl["mit_Haken",] )
+
+ctbl["ohne_Haken","befallen"] / sum( ctbl["ohne_Haken",] )
+```
+
+Die Signifikanz dieses Unterschieds testen wir mit dem Fisher-Test:
+
+```{r}
+fisher.test( ctbl )
+```
+
+### Mischfälle
+
+[...]

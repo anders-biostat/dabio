@@ -1,0 +1,137 @@
+---
+title: "Konfidenzintervalle und Tests für Anteile"
+---
+
+### Konfidenzintervalle für Anteile
+
+*Beispiel:* In einem Waldstück sind $p=24\%$ aller Wühlmäuse vom Wühlmaus-Floh befallen. Wir wissen diesen Wert nicht, möchten ihn aber herausfinden. Wir fangen $n=30$ Wühlmäuse.
+Hier ist die Verteilung für die Anzahl *k* der Wühlmäuse mit Flöhen:
+
+```{r}
+plot( 0:30, dbinom( 0:30, 30, .24 ), type="h" )
+```
+
+Wir werden also wahrscheinlich bei irgendwo zwischen 3 und 12 unserer 30 gefangenen Wühlmäuse Flöhe finden.
+
+Tatsächlich ist die Aufgabe in der Praxis aber meist anders herum:
+
+*Beispiel:* Wir möchten ermitteln, welcher Anteil der Wühlmäuse in einem gegebenen Waldstück vom Wühlmaus-Floh
+befallen ist. Wir fangen $n=30$ Wühlmäuse; von diesen haben $k=10$ Wühlmäuse Flöhe. 
+
+Wir schätzen den Anteil auf $\hat p=10/30=0,\!33$ (Punktschätzung). Wir fragen uns, wie nah dieser Schätzwert wohl am nahen Wert liegt.
+
+Welche wahren Werte $p$ könnten plausiblerweise zu unserer Beobachtung (10 von 30 Wühlmäusen befallen) passen? Für welche wahren Werte $p$
+hätte das Histogramm von oben ein nicht vernachlässigbares Gewicht auf $k=10$?
+
+Die Funktion `binom.confint` aus dem Paket `binom` bietet mehrere Methoden an, um Kofidenzintervalle zu berechnen, die diese Frage beantworten:
+
+```{r}
+binom::binom.confint( 10, 30, conf.level=0.95 )
+```
+Meist wählt man die Methode von Wilson:
+
+```{r}
+binom::binom.wilson( 10, 30 )
+```
+
+Interpretation: Wenn wir häufig Anteile schätzen und dabei stets 95%-Konfidenzintervalls berechnen, so wird in 95% der Fälle der wahre Wert im Interval liegen.
+
+### Binomielle Konfidenzintervalle und Poisson-Rauschen
+
+Wenn die Anteile sehr klein, die Anzahl aber nicht zu klein ist, dann kann man auch mit der Poisson-Verteilung arbeiten.
+
+*Beispiel:* Wir möchten für eine Blutprobe ermitteln, welcher Anteil der T-Zellen zum Subtyp γδ-T-Zellen gehört. Wir färben die Zellen mit flourophor-konjugierten Antikörpern ein. Ein Antikörper gegen CD3 mit grünem Flourophor lässt alle T-Zellen grün erscheinen. Ein Antikörper gegen den γδ-TCR fügt γδ-T-Zellen rote Farbe hinzu, so dass diese gelb erscheinen. Wir benutzen ein Durchfluss-Zytometer (flow cytometer), um die Zellen zu zählen. 
+
+Wir zählen $n=23512$ T-Zellen (grüner Marker). Von diesen haben $k=113$ Zellen auch den roten Marker, sind also γδ-T-Zellen. Bestimme ein 95%-Konfidenzintervall für den Anteil der γδ-T-Zellen unter allen T-Zellen.
+
+Weg 1:  Konfidenzintervall für Binomial-Verteilung:
+
+```{r}
+binom::binom.wilson( 113, 23512 )
+```
+
+Wir erhalten: 0.40% bis 0.58%.
+
+Weg 2: Konfidenzvall aus Poisson-Standardabweichung:
+
+Der Punktschätzer für den Anteil ist $\hat p=k/n=0.0048$. Für poisson-verteiltes $k$ erwarten wir bei $k=113$ eine Standardabweichung von $\sqrt{k}=10.6$, was einem Standardfehler für $\hat p$ von $\sigma_p=\sqrt{k}/n=0.00045$ entspricht. Nach der 68-95-99.7-Regel erhalten wir ein 95%-KI, wenn wir den 2-fachen Standardfehler um den Wert legen ($\hat p \pm 2\sigma_p$), also 
+
+```{r}
+c( ( 113 - 2 * sqrt(113) ) / 23512,
+   ( 113 + 2 * sqrt(113) ) / 23512 )
+```
+
+Wir erhalten: 0.39% bis 0.57%, also fast dasselbe
+
+Faustregel: Die Poisson-Verteilung ist eine gute Näherung für die Binomial-Verteilung, wenn $p$ klein ist (höchstens einige Prozent) und $k$ nicht zu klein ist (mehr als vielleicht 10).
+
+Manchmal ist nur die Poisson-Variante möglich, weil $n$ nicht bekannt ist, wie im folgenden Beispiel:
+
+*Beispiel:* Wir möchten die Konzentration an Leukozyten in einer Blutprobe bestimmen. Mit Hilfe einer Zählkammer zählen wir ein Volumen von 0.03 µl aus; wir zählen 113 Zellen, und ermitteln die Leukozytenzahl somit zu 113/0.03 = 3767 Zellen/µl. Wie genau ist diese Zahl?
+
+Rechnung mit Poisson-Rauschen: Die Standardabweichung der Anzahl ist $\sqrt{113}=10.6$, das entspricht einer Konzenteration von 10.6/0.03 = 353 Zellen/µl. Dies ist der Standardfehler der ermittelten Leukozyten-Konzentration. Ein 95%-KI erhält man durch Verdoppeln des Standardfehlers ($3767\pm2\cdot 353$). Wir erhalten: 3061 bis 4473 Zellen/µl.
+
+###  Binomiale Tests
+
+Manchmal möchte man testen, ob eine Beobachtung von einer theoretischen Erwartung für einen Anteil abweicht.
+
+*Beispiel:* [Fishers Prinzip](https://en.wikipedia.org/wiki/Fisher%27s_principle) lässt erwarten, dass die beide Geschlechter gleich häufig geboren werden. Wir untersuchen  Vogelnestern und zählen 43 weibliche und 62 männliche Nestlinge. Liegt eine Abweichung von Fishers Prinzip vor?
+
+Wir betrachten das 95%-KI:
+
+```{r}
+binom::binom.wilson( 43, 43+62 )
+```
+
+Mit einem Binomialtest können wir auch direkt einen p-Wert erhalten:
+
+```{r}
+binom.test( 43, 43+62, 0.5 )
+```
+
+### Vergleich zweier Anteile
+
+Oft möchte man einen beobachteten Anteil nicht mit einer theoretischen Erwartung, sondern mit einer anderen Beobachtung vergleichen.
+
+*Beispiel:* Die linksrheinische Schörkelschnecke weist an ihrer Schale einen eigenwilligen Schnörkelhaken auf, der aber bei einigen Schnecken nicht ausgebildet ist. Wir vermuten, dass dieser Haken eine Infektion mit der Schnörkelschnecken-Laus erschwert. Um diese Hypothese zu prüfen, sammeln wir Schnecken mit und ohne Schnörkelhaken und untersuchen sie auf Schnörkelschneckenlaus-Befall. 
+
+Wir erhalten folgende Tabelle (genannt eine "contingency table" oder "Kreuz-Tabelle", oder auch "Vier-Felder-Tafel")
+
+```{r}
+rbind( mit_Haken = c( befallen = 46, frei = 345 ), ohne_Haken = c( 18, 49) ) -> ctbl
+
+ctbl
+```
+
+Wir können R die Rand-Summen anfügen lassen:
+
+```{r}
+ctblm <- addmargins( ctbl )
+ctblm
+```
+
+Wir bestimmen die 95%-KIs für den Anteil verlauster Schnecken unter den beiden Subtypen:
+
+```{r}
+binom::binom.wilson( ctblm["mit_Haken","befallen"], ctblm["mit_Haken","Sum"])
+
+binom::binom.wilson( ctblm["ohne_Haken","befallen"], ctblm["ohne_Haken","Sum"])
+```
+
+
+Die KIs überlappen sich nicht.
+
+Auch hier gibt es wieder einen Test, der direkt einen p-Wert liefert: Fishers Test
+
+```{r}
+fisher.test( ctbl )
+```
+
+Dieser Test wird oft als "Fishers exakter Test" bezeichnet, weil er Pearson's
+Chi-Quadrat-Test ersetzt, der für kleine Zahlen ungenau ist, aber sich auch ohne Computer
+(also mit Tabellen) berechnen lässt.
+
+```{r}
+chisq.test( ctbl )
+```
+
