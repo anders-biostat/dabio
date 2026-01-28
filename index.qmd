@@ -72,10 +72,12 @@ Wintersemester 2025/26
   - [Explorative Analyse der Evo-Devo-Maus-Daten](mouse_first_look.html)
   - [Übungsaufgabe zu den Mausdaten](HA_rnaseq_1.html) (mit Lösung)
   - [Hausaufgabe](hausaufgabe_maus_dge.html) -- [Lösung](HA_rnaseq_Muster.html)
+  - [Beispiel einer Analyse mit DESeq2](https://papagei.bioquant.uni-heidelberg.de/simon/dabio23/deseq.html) (vom Vorjahr)
 - weiteres zur Inferenz
   - Poisson-Verteilung und Zähl-Rauschen (Material aus dem Vorjahr): [Teil 1](poisson.html) und [Teil 2](poisson2.html)
   - [Konfidenzintervalle und Tests für Anteile](props_ci_tests.html)
   - [Vergleichende Übersicht Mittelwerte und Anteile](means_vs_props.html)
+  - [Hausaufgabe](ha_binci_stim.html) zum 27.1.
 
 
 <!--

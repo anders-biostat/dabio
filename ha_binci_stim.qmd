@@ -1,0 +1,78 @@
+---
+title: "Hausaufgabe zum 27.1."
+---
+
+## Aufgabe 1: Anteile mit NHANES
+
+Laden Sie die NHANES-Daten. Zählen Sie, getrennt nach Ethnie und Geschlecht, wie 
+viele erwachene Probanden in der Tabelle vorliegen, und wie viele einen BMI über 
+30 haben. Berechnen Sie dann füë jede Gruppe den Anteil Übergewichtiger und
+das zugehörige binomische Konfidenzintervall. Stellen Sie das Ergebnis als 
+Säulendiagram mit Fehlerbalken dar.
+
+
+## Aufgabe 2: RNA-Seq mit stimulierten T-Zellen
+
+In dieser Aufgabe verwenden wir Daten aus derselben Studie, aus der auch die 
+Daten zur Aufgabe "Killing-Assay" stammen. Wie Sie sich erinnern, wurde u.a.
+Blut von drei gesunden Spendern verwendet, aus dem mittels FACS die T-Zellen
+extrahiert und dann in Kultur vermehrt wurden.
+
+Als Teil der Studie wurde auch untersucht, wie die T-Zellen der drei gesunden 
+Spender auf Stimulation mit αCD3 reagieren. αCD3, also eine Antikörper gegen CD3
+bindet an den T-Zell-Co-Rezeptor (CD3) und aktiviert so die T-Zellen.
+
+Jede der drei Kulturen wurde in zwei Aliquots aufgeteilt. Zu einem wurde αCD3
+zugegeben, zum anderen nicht. Nach 2 Stunden wurden alle sechs Proben 
+durch RNA-Sequenzierung analysiert.
+
+[Hier](data/tcell_stim_counts.tsv) ist die Count-Matrix mit dem Ergebnis. Die ersten 7 Zeilen sind wie folgt:
+
+```
+gene_id         D1_no D1_2h D2_no D2_2h D3_no D3_2h
+ENSG00000279928     1     5     0     0     5     1
+ENSG00000228037    23    30    30    29    26    24
+ENSG00000142611     2     0     0     0     0     0
+ENSG00000284616     0     0     0     0     0     0
+ENSG00000157911   219   189   445   296   195   195
+ENSG00000260972     0     0     0     0     0     0
+```
+
+Die Proben (Spaltennamen) setzen sich aus der ID des Spenders (`D1`, `D2` oder
+`D3`) zusammen und der Behandlung (`no` für keine Stimulation, `2h` für 2 Stundent
+Stimulation mit αCD3).
+
+Analysieren Sie die Daten, um herauszufinden, welche Gene auf die Stimulation besonders
+stark reagieren.
+
+Wenn Sie mit DESeq2 arbeiten möchten, können Sie sich an [diesem Beispiel](https://papagei.bioquant.uni-heidelberg.de/simon/dabio23/deseq.html)
+orientieren, das wir auch in der Vorlesung besprochen haben.
+
+Dennoch auch hier eine Anleitung in mehreren Schritten:
+
+*Schritt 1:* Laden Sie die Count-Matrix. Legen Sie eine Probentabelle an. Diese sollte
+drei Spalten haben: `sample` für die Proben-Bezeichnung (also die Spaltenüberschrift in
+der Count-Matrix), `donor` für den Spender (also `D1`, `D2` oder `D3`) und `stim` für
+die Behandlung der Probe (`no` oder `2h`).
+
+*Schritt 2:* Erstellen Sie ein DESeqDataSet object mit `DESeqDataSetFromMatrix`, wie
+im o.g. Beispiel gezeigt: Das erste Argument ist die Count-Matrix (als Matrix, nicht als Tabelle; 
+siehe den Code mit `as.matrix` im Beispiel), das zweite die Proben-Tabelle von eben, das 
+dritte die sog. Design-Formel. Diese enthält diesemal den Namen zweier Spalten der
+Probentabelle und lautet: `~ donor + stim` (Was das genau bedeutet,
+besprechen wir in der Übung)
+
+*Schritt 3:* Wenden Sie die Funktion `DESeq` auf das DESeqDataSet-Objekt an, um die Analyse
+durchzuführen.
+
+*Schritt 4*: Wenden Sie `results` auf das Ergebnis des vorigen Schritts an. Überprüfen Sie
+ob das angezeigte Ergebnis wirklich den Kontrast (d.h. Vergleich) von `2h` und `no`
+darstellt. Dies ist am Anfang der Ausgabe vermerkt.
+
+*Schritt 5*: Stellen Sie das Ergebnis graphisch als MA-Plot dar (mit `plotMA`). 
+
+*Schritt 6*: Finden Sie die Namen der Gene, die durch das αCD3 besonders stark 
+hoch-reguliert wurden. (Verwenden Sie dazu wieder die Tabelle mit dem Mapping der
+Ensembl-Gen-IDs auf Gen-Symbole, die wir von BioMart herunter geladen hatten.)
+
+Schlagen Sie für einige dieser Gene nach, was über sie bekannt ist.
